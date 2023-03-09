@@ -1,23 +1,25 @@
 import express from "express";
 import ViteExpress from "vite-express";
-import { Server } from "socket.io"
-import ffmpeg from 'fluent-ffmpeg'
+import { Server } from "socket.io";
+import ffmpeg from 'fluent-ffmpeg';
 import { startAudioStream } from "./audioStream";
 import { configMediaServer } from "./configMediaServer";
-import NodeMediaServer from 'node-media-server'
+import NodeMediaServer from 'node-media-server';
+import cookieParser from 'cookie-parser'
 
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 ffmpeg.setFfmpegPath(ffmpegPath);
 
 const app = express();
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
+app.use(cookieParser())
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-startAudioStream()
+startAudioStream();
 
-const RTMPconfig = configMediaServer(ffmpegPath)
-const nms = new NodeMediaServer(RTMPconfig)
-nms.run()
+const RTMPconfig = configMediaServer(ffmpegPath);
+const nms = new NodeMediaServer(RTMPconfig);
+nms.run();
 
 const server = ViteExpress.listen(app, 3000, () =>
   console.log("Server is listening on port 3000...")
