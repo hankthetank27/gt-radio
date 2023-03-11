@@ -7,8 +7,8 @@ interface props{
 }
 
 function StreamPlayer({
-   src 
-}: props ){
+  src 
+}: props){
 
   const hlsVideo = createRef<HTMLVideoElement>()
 
@@ -67,7 +67,7 @@ function StreamPlayer({
         hls.destroy();
       }
     };
-  }, [testTearDown])
+  }, [ testTearDown ])
 
   function checkHlsSupport(){
     if (Hls.isSupported()){

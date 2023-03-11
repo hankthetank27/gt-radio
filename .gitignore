@@ -12,6 +12,7 @@ dist
 dist-ssr
 *.local
 media
+test.mp3
 
 # Editor directories and files
 .vscode/*

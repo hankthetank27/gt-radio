@@ -5,6 +5,7 @@ import { configMediaServer } from "../server/configMediaServer";
 import { v4 as uuid } from 'uuid'
 
 const nmsPort = configMediaServer('dummyInput').http.port;
+const streamsListAPI = `http://localhost:${nmsPort}/api/streams`;
 
 function App() {
 
@@ -15,7 +16,7 @@ function App() {
   }, [])
 
   function getLiveStreams(){
-    fetch(`http://localhost:${nmsPort}/api/streams`)
+    fetch(streamsListAPI)
       .then(res => res.json())
       .then(streams => {
         if (streams.live){
@@ -24,7 +25,9 @@ function App() {
           setLiveStreams(hlsAPIs)
         }
       })
-      .catch(err => console.log(err))
+      .catch(err => 
+        console.error(`ERROR: could not get streams list from ${streamsListAPI}:  ${err}`)
+      )
   }
 
   return (
