@@ -3,14 +3,17 @@ import ViteExpress from "vite-express";
 import { Server } from "socket.io";
 import ffmpeg from 'fluent-ffmpeg';
 import { startAudioStream } from "./audioStream";
-import { configMediaServer } from "./configMediaServer";
+import { configMainStream } from "./configMainStream";
 import NodeMediaServer from 'node-media-server';
-import cookieParser from 'cookie-parser'
+import cookieParser from 'cookie-parser';
+import dotenv from 'dotenv'
+
+dotenv.config();
 
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
 ffmpeg.setFfmpegPath(ffmpegPath);
 
-const RTMPconfig = configMediaServer(ffmpegPath);
+const RTMPconfig = configMainStream(ffmpegPath);
 const nms = new NodeMediaServer(RTMPconfig);
 nms.run();
 

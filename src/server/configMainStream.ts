@@ -1,4 +1,4 @@
-export function configMediaServer(ffmpegPath: string){
+export function configMainStream(ffmpegPath: string){
   const config = {
     rtmp: {
         port: 1935,
@@ -25,6 +25,9 @@ export function configMediaServer(ffmpegPath: string){
           dashKeep: true // to prevent dash file delete after end the stream
         }
       ]
+    },
+    mediaServer: {
+      idleTimeout: 0 //prevents stream from closing...
     }
   };
   return config

@@ -1,10 +1,10 @@
 import "./App.css";
 import { useEffect, useState } from "react";
 import StreamPlayer from "./components/StreamPlayer";
-import { configMediaServer } from "../server/configMediaServer";
+import { configMainStream } from "../server/configMainStream";
 import { v4 as uuid } from 'uuid'
 
-const nmsPort = configMediaServer('dummyInput').http.port;
+const nmsPort = configMainStream('dummyInput').http.port;
 const streamsListAPI = `http://localhost:${nmsPort}/api/streams`;
 
 function App() {
