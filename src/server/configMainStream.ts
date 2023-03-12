@@ -27,7 +27,7 @@ export function configMainStream(ffmpegPath: string){
       ]
     },
     mediaServer: {
-      idleTimeout: 0 //prevents stream from closing...
+      idleTimeout: 120
     }
   };
   return config

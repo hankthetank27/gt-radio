@@ -1,4 +1,4 @@
-import readline from 'readline'
+import readline from 'readline';
 import ytdl from "ytdl-core";
 import ffmpeg from 'fluent-ffmpeg';
 import { PassThrough } from "node:stream";
@@ -7,8 +7,9 @@ import { PassThrough } from "node:stream";
 export function startAudioStream(): void{
 
   const mainStream: PassThrough = createStream(1024 * 512);
-  queueAudioToStream(mainStream);
 
+  queueAudioToStream(mainStream);
+  
   ffmpeg(mainStream)
     .inputOptions([
       '-re'
@@ -30,40 +31,36 @@ function createStream(bufferSize: number): PassThrough{
   const stream = new PassThrough({
     highWaterMark: bufferSize
   });
-  stream._destroy = () => { stream.destroyed = true; };
   return stream;
 };
 
 
-async function queueAudioToStream(stream: PassThrough): Promise<PassThrough>{
+async function queueAudioToStream(stream: PassThrough): Promise<void>{
 
-  const oneSec = 'https://youtu.be/QC8iQqtG0hg';
-  const ref1 = 'https://www.youtube.com/watch?v=hKosaf5tmpI';
-  const ref2 = 'https://youtu.be/5AYvyk2PLI0';
+  const videos = [
+    'https://youtu.be/UT5F9AXjwhg',
+    'https://youtu.be/J1qsrBl_CR0',
+    'https://youtu.be/qepRu565h14'
+  ]
 
   try {
-    await queueSong(oneSec, stream);
-    await queueSong(ref1, stream);
-    await queueSong(ref2, stream);
+    while (true){
+      const idx = Math.floor((Math.random() * videos.length));
+      const song = videos[idx]
+      await queueSong(song, stream);
+    }
   } catch (err){
-    console.error(err)
+    console.error(`Error queueing audio: ${err}`);
   }
 
-  return stream;
-};
-
-
-function showProgress(downloaded: number, processed: number): void{
-  readline.cursorTo(process.stdout, 0);
-  process.stdout.write(`${Math.floor((downloaded) / 1000)}kb downloaded\n`);
-  process.stdout.write(`${processed}kb processed`);
-  readline.moveCursor(process.stdout, 0, -1);
 };
 
 
 function queueSong(src: string, destination: PassThrough): Promise<void>{
     
   return new Promise<void>(async (resolve, reject) => {
+
+    const pass = createStream(1024 * 512);
 
     const { videoDetails } = await ytdl.getBasicInfo(src);
 
@@ -87,7 +84,10 @@ function queueSong(src: string, destination: PassThrough): Promise<void>{
       })
       .on('progress', (p) => {
         tracker.downloaded += p;
-        showProgress(tracker.downloaded, tracker.processed);
+        showProgress(
+          tracker.downloaded,
+          tracker.processed
+        );
       })
       .on('error', (err) => {
         reject(err);
@@ -98,19 +98,43 @@ function queueSong(src: string, destination: PassThrough): Promise<void>{
       .format('mp3')
       .on('progress', (p) => {
         tracker.processed = p.targetSize;
-        showProgress(tracker.downloaded, tracker.processed)
-      })
-      .on('end', () => {
-        console.log(
-          `\n\nCompleted processing in ${(Date.now() - tracker.startTime) / 1000}s`
+        showProgress(
+          tracker.downloaded,
+          tracker.processed
         );
-        resolve();
       })
       .on('error', (err) => {
         console.log('\n\n');
         reject(err);
       })
-      .pipe(destination, { end: false });
+      .pipe(pass);
+
+    // use extra passthorough to manually destroy and prevent 
+    // memory leak caused by end option in call to pipe.
+    pass
+      .on('error', (err) => {
+        pass.destroy();
+        console.log('\n\n');
+        reject(err);
+      })
+      .on('end', () => {
+        console.log(
+          `\n\nCompleted processing in ${(Date.now() - tracker.startTime) / 1000}s`
+        );
+        pass.destroy();
+        resolve();
+      })
+      .pipe(destination, {
+        end: false
+      });
 
   });
+};
+
+
+function showProgress(downloaded: number, processed: number): void{
+  readline.cursorTo(process.stdout, 0);
+  process.stdout.write(`${Math.floor((downloaded) / 1000)}kb downloaded\n`);
+  process.stdout.write(`${processed}kb processed`);
+  readline.moveCursor(process.stdout, 0, -1);
 };
