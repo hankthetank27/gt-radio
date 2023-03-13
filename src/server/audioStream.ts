@@ -12,14 +12,13 @@ export function startAudioStream(): void{
   const mainStream: PassThrough = createStream(400);
 
   queueAudioToStream(mainStream);
-
-  // return mainStream
   
   ffmpeg(mainStream)
     .inputOptions([
       '-re'
     ])
     .outputOption([
+      '-metadata test=testing_metadata',
       '-preset veryfast',
       '-tune zerolatency',
       '-c:a aac',
