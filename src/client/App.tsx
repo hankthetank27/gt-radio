@@ -32,6 +32,9 @@ function App() {
 
   return (
     <div className="App">
+      {/* <audio controls>
+        <source src={`http://localhost:${nmsPort}/live/main.flv`}  type="audio/mpeg"/>
+      </audio> */}
       {liveStreams.map(stream =>
          <StreamPlayer key={uuid()} src={stream}/>
       )}

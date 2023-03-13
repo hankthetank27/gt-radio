@@ -17,7 +17,7 @@ const RTMPconfig = configMainStream(ffmpegPath);
 const nms = new NodeMediaServer(RTMPconfig);
 nms.run();
 
-startAudioStream();
+const stream = startAudioStream();
 
 const app = express();
 app.use(cookieParser())
@@ -25,6 +25,15 @@ app.use(express.json());
 app.use(express.urlencoded({
   extended: true 
 }));
+
+// app.get('/streamAudio.mp3', (req, res) => {
+//   res.set({
+//     'Content-Type': 'audio/mpeg3',
+//     'Transfer-Encoding': 'chunked'
+//   });
+//   stream.pipe(res);
+// })
+
 
 const server = ViteExpress.listen(app, 3000, () =>
   console.log("Server is listening on port 3000...")

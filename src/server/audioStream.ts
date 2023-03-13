@@ -2,13 +2,18 @@ import readline from 'readline';
 import ytdl from "ytdl-core";
 import ffmpeg from 'fluent-ffmpeg';
 import { PassThrough } from "node:stream";
+import { songInfo } from './@types';
+
 
 
 export function startAudioStream(): void{
 
-  const mainStream: PassThrough = createStream(1024 * 512);
+  // highwater mark set to match size of chunk (386byte) as to not overflow buffer and sync info to audio
+  const mainStream: PassThrough = createStream(400);
 
   queueAudioToStream(mainStream);
+
+  // return mainStream
   
   ffmpeg(mainStream)
     .inputOptions([
@@ -28,26 +33,25 @@ export function startAudioStream(): void{
 
 
 function createStream(bufferSize: number): PassThrough{
-  const stream = new PassThrough({
+  return new PassThrough({
     highWaterMark: bufferSize
   });
-  return stream;
 };
 
 
 async function queueAudioToStream(stream: PassThrough): Promise<void>{
 
   const videos = [
-    'https://youtu.be/UT5F9AXjwhg',
-    'https://youtu.be/J1qsrBl_CR0',
-    'https://youtu.be/qepRu565h14'
+    'https://youtu.be/YLslsZuEaNE'
   ]
 
   try {
     while (true){
       const idx = Math.floor((Math.random() * videos.length));
-      const song = videos[idx]
-      await queueSong(song, stream);
+      const src = videos[idx]
+      const basicInfo = await getSongInfo(src);
+      const sizeOfData = await queueSong(src, stream, basicInfo);
+      console.log(sizeOfData)
     }
   } catch (err){
     console.error(`Error queueing audio: ${err}`);
@@ -55,25 +59,25 @@ async function queueAudioToStream(stream: PassThrough): Promise<void>{
 
 };
 
+async function getSongInfo(src: string): Promise<songInfo>{
+  const { videoDetails } = await ytdl.getBasicInfo(src);
+  return {
+    title: videoDetails.title,
+    duration: videoDetails.lengthSeconds,
+    channel: videoDetails.ownerProfileUrl
+  };
+}
 
-function queueSong(src: string, destination: PassThrough): Promise<void>{
+
+function queueSong(src: string, destination: PassThrough, info: songInfo) {
     
-  return new Promise<void>(async (resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
 
-    const pass = createStream(1024 * 512);
-
-    const { videoDetails } = await ytdl.getBasicInfo(src);
-
-    const info = {
-      title: videoDetails.title,
-      duration: videoDetails.lengthSeconds,
-      channel: videoDetails.ownerProfileUrl
-    };
-    
     const tracker = {
       startTime: Date.now(),
       downloaded: 0,
-      processed: 0
+      processed: 0,
+      totalSize: 0
     };
 
     console.log(`Download started... ${info.title}`);
@@ -93,7 +97,7 @@ function queueSong(src: string, destination: PassThrough): Promise<void>{
         reject(err);
       });
     
-    ffmpeg(ytAudio)
+    const transcodeAudio = ffmpeg(ytAudio)
       .audioBitrate(128)
       .format('mp3')
       .on('progress', (p) => {
@@ -106,28 +110,38 @@ function queueSong(src: string, destination: PassThrough): Promise<void>{
       .on('error', (err) => {
         console.log('\n\n');
         reject(err);
-      })
-      .pipe(pass);
+      });
 
-    // use extra passthorough to manually destroy and prevent 
+    // use extra passthorough to manually destroy stream, preventing 
     // memory leak caused by end option in call to pipe.
-    pass
-      .on('error', (err) => {
-        pass.destroy();
-        console.log('\n\n');
-        reject(err);
+    let draining = false;
+    const passToDestination = createStream(1024 * 512)
+      .on('data', (d) => {
+        if (!draining){
+          console.log(`\nnow playing: ${info.title}`);
+          draining = true;
+        }
+        tracker.totalSize += d.length;
       })
       .on('end', () => {
         console.log(
           `\n\nCompleted processing in ${(Date.now() - tracker.startTime) / 1000}s`
         );
-        pass.destroy();
-        resolve();
+        passToDestination.destroy();
+        resolve(tracker.totalSize);
       })
+      .on('error', (err) => {
+        passToDestination.destroy();
+        console.log('\n\n');
+        reject(err);
+      });
+
+
+    transcodeAudio
+      .pipe(passToDestination)
       .pipe(destination, {
         end: false
       });
-
   });
 };
 
