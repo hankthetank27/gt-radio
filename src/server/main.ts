@@ -17,7 +17,7 @@ const RTMPconfig = configMainStream(ffmpegPath);
 const nms = new NodeMediaServer(RTMPconfig);
 nms.run();
 
-startAudioStream();
+startAudioStream('main');
 
 const app = express();
 app.use(cookieParser())

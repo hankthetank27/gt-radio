@@ -13,6 +13,7 @@ function StreamPlayer({
   const hlsVideo = createRef<HTMLVideoElement>()
 
   const [ testTearDown, setTestTearDown ] = useState(0)
+  const [ metaDataDisplay, setMetaDataDisplay ] = useState('')
 
   useEffect(() => {
     let hls: Hls;
@@ -31,15 +32,21 @@ function StreamPlayer({
       }
 
       newHls.on(Hls.Events.MEDIA_ATTACHED, () => {
-        console.log('vid attached')
+        console.log('Media attached')
         newHls.loadSource(src)
   
         newHls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
           hlsVideo.current?.play()
-        })  
+        })
+
       })
-      
-      newHls.on(Hls.Events.ERROR, function (event, data) {
+
+      newHls.on(Hls.Events.FRAG_PARSING_METADATA, (event, data) => {
+        // Access the metadata
+        console.log('Metadata:', data);
+      });
+
+      newHls.on(Hls.Events.ERROR, (event, data) => {
         if (data.fatal) {
           switch (data.type) {
             case Hls.ErrorTypes.NETWORK_ERROR:
