@@ -1,29 +1,43 @@
 import fs from 'node:fs/promises';
+import EventEmitter from 'node:events';
 // @ts-ignore
 import { Parser } from 'm3u8-parser'
 
-export async function displayCurrentSong(mediaPath: string, songInfo: string){
 
-  const segments = await getM3u8Segments(mediaPath);
-  if (!segments){
-    return console.log(`Now playing: ${songInfo}`)
-  };
+export class SongDisplayer extends EventEmitter{
+  mediaPath: string;
+  currentlyPlaying: string;
+  constructor(hlsMediaPath: string){
+    super();
+    this.mediaPath = hlsMediaPath;
+    this.currentlyPlaying = '';
 
-  const leastRecentSegment = segments[segments.length - 1];
-  const hlsWatcher = fs.watch(mediaPath);
-  console.log(segments, leastRecentSegment)
+    this.on('currentlyPlaying', (songInfo) => {
+      this.currentlyPlaying = songInfo;
+    });
+  }
+  async displayCurrentSong(songInfo: string){
 
-  for await (const event of hlsWatcher){
-    const { eventType, filename } = event;
-
-    if (eventType === 'change' && filename.split('.')[1] === 'ts'){
-      const m3u8Manifest = await getM3u8Segments(mediaPath);
-      if (!m3u8Manifest.includes(leastRecentSegment)){
-        return console.log(`Now playing: ${songInfo}`)
+    const segments = await getM3u8Segments(this.mediaPath);
+    if (!segments){
+      return this.emit('currentlyPlaying', songInfo);
+    };
+  
+    const leastRecentSegment = segments[segments.length - 1];
+    const hlsWatcher = fs.watch(this.mediaPath);
+  
+    for await (const event of hlsWatcher){
+      const { eventType, filename } = event;
+  
+      if (eventType === 'change' && filename.split('.')[1] === 'ts'){
+        const m3u8Manifest = await getM3u8Segments(this.mediaPath);
+        if (!m3u8Manifest.includes(leastRecentSegment)){
+          return this.emit('currentlyPlaying', songInfo);
+        };
       };
     };
   };
-};
+}
 
 async function getM3u8Segments(mediaPath: string) {
   const m3u8FilePath = `${mediaPath}/index.m3u8`;

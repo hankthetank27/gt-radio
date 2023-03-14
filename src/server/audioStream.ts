@@ -4,10 +4,10 @@ import ytdl from "ytdl-core";
 import ffmpeg from 'fluent-ffmpeg';
 import { PassThrough } from "node:stream";
 import { songInfo } from './@types';
-import { displayCurrentSong } from './sendMetadata';
+import { SongDisplayer } from './sendMetadata';
 
 
-export function startAudioStream(streamName: string): void{
+export function startAudioStream(streamName: string): SongDisplayer{
 
   const hlsMediaPath = path.resolve(
     __dirname, `../../media/live/${streamName}/`
@@ -15,10 +15,10 @@ export function startAudioStream(streamName: string): void{
 
   // highwater mark set to match size of chunk (386byte)
   // as to not overflow buffer and sync info to audio
+  const songDisplayer = new SongDisplayer(hlsMediaPath);
   const stream: PassThrough = createStream(400);
+  queueAudioToStream(stream, songDisplayer);
 
-  queueAudioToStream(stream, hlsMediaPath);
-  
   ffmpeg(stream)
     .inputOptions([
       '-re'
@@ -33,6 +33,8 @@ export function startAudioStream(streamName: string): void{
       console.error(`Error transcoding stream audio: ${err.message}`);
     })
     .save(`rtmp://localhost/live/${streamName}.flv`);
+
+    return songDisplayer;
 };
 
 
@@ -43,7 +45,7 @@ function createStream(bufferSize: number): PassThrough{
 };
 
 
-async function queueAudioToStream(stream: PassThrough, hlsMediaPath: string): Promise<void>{
+async function queueAudioToStream(stream: PassThrough, songDisplayer: SongDisplayer): Promise<void>{
 
   function queueSong(src: string, basicInfo: songInfo): Promise<void>{
     return new Promise<void>(async (resolve, reject) => {
@@ -92,8 +94,8 @@ async function queueAudioToStream(stream: PassThrough, hlsMediaPath: string): Pr
       const passToDestination = createStream(1024 * 512)
         .on('data', async () => {
           if (!draining){
-            displayCurrentSong(hlsMediaPath, basicInfo.title);
             draining = true;
+            songDisplayer.displayCurrentSong(basicInfo.title);
           };
         })
         .on('end', () => {

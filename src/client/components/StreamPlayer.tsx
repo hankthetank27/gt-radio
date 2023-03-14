@@ -41,11 +41,6 @@ function StreamPlayer({
 
       })
 
-      newHls.on(Hls.Events.FRAG_PARSING_METADATA, (event, data) => {
-        // Access the metadata
-        console.log('Metadata:', data);
-      });
-
       newHls.on(Hls.Events.ERROR, (event, data) => {
         if (data.fatal) {
           switch (data.type) {
