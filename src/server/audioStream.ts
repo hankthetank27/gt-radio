@@ -4,7 +4,7 @@ import ytdl from "ytdl-core";
 import ffmpeg from 'fluent-ffmpeg';
 import { PassThrough } from "node:stream";
 import { songInfo } from './@types';
-import { SongDisplayer } from './sendMetadata';
+import { SongDisplayer } from './songDisplayer';
 
 
 export function startAudioStream(streamName: string): SongDisplayer{
@@ -121,7 +121,7 @@ async function queueAudioToStream(stream: PassThrough, songDisplayer: SongDispla
 
 
   const videos = [
-    'https://youtu.be/YLslsZuEaNE',
+    'https://youtu.be/Vj4Y1c-DSM0',
     'https://youtu.be/qepRu565h14'
   ];
 

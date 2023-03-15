@@ -37,8 +37,8 @@ io.on('connection', (socket) => {
   socket.emit('currentlyPlaying', songDisplayer.currentlyPlaying);
 
   songDisplayer.on('currentlyPlaying', (songData) => {
-    socket.emit('currentlyPlaying', songData)
-  })
+    socket.emit('currentlyPlaying', songData);
+  });
 
   socket.on('disconnect', () => {
     console.log('A client disconnected');

@@ -1,94 +1,107 @@
-import { createRef } from "react";
+import React, { useEffect, useState, createRef, useRef, ReactEventHandler, RefObject } from "react";
 import Hls from "hls.js";
-import { useEffect, useState } from "react";
+import { DisplaySongPlaying } from "./DisplaySongPlaying";
+import 'video.js/dist/video-js.css';
 
 interface props{
   src: string
-}
+};
 
 function StreamPlayer({
   src 
 }: props){
 
-  const hlsVideo = createRef<HTMLVideoElement>()
-
-  const [ testTearDown, setTestTearDown ] = useState(0)
-  const [ metaDataDisplay, setMetaDataDisplay ] = useState('')
+  const audioElement = createRef<HTMLAudioElement>()
+  const [ hlsAudio, setHlsAudio ] = useState<Hls | null>(null);
 
   useEffect(() => {
-    let hls: Hls;
-    
-    function _initPlayer() {
-      if (hls){
-        hls.destroy()
-      }
-  
-      const newHls = new Hls({
-        enableWorker: false
-      })
-
-      if (hlsVideo.current){
-        newHls.attachMedia(hlsVideo.current)
-      }
-
-      newHls.on(Hls.Events.MEDIA_ATTACHED, () => {
-        console.log('Media attached')
-        newHls.loadSource(src)
-  
-        newHls.on(Hls.Events.MANIFEST_PARSED, (event, data) => {
-          hlsVideo.current?.play()
-        })
-
-      })
-
-      newHls.on(Hls.Events.ERROR, (event, data) => {
-        if (data.fatal) {
-          switch (data.type) {
-            case Hls.ErrorTypes.NETWORK_ERROR:
-              newHls.startLoad();
-              break;
-            case Hls.ErrorTypes.MEDIA_ERROR:
-              newHls.recoverMediaError();
-              break;
-            default:
-              _initPlayer()
-              break;
-          }
-        }
-      })
-
-      hls = newHls
-    }
-
     if (Hls.isSupported()) {
-      _initPlayer();
-    }
+      setHlsAudio(_initPlayer(hlsAudio));
+    };
     
     return () => {
-      if (hls != null) {
-        hls.destroy();
-      }
+      if (hlsAudio != null) {
+        hlsAudio.destroy();
+      };
     };
-  }, [ testTearDown ])
+  }, [ src ])
 
-  function checkHlsSupport(){
+
+  function _initPlayer(hls: Hls | null) {
+    if (hls){
+      hls.destroy()
+    };
+
+    const newHls = new Hls({
+      enableWorker: false,
+      lowLatencyMode: true,
+      liveSyncDuration: 3,
+      liveDurationInfinity: true,
+      backBufferLength: 0
+    })
+
+    if (audioElement.current){
+      newHls.attachMedia(audioElement.current);
+    };
+
+    newHls.on(Hls.Events.MEDIA_ATTACHED, () => {
+      console.log('Media attached');
+      newHls.loadSource(src);
+    });
+
+    newHls.on(Hls.Events.ERROR, (_, data) => {
+      if (data.fatal) {
+        switch (data.type) {
+          case Hls.ErrorTypes.NETWORK_ERROR:
+            newHls.startLoad();
+            break;
+          case Hls.ErrorTypes.MEDIA_ERROR:
+            newHls.recoverMediaError();
+            break;
+          default:
+            _initPlayer(hls)
+            break;
+        }
+      }
+    })
+
+    return newHls;
+  };
+
+
+  function setAudioPlaybackPosition(audioElement: RefObject<HTMLAudioElement>){
+    if (audioElement.current && hlsAudio && hlsAudio.liveSyncPosition){
+      audioElement.current.currentTime = hlsAudio.liveSyncPosition;
+    };
+  };
+
+
+  function renderAudioElement(){
     if (Hls.isSupported()){
       return (
-        <video ref={hlsVideo} />
+        <audio
+          ref={audioElement} 
+          onPlay={() => setAudioPlaybackPosition(audioElement)} 
+          controls autoPlay
+        />
       );
     } else {
       return (
-        <video ref={hlsVideo} src={src}/>
+        <audio 
+          ref={audioElement} 
+          src={src} 
+          controls autoPlay
+        />
       )
-    }
-  }
+    };
+  };
 
   return(
-    <div>
-      <button onClick={() => setTestTearDown(testTearDown + 1)}>Play</button>
-      { checkHlsSupport() }
+    <div className="player">
+      <DisplaySongPlaying hlsAudio={hlsAudio}/>
+      { renderAudioElement() }
     </div>
-  )
-}
+  );
+};
 
 export default StreamPlayer;

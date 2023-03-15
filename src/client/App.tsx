@@ -1,19 +1,20 @@
 import "./App.css";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import StreamPlayer from "./components/StreamPlayer";
 import { configMainStream } from "../server/configMainStream";
 import { v4 as uuid } from 'uuid'
-import { socket } from "./socket";
+import { socket, SocketContext } from "./context/socket";
+
 
 const nmsPort = configMainStream('dummyInput').http.port;
 const streamsListAPI = `http://localhost:${nmsPort}/api/streams`;
 
-function App() {
+function App(): JSX.Element{
 
   const [ streamsConnectedTo, setStreamsConnectedTo ] = useState<Set<string>>(new Set())
   const [ liveStreams, setLiveStreams ] = useState<string[][]>([]);
   const [ isConnected, setIsConnected ] = useState(socket.connected);
-  const [ currentlyPlaying, setCurrentlyPlaying ] = useState('')
+
 
   useEffect(() => {
     socket.on('connect', () => {
@@ -26,23 +27,21 @@ function App() {
     socket.on('disconnect', () => {
       setIsConnected(false);
     });
-    socket.on('currentlyPlaying', (songData) => {
-      console.log(songData)
-      setCurrentlyPlaying(songData)
-    });
     return () => {
       socket.off('connect')
       socket.off('disconnect')
     };
-  }, [])
+  }, []);
+
 
   useEffect(() => {
     if (isConnected){
       getLiveStreams();
     };
-  }, [isConnected])
+  }, [ isConnected ]);
 
-  function getLiveStreams(){
+
+  function getLiveStreams(): void{
     fetch(streamsListAPI)
       .then(res => res.json())
       .then(streams => {
@@ -54,29 +53,36 @@ function App() {
       })
       .catch(err => 
         console.error(`ERROR: could not get streams list from ${streamsListAPI}:  ${err}`)
-      )
-  }
+      );
+  };
 
-  function makeStreamUrl(nmsPort: string, stream: string){
+
+  function makeStreamUrl(nmsPort: string, stream: string): string{
     return `http://localhost:${nmsPort}/live/${stream}/index.m3u8`;
   };
 
+
   return (
-    <div className="App">
-      {/* <audio controls>
-        <source src={`http://localhost:${nmsPort}/live/main.flv`}  type="audio/mpeg"/>
-      </audio> */}
-      <div>{currentlyPlaying}</div>
-      {liveStreams.reduce((acc: JSX.Element[], streamInfo) => {
-          const [ nmsPort, stream ] = streamInfo;
-          // if (isConnected && stream in streamsConnectedTo){
-            acc.push(<StreamPlayer key={uuid()} src={makeStreamUrl(nmsPort, stream)}/>);
-          // };
-          return acc;
-        }, [])
-      }
-    </div>
+    <SocketContext.Provider value={socket}>      
+      <div className="App">
+        {liveStreams.reduce((acc: JSX.Element[], streamInfo) => {
+            const [ nmsPort, stream ] = streamInfo;
+            // if (isConnected && stream in streamsConnectedTo){
+              acc.push(
+                <StreamPlayer 
+                  key={uuid()} 
+                  src={makeStreamUrl(nmsPort, stream)}
+                />
+              );
+            // };
+            return acc;
+          }, [])
+        }
+      </div>
+    </SocketContext.Provider>
   );
 }
+
+
 
 export default App;
