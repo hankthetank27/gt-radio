@@ -83,6 +83,16 @@ async function queueAudioToStream(
       // use extra passthorough to manually destroy stream, preventing 
       // memory leak caused by end option in call to pipe.
       const passToDestination = createStream(800);
+      
+      const tracker = {
+        startTime: Date.now(),
+        downloaded: 0,
+        processed: 0,
+        passThroughFlowing: false,
+        ytdlDone: false,
+        transcodeAudioDone: false,
+        passToDestinationDone: false
+      };
 
       function resolveQueue(){
         passToDestination.destroy();
@@ -93,29 +103,30 @@ async function queueAudioToStream(
         passToDestination.destroy();
         reject(err);
       };
+
+      function checkProcessingComplete(
+        tracker: tracker
+      ): boolean{
+        const { ytdlDone, transcodeAudioDone, passToDestinationDone} = tracker;
+        return ytdlDone && transcodeAudioDone && passToDestinationDone;
+      };
   
       console.log(`Download started... ${basicInfo.title}`);
   
-      const tracker = {
-        startTime: Date.now(),
-        downloaded: 0,
-        processed: 0,
-        ytdlDone: false,
-        transcodeAudioDone: false,
-        passToDestinationDone: false
-      };
-  
+
+      // TODO: need to check if there is timeout on DL before getting "aborted" error.
+      // possibly need to store stream in temp file?
       const ytAudio = ytdl(src, {
           quality: 'highestaudio',
           filter: 'audioonly'
         })
-        // .on('progress', (p) => {
-        //   tracker.downloaded += p;
-        //   showProgress(
-        //     tracker.downloaded,
-        //     tracker.processed
-        //   );
-        // })
+        .on('progress', (p) => {
+          tracker.downloaded += p;
+          showProgress(
+            tracker.downloaded,
+            tracker.processed
+          );
+        })
         .on('end', () => {
           tracker.ytdlDone = true;
           if (checkProcessingComplete(tracker)){
@@ -130,13 +141,13 @@ async function queueAudioToStream(
       const transcodeAudio = ffmpeg(ytAudio)
         .audioBitrate(128)
         .format('mp3')
-        // .on('progress', (p) => {
-        //   // tracker.processed = p.targetSize;
-        //   // showProgress(
-        //   //   tracker.downloaded,
-        //   //   tracker.processed
-        //   // );
-        // })
+        .on('progress', (p) => {
+          tracker.processed = p.targetSize;
+          showProgress(
+            tracker.downloaded,
+            tracker.processed
+          );
+        })
         .on('end', () => {
           tracker.transcodeAudioDone = true;
           if (checkProcessingComplete(tracker)){
@@ -147,13 +158,11 @@ async function queueAudioToStream(
           console.log('\n');
           rejectQueue(`Error in queueSong -> transcodeAudio: ${err}`);
         });
-  
 
-      let flowing = false;
       passToDestination
         .on('data', async () => {
-          if (!flowing){
-            flowing = true;
+          if (!tracker.passThroughFlowing){
+            tracker.passThroughFlowing = true;
             songDisplayer.queueDisplaySong(basicInfo.title);
           };
         })
@@ -171,7 +180,7 @@ async function queueAudioToStream(
           console.log('\n');
           rejectQueue(`Error in queueSong -> passToDestination: ${err}`);
         });
-  
+
       transcodeAudio
         .pipe(passToDestination)
         .pipe(stream, {
@@ -183,6 +192,7 @@ async function queueAudioToStream(
 
   while (true){
     try {
+      //TODO: pass additional song info from db to client
       const song = await selectRandomSong(db);
 
       if ( 
@@ -203,13 +213,6 @@ async function queueAudioToStream(
   }
 };
 
-
-function checkProcessingComplete(
-  tracker: tracker
-): boolean{
-  const { ytdlDone, transcodeAudioDone, passToDestinationDone} = tracker;
-  return ytdlDone && transcodeAudioDone && passToDestinationDone;
-}
 
 
 async function getSongInfo(
