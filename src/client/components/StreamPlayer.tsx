@@ -1,14 +1,13 @@
-import React, { useEffect, useState, createRef, useRef, ReactEventHandler, RefObject } from "react";
+import { useEffect, useState, createRef, RefObject } from "react";
 import Hls from "hls.js";
-import { DisplaySongPlaying } from "./DisplaySongPlaying";
-import 'video.js/dist/video-js.css';
+import { CurrentSongDisplay } from "./CurrentSongDisplay";
 
 interface props{
   src: string
 };
 
 function StreamPlayer({
-  src 
+  src
 }: props){
 
   const audioElement = createRef<HTMLAudioElement>()
@@ -24,7 +23,7 @@ function StreamPlayer({
         hlsAudio.destroy();
       };
     };
-  }, [ src ])
+  }, [src])
 
 
   function _initPlayer(hls: Hls | null) {
@@ -38,7 +37,7 @@ function StreamPlayer({
       liveSyncDuration: 3,
       liveDurationInfinity: true,
       backBufferLength: 0
-    })
+    });
 
     if (audioElement.current){
       newHls.attachMedia(audioElement.current);
@@ -98,7 +97,7 @@ function StreamPlayer({
 
   return(
     <div className="player">
-      <DisplaySongPlaying hlsAudio={hlsAudio}/>
+      <CurrentSongDisplay hlsAudio={hlsAudio}/>
       { renderAudioElement() }
     </div>
   );

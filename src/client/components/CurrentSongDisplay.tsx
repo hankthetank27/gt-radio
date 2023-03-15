@@ -6,7 +6,7 @@ interface props{
   hlsAudio: Hls | null
 };
 
-export function DisplaySongPlaying({
+export function CurrentSongDisplay({
   hlsAudio
 }: props): JSX.Element{
 
@@ -15,18 +15,27 @@ export function DisplaySongPlaying({
 
   useEffect(() => {
     socket.on('currentlyPlaying', (songData) => {
+
+      if (!currentlyPlaying){
+        return setCurrentlyPlaying(songData)
+      };
+
       if (hlsAudio){
         setTimeout(() => {
           setCurrentlyPlaying(songData)
-        }, hlsAudio.latency * 1000)
-      }
+        }, hlsAudio.latency * 1000);
+      };
     });
-  }, [ hlsAudio ]);
 
+    if (!currentlyPlaying){
+      socket.emit('fetchCurrentlyPlaying')
+    };
 
-  // function changeSongDisplay(songData){
+    return () => {
+      socket.off('currentlyPlaying')
+    };
+  }, [ currentlyPlaying, hlsAudio ]);
 
-  // }
 
   return(
     <div className="currentlyPlaying">

@@ -1,7 +1,7 @@
 import "./App.css";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import StreamPlayer from "./components/StreamPlayer";
-import { configMainStream } from "../server/configMainStream";
+import { configMainStream } from "../server/nmsConfig";
 import { v4 as uuid } from 'uuid'
 import { socket, SocketContext } from "./context/socket";
 

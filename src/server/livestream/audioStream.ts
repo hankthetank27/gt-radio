@@ -3,14 +3,14 @@ import path from 'path';
 import ytdl from "ytdl-core";
 import ffmpeg from 'fluent-ffmpeg';
 import { PassThrough } from "node:stream";
-import { songInfo } from './@types';
+import { songInfo } from '../@types';
 import { SongDisplayer } from './songDisplayer';
 
 
 export function startAudioStream(streamName: string): SongDisplayer{
 
   const hlsMediaPath = path.resolve(
-    __dirname, `../../media/live/${streamName}/`
+    __dirname, `../../../media/live/${streamName}/`
   );
 
   // highwater mark set to match size of chunk (386byte)
@@ -45,9 +45,16 @@ function createStream(bufferSize: number): PassThrough{
 };
 
 
-async function queueAudioToStream(stream: PassThrough, songDisplayer: SongDisplayer): Promise<void>{
+async function queueAudioToStream(
+    stream: PassThrough,
+    songDisplayer: SongDisplayer
+  ): Promise<void>{
 
-  function queueSong(src: string, basicInfo: songInfo): Promise<void>{
+  function queueSong(
+      src: string,
+      basicInfo: songInfo
+    ): Promise<void>{
+      
     return new Promise<void>(async (resolve, reject) => {
   
       console.log(`Download started... ${basicInfo.title}`);
