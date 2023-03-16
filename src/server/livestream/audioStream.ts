@@ -3,20 +3,10 @@ import path from 'path';
 import ytdl from "ytdl-core";
 import ffmpeg from 'fluent-ffmpeg';
 import { PassThrough } from "node:stream";
-import { songInfo } from '../@types';
+import { songInfo, tracker } from '../@types';
 import { SongDisplayer } from './songDisplayer';
-import { Db } from 'mongodb'
+import { Db, Document } from 'mongodb'
 import { selectRandomSong } from './selectRandomSong';
-
-
-interface tracker {
-  startTime: number;
-  downloaded: number;
-  processed: number;
-  ytdlDone: boolean;
-  transcodeAudioDone: boolean;
-  passToDestinationDone: boolean;
-}
 
 
 export function startAudioStream(
@@ -74,17 +64,16 @@ async function queueAudioToStream(
 ): Promise<void>{
 
   function queueSong(
-    src: string,
-    basicInfo: songInfo
+    songInfo: songInfo
   ): Promise<void>{
       
     return new Promise<void>(async (resolve, reject) => {
 
       // use extra passthorough to manually destroy stream, preventing 
       // memory leak caused by end option in call to pipe.
-      const passToDestination = createStream(800);
+      const passToDestination = createStream(songInfo.length);
       
-      const tracker = {
+      const tracker: tracker = {
         startTime: Date.now(),
         downloaded: 0,
         processed: 0,
@@ -94,68 +83,64 @@ async function queueAudioToStream(
         passToDestinationDone: false
       };
 
-      function resolveQueue(){
+      function resolveQueue(
+        tracker: tracker
+      ): void{
+        const completionTime = Math.round(
+            ((Date.now() - tracker.startTime) / 60000) * 10
+          ) / 10;
+        console.log(`Completed processing in ${completionTime}m`);
         passToDestination.destroy();
         resolve();
       };
 
-      function rejectQueue(err: string){
+
+      function rejectQueue(
+        err: string
+      ): void{
         passToDestination.destroy();
         reject(err);
       };
 
+
       function checkProcessingComplete(
         tracker: tracker
       ): boolean{
-        const { ytdlDone, transcodeAudioDone, passToDestinationDone} = tracker;
-        return ytdlDone && transcodeAudioDone && passToDestinationDone;
+
+        const { 
+          ytdlDone, 
+          transcodeAudioDone, 
+          passToDestinationDone
+        } = tracker;
+
+        return(
+          ytdlDone &&
+          transcodeAudioDone &&
+          passToDestinationDone
+        );
       };
   
-      console.log(`Download started... ${basicInfo.title}`);
-  
+      console.log(`Download started... ${songInfo.title}`);
 
-      // TODO: need to check if there is timeout on DL before getting "aborted" error.
-      // possibly need to store stream in temp file?
-      const ytAudio = ytdl(src, {
-          quality: 'highestaudio',
-          filter: 'audioonly'
-        })
-        .on('progress', (p) => {
-          tracker.downloaded += p;
-          showProgress(
-            tracker.downloaded,
-            tracker.processed
-          );
+      const ytAudio = ytdl(songInfo.src, {
+          filter: format => format.itag === songInfo.itag
         })
         .on('end', () => {
           tracker.ytdlDone = true;
-          if (checkProcessingComplete(tracker)){
-            resolveQueue();
-          };
+          console.log('Downloading complete...')
         })
         .on('error', (err) => {
-          console.log('\n');
           rejectQueue(`Error in queueSong -> ytAudio: ${err}`);
         });
       
       const transcodeAudio = ffmpeg(ytAudio)
         .audioBitrate(128)
         .format('mp3')
-        .on('progress', (p) => {
-          tracker.processed = p.targetSize;
-          showProgress(
-            tracker.downloaded,
-            tracker.processed
-          );
-        })
         .on('end', () => {
           tracker.transcodeAudioDone = true;
-          if (checkProcessingComplete(tracker)){
-            resolveQueue();
-          };
+          console.log('Transcoding complete...')
         })
         .on('error', (err) => {
-          console.log('\n');
           rejectQueue(`Error in queueSong -> transcodeAudio: ${err}`);
         });
 
@@ -163,21 +148,20 @@ async function queueAudioToStream(
         .on('data', async () => {
           if (!tracker.passThroughFlowing){
             tracker.passThroughFlowing = true;
-            songDisplayer.queueDisplaySong(basicInfo.title);
+            songDisplayer.queueDisplaySong(songInfo.title);
           };
         })
         .on('end', () => {
-          console.log(
-            `\n\nCompleted processing in ${(Date.now() - tracker.startTime) / 60000}m`
-          );
           tracker.passToDestinationDone = true;
           if (checkProcessingComplete(tracker)){
-            resolveQueue();
+            resolveQueue(tracker);
+          } else {
+            rejectQueue(`Error in queueSong. 
+              passToDestination completed before audio transcoding finsished.`
+            );
           };
         })
         .on('error', (err) => {
-          passToDestination.destroy();
-          console.log('\n');
           rejectQueue(`Error in queueSong -> passToDestination: ${err}`);
         });
 
@@ -192,54 +176,49 @@ async function queueAudioToStream(
 
   while (true){
     try {
-      //TODO: pass additional song info from db to client
+
       const song = await selectRandomSong(db);
+      const songInfo = await getSongInfo(song);
 
-      if ( 
-        !song ||
-        !song.link ||
-        ytdl.validateID(song.link)
-      ) continue;
+      if (!songInfo) continue;
 
-      const basicInfo = await getSongInfo(song.link);
-
-      if (!basicInfo) continue;
-
-      await queueSong(song.link, basicInfo);
+      await queueSong(songInfo);
 
     } catch (err){
       console.error(`Error queueing audio: ${err}`);
     };
-  }
+  };
 };
-
 
 
 async function getSongInfo(
-  src: string
-): Promise<songInfo | undefined>{
+  src: Document | null
+): Promise<songInfo | null>{
 
-  try {
-    const { videoDetails } = await ytdl.getBasicInfo(src);
-  
-    return {
-      title: videoDetails.title,
-      duration: videoDetails.lengthSeconds,
-      channel: videoDetails.ownerProfileUrl
-    };
-  } catch (err){
-    console.error(`Error getting song info: ${err}`)
-  }
+  if ( 
+    !src ||
+    !src.link ||
+    ytdl.validateID(src.link)
+  ) return null;
+
+  const {
+    videoDetails, 
+    formats 
+  } = await ytdl.getInfo(src.link);
+      
+  const format = ytdl.chooseFormat(formats, {
+    filter: 'audioonly',
+    quality: 'highestaudio'
+  });
+
+  return {
+    src: videoDetails.video_url || src.link,
+    title: videoDetails.title,
+    duration: videoDetails.lengthSeconds,
+    channel: videoDetails.ownerProfileUrl,
+    itag: format.itag,
+    length: Number(format.contentLength)
+  };
 };
 
 
-function showProgress(
-  downloaded: number,
-  processed: number
-): void{
-
-  readline.cursorTo(process.stdout, 0);
-  process.stdout.write(`${Math.floor((downloaded) / 1000)}kb downloaded\n`);
-  process.stdout.write(`${processed}kb processed`);
-  readline.moveCursor(process.stdout, 0, -1);
-};
