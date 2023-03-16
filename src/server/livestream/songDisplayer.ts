@@ -2,16 +2,17 @@ import fs from 'node:fs/promises';
 import EventEmitter from 'node:events';
 // @ts-ignore
 import { Parser } from 'm3u8-parser'
+import { songInfo } from '../../@types';
 
 
 export class SongDisplayer extends EventEmitter{
   mediaPath: string;
-  currentlyPlaying: string;
+  currentlyPlaying: songInfo | null;
 
   constructor(hlsMediaPath: string){
     super();
     this.mediaPath = hlsMediaPath;
-    this.currentlyPlaying = '';
+    this.currentlyPlaying = null;
 
     this.on('currentlyPlaying', (songInfo) => {
       this.currentlyPlaying = songInfo;
@@ -20,7 +21,7 @@ export class SongDisplayer extends EventEmitter{
 
   
   async queueDisplaySong(
-    songInfo: string
+    songInfo: songInfo
   ): Promise<undefined>{
     
     const segments = await this._getM3u8Segments(this.mediaPath);

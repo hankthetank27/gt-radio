@@ -3,7 +3,7 @@ import path from 'path';
 import ytdl from "ytdl-core";
 import ffmpeg from 'fluent-ffmpeg';
 import { PassThrough } from "node:stream";
-import { songInfo, tracker } from '../@types';
+import { songInfo, streamProcessTracker } from '../../@types';
 import { SongDisplayer } from './songDisplayer';
 import { Db, Document } from 'mongodb'
 import { selectRandomSong } from './selectRandomSong';
@@ -73,7 +73,7 @@ async function queueAudioToStream(
       // memory leak caused by end option in call to pipe.
       const passToDestination = createStream(songInfo.length);
       
-      const tracker: tracker = {
+      const tracker: streamProcessTracker = {
         startTime: Date.now(),
         downloaded: 0,
         processed: 0,
@@ -84,7 +84,7 @@ async function queueAudioToStream(
       };
 
       function resolveQueue(
-        tracker: tracker
+        tracker: streamProcessTracker
       ): void{
         const completionTime = Math.round(
             ((Date.now() - tracker.startTime) / 60000) * 10
@@ -104,7 +104,7 @@ async function queueAudioToStream(
 
 
       function checkProcessingComplete(
-        tracker: tracker
+        tracker: streamProcessTracker
       ): boolean{
 
         const { 
@@ -148,7 +148,7 @@ async function queueAudioToStream(
         .on('data', async () => {
           if (!tracker.passThroughFlowing){
             tracker.passThroughFlowing = true;
-            songDisplayer.queueDisplaySong(songInfo.title);
+            songDisplayer.queueDisplaySong(songInfo);
           };
         })
         .on('end', () => {

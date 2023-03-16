@@ -1,6 +1,7 @@
 import { useEffect, useState, createRef, RefObject } from "react";
 import Hls from "hls.js";
 import { CurrentSongDisplay } from "./CurrentSongDisplay";
+import { v4 as uuid } from 'uuid'
 
 interface props{
   src: string
@@ -97,7 +98,7 @@ function StreamPlayer({
 
   return(
     <div className="player">
-      <CurrentSongDisplay hlsAudio={hlsAudio}/>
+      <CurrentSongDisplay key={uuid()} hlsAudio={hlsAudio}/>
       { renderAudioElement() }
     </div>
   );

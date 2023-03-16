@@ -7,7 +7,7 @@ export interface songInfo{
   length: number;
 };
 
-export interface tracker {
+export interface streamProcessTracker {
   startTime: number;
   downloaded: number;
   processed: number;

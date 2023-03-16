@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext } from "react";
 import { SocketContext } from "../context/socket";
 import Hls from "hls.js";
+import { songInfo } from "../../@types";
 
 interface props{
   hlsAudio: Hls | null
@@ -11,7 +12,7 @@ export function CurrentSongDisplay({
 }: props): JSX.Element{
 
   const socket = useContext(SocketContext);
-  const [ currentlyPlaying, setCurrentlyPlaying ] = useState('');
+  const [ currentlyPlaying, setCurrentlyPlaying ] = useState<songInfo | null>(null);
 
   useEffect(() => {
     socket.on('currentlyPlaying', (songData) => {
@@ -37,10 +38,22 @@ export function CurrentSongDisplay({
   }, [ currentlyPlaying, hlsAudio ]);
 
 
+  function displaySongInfo(currentlyPlaying: songInfo){
+    return (
+      <ul>
+        {
+          Object.entries(currentlyPlaying)
+            .map(([key, val]) => <li>{ `${key}: ${val}` }</li>)
+        }
+      </ul>
+    )
+  }
+
+
   return(
     <div className="currentlyPlaying">
       {currentlyPlaying
-        ?`Currently playing: ${currentlyPlaying}`
+        ? displaySongInfo(currentlyPlaying)
         : null
       }
     </div>

@@ -8,6 +8,7 @@ import NodeMediaServer from 'node-media-server';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import { initGtArchive } from "./db/gtArchive";
+import { songInfo } from "../@types";
 
 
 async function main(){
@@ -45,7 +46,7 @@ async function main(){
   io.on('connection', (socket) => {
     console.log('A client connected');
   
-    songDisplayer.on('currentlyPlaying', (songData: string) => {
+    songDisplayer.on('currentlyPlaying', (songData: songInfo) => {
       socket.emit('currentlyPlaying', songData);
     });
   
