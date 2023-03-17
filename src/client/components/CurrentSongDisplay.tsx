@@ -38,7 +38,9 @@ export function CurrentSongDisplay({
   }, [ currentlyPlaying, hlsAudio ]);
 
 
-  function displaySongInfo(currentlyPlaying: songInfo){
+  function displaySongInfo(
+    currentlyPlaying: songInfo
+  ): JSX.Element{
     return (
       <ul>
         {
@@ -46,9 +48,8 @@ export function CurrentSongDisplay({
             .map(([key, val]) => <li>{ `${key}: ${val}` }</li>)
         }
       </ul>
-    )
-  }
-
+    );
+  };
 
   return(
     <div className="currentlyPlaying">

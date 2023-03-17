@@ -113,7 +113,7 @@ async function queueAudioToStream(
           passToDestinationDone
         } = tracker;
 
-        return(
+        return (
           ytdlDone &&
           transcodeAudioDone &&
           passToDestinationDone
@@ -164,7 +164,7 @@ async function queueAudioToStream(
         .on('error', (err) => {
           rejectQueue(`Error in queueSong -> passToDestination: ${err}`);
         });
-
+ 
       transcodeAudio
         .pipe(passToDestination)
         .pipe(stream, {
@@ -180,6 +180,7 @@ async function queueAudioToStream(
       const song = await selectRandomSong(db);
       const songInfo = await getSongInfo(song);
 
+      //TODO: continue on song duration or DL size?
       if (!songInfo) continue;
 
       await queueSong(songInfo);
@@ -201,6 +202,8 @@ async function getSongInfo(
     ytdl.validateID(src.link)
   ) return null;
 
+  console.log(src)
+
   const {
     videoDetails, 
     formats 
@@ -212,8 +215,11 @@ async function getSongInfo(
   });
 
   return {
-    src: videoDetails.video_url || src.link,
     title: videoDetails.title,
+    memberPosted: src?.user_name,
+    postText: src?.text,
+    datePosted: src?.dataPosted, //TODO: check @types for task...
+    src: videoDetails.video_url || src.link,
     duration: videoDetails.lengthSeconds,
     channel: videoDetails.ownerProfileUrl,
     itag: format.itag,
