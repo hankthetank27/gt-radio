@@ -11,7 +11,7 @@ const streamsListAPI = `http://localhost:${nmsPort}/api/streams`;
 
 function App(): JSX.Element{
 
-  const [ streamsConnectedTo, setStreamsConnectedTo ] = useState<Set<string>>(new Set())
+  const [ streamsConnectedTo, setStreamsConnectedTo ] = useState<Set<string>>(new Set());
   const [ liveStreams, setLiveStreams ] = useState<string[][]>([]);
   const [ isConnected, setIsConnected ] = useState(socket.connected);
 

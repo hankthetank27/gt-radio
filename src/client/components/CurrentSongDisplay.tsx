@@ -1,6 +1,7 @@
 import { useState, useEffect, useContext } from "react";
 import { SocketContext } from "../context/socket";
 import Hls from "hls.js";
+import { v4 as uuid } from 'uuid'
 import { songInfo } from "../../@types";
 
 interface props{
@@ -42,10 +43,11 @@ export function CurrentSongDisplay({
     currentlyPlaying: songInfo
   ): JSX.Element{
     return (
-      <ul>
+      <ul key={uuid()}>
         {
           Object.entries(currentlyPlaying)
-            .map(([key, val]) => <li>{ `${key}: ${val}` }</li>)
+            .filter(([_, val]) => val)
+            .map(([key, val]) => <li key={uuid()}>{ `${key}: ${val}` }</li>)
         }
       </ul>
     );

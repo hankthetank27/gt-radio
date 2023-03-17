@@ -1,8 +1,8 @@
 export interface songInfo{
   title: string;
-  memberPosted: string;
-  postText: string;
-  datePosted: string; //TODO: is this the right type for a date? date obj maybe?
+  memberPosted: string | undefined;
+  postText: string | undefined;
+  datePosted: Date | undefined;
   src: string;
   duration: string;
   channel: string;
