@@ -18,33 +18,33 @@ export class AudioStream extends EventEmitter{
   readonly db: Db
   readonly streamName: string;
   readonly hlsMediaPath: string;
-
+  
   constructor(
     streamName: string,
     db: Db
-  ){
-    super();
-    // size of mp3 chunk
-    this.#stream = this._createStream(400);
-    this.#isLive = false;
-    this.#currentlyPlaying = null;
-    this.db = db;
-    this.streamName = streamName;
-    this.hlsMediaPath = path.resolve(
-      __dirname, `../../../media/live/${streamName}/`
-    );
-  };
-
-
-  async startStream(): Promise<void>{
-
-    this.#isLive = true;
-    this._initSongQueue();
-
-    ffmpeg(this.#stream)
-      .inputOptions([
-        '-re'
-      ])
+    ){
+      super();
+      // size of mp3 chunk
+      this.#stream = this._createStream(400);
+      this.#isLive = false;
+      this.#currentlyPlaying = null;
+      this.db = db;
+      this.streamName = streamName;
+      this.hlsMediaPath = path.resolve(
+        __dirname, `../../../media/live/${streamName}/`
+        );
+      };
+      
+      
+      async startStream(): Promise<void>{
+        
+        this.#isLive = true;
+        this._initSongQueue();
+        
+        ffmpeg(this.#stream)
+        .inputOptions([
+          '-re'
+        ])
       .outputOption([
         '-preset veryfast',
         '-tune zerolatency',
@@ -52,9 +52,10 @@ export class AudioStream extends EventEmitter{
         '-ar 44100',
       ])
       .on('error', (err) => {
+        // TODO: need better error handling in start stream, and initSongQueue
         console.error(`Error transcoding stream audio: ${err.message}`);
       })
-      .save(`rtmp://localhost/live/${this.streamName}.flv`);
+      .save(`rtmp://${process.env.DOCKER_HOST || 'localhost'}/live/${this.streamName}.flv`);
   };
 
 

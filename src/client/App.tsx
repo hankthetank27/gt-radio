@@ -1,9 +1,9 @@
-import "./App.css";
+import "./stylesheets/App.css";
 import { useEffect, useState } from "react";
-import StreamPlayer from "./components/StreamPlayer";
 import { configNms } from "../server/configNms";
 import { v4 as uuid } from 'uuid'
 import { socket, SocketContext } from "./context/socket";
+import StreamPlayer from "./components/StreamPlayer";
 
 
 const nmsPort = configNms('dummyInput').http.port;

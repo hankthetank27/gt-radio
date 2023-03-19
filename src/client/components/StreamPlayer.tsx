@@ -1,7 +1,7 @@
-import { useEffect, useState, createRef, RefObject } from "react";
 import Hls from "hls.js";
-import { CurrentSongDisplay } from "./CurrentSongDisplay";
+import { useEffect, useState, createRef, RefObject } from "react";
 import { v4 as uuid } from 'uuid'
+import { CurrentSongDisplay } from "./CurrentSongDisplay";
 
 interface props{
   src: string

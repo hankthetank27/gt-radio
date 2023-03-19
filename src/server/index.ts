@@ -16,12 +16,13 @@ async function main(): Promise<void>{
   dotenv.config();
   const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
   ffmpeg.setFfmpegPath(ffmpegPath);
+  console.log(ffmpegPath)
   
   const app = express();
   app.use(cookieParser())
   app.use(express.json());
   app.use(express.urlencoded({
-    extended: true 
+    extended: true
   }));
 
   const nms = new NodeMediaServer(configNms(ffmpegPath));
@@ -50,7 +51,6 @@ async function main(): Promise<void>{
   });
   
   io.on('connection', (socket) => {
-    console.log('A client connected');
   
     mainAudioStream.on('currentlyPlaying', (songData: songInfo) => {
       socket.emit('currentlyPlaying', songData);
@@ -60,9 +60,6 @@ async function main(): Promise<void>{
       socket.emit('currentlyPlaying', mainAudioStream.getCurrentlyPlaying());
     });
   
-    socket.on('disconnect', () => {
-      console.log('A client disconnected');
-    });
   });
 }
 
