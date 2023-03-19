@@ -5,7 +5,6 @@ import ffmpeg from 'fluent-ffmpeg';
 import { PassThrough } from "node:stream";
 import { songInfo, streamProcessTracker } from '../../@types';
 import { Db, Document } from 'mongodb';
-import { selectRandomSong } from './selectRandomSong';
 import { EventEmitter } from 'stream';
 // @ts-ignore
 import { Parser } from 'm3u8-parser';
@@ -86,7 +85,7 @@ export class AudioStream extends EventEmitter{
     while (this.#isLive){
       try {
 
-        const song = await selectRandomSong(this.db);
+        const song = await this._selectRandomSong();
         const songInfo = await this._getSongInfo(song);
   
         // TODO: continue on song duration or DL size?
@@ -244,6 +243,21 @@ export class AudioStream extends EventEmitter{
       itag: format.itag,
       length: Number(format.contentLength)
     };
+  };
+
+
+  private async _selectRandomSong(): Promise<Document | null>{
+    const posts = this.db.collection('gt_posts');
+    const post = await posts.aggregate([
+        { $match: { link_source: 'youtube'}},
+        { $sample: { size: 1 }}
+      ])
+      .toArray();
+  
+    if (!post?.[0]){
+      return null;
+    };
+    return post[0];
   };
 
 
