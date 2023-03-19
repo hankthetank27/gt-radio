@@ -2,7 +2,7 @@ import express from "express";
 import ViteExpress from "vite-express";
 import { Server } from "socket.io";
 import ffmpeg from 'fluent-ffmpeg';
-import { startAudioStream } from "./livestream/audioStream";
+import { AudioStream } from "./livestream/AudioStream";
 import { configMainStream } from "./nmsConfig";
 import NodeMediaServer from 'node-media-server';
 import cookieParser from 'cookie-parser';
@@ -11,7 +11,8 @@ import { initGtArchive } from "./db/gtArchive";
 import { songInfo } from "../@types";
 
 
-async function main(){
+async function main(): Promise<void>{
+  
   dotenv.config();
   const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
   ffmpeg.setFfmpegPath(ffmpegPath);
@@ -23,6 +24,10 @@ async function main(){
     extended: true 
   }));
 
+  const RTMPconfig = configMainStream(ffmpegPath);
+  const nms = new NodeMediaServer(RTMPconfig);
+  nms.run();
+
   const gtArchiveDB = await initGtArchive();
 
   if (gtArchiveDB){
@@ -30,12 +35,9 @@ async function main(){
   } else {
     throw new Error('Could not connect to mongoDb: gt_data');
   };
-
-  const songDisplayer = startAudioStream('main', gtArchiveDB);
   
-  const RTMPconfig = configMainStream(ffmpegPath);
-  const nms = new NodeMediaServer(RTMPconfig);
-  nms.run();
+  const mainAudioStream = new AudioStream('main', gtArchiveDB);
+  mainAudioStream.startStream();
   
   const server = ViteExpress.listen(app, 3000, () =>
     console.log("Server is listening on port 3000...")
@@ -46,12 +48,12 @@ async function main(){
   io.on('connection', (socket) => {
     console.log('A client connected');
   
-    songDisplayer.on('currentlyPlaying', (songData: songInfo) => {
+    mainAudioStream.on('currentlyPlaying', (songData: songInfo) => {
       socket.emit('currentlyPlaying', songData);
     });
   
     socket.on('fetchCurrentlyPlaying', () => {
-      socket.emit('currentlyPlaying', songDisplayer.currentlyPlaying);
+      socket.emit('currentlyPlaying', mainAudioStream.getCurrentlyPlaying());
     })
   
     socket.on('disconnect', () => {
