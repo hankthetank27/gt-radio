@@ -1,4 +1,4 @@
-export function configMainStream(ffmpegPath: string){
+export function configNms(ffmpegPath: string){
   const config = {
     rtmp: {
         port: 1935,
@@ -27,5 +27,5 @@ export function configMainStream(ffmpegPath: string){
       idleTimeout: 120
     }
   };
-  return config
+  return config;
 };

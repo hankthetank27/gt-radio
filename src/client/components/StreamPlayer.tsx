@@ -11,7 +11,7 @@ function StreamPlayer({
   src
 }: props){
 
-  const audioElement = createRef<HTMLAudioElement>()
+  const audioElement = createRef<HTMLAudioElement>();
   const [ hlsAudio, setHlsAudio ] = useState<Hls | null>(null);
 
   useEffect(() => {
@@ -24,7 +24,7 @@ function StreamPlayer({
         hlsAudio.destroy();
       };
     };
-  }, [src])
+  }, [src]);
 
 
   function _initPlayer(hls: Hls | null) {
@@ -59,7 +59,7 @@ function StreamPlayer({
             newHls.recoverMediaError();
             break;
           default:
-            _initPlayer(hls)
+            _initPlayer(hls);
             break;
         }
       }
@@ -92,7 +92,7 @@ function StreamPlayer({
           src={src} 
           controls autoPlay
         />
-      )
+      );
     };
   };
 

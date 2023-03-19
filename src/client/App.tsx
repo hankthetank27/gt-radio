@@ -1,12 +1,12 @@
 import "./App.css";
 import { useEffect, useState } from "react";
 import StreamPlayer from "./components/StreamPlayer";
-import { configMainStream } from "../server/nmsConfig";
+import { configNms } from "../server/configNms";
 import { v4 as uuid } from 'uuid'
 import { socket, SocketContext } from "./context/socket";
 
 
-const nmsPort = configMainStream('dummyInput').http.port;
+const nmsPort = configNms('dummyInput').http.port;
 const streamsListAPI = `http://localhost:${nmsPort}/api/streams`;
 
 function App(): JSX.Element{

@@ -22,17 +22,17 @@ export class AudioStream extends EventEmitter{
   constructor(
     streamName: string,
     db: Db
-    ){
-      super();
-      // size of mp3 chunk
-      this.#stream = this._createStream(400);
-      this.#isLive = false;
-      this.#currentlyPlaying = null;
-      this.db = db;
-      this.streamName = streamName 
-      this.hlsMediaPath = path.resolve(
-        __dirname, `../../../media/live/${streamName}/`
-      );
+  ){
+    super();
+    // size of mp3 chunk
+    this.#stream = this._createStream(400);
+    this.#isLive = false;
+    this.#currentlyPlaying = null;
+    this.db = db;
+    this.streamName = streamName;
+    this.hlsMediaPath = path.resolve(
+      __dirname, `../../../media/live/${streamName}/`
+    );
   };
 
 

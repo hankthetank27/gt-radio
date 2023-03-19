@@ -1,12 +1,12 @@
 import express from "express";
-import ViteExpress from "vite-express";
-import { Server } from "socket.io";
 import ffmpeg from 'fluent-ffmpeg';
-import { AudioStream } from "./livestream/AudioStream";
-import { configMainStream } from "./nmsConfig";
+import dotenv from 'dotenv';
+import ViteExpress from "vite-express";
 import NodeMediaServer from 'node-media-server';
 import cookieParser from 'cookie-parser';
-import dotenv from 'dotenv';
+import { Server } from "socket.io";
+import { AudioStream } from "./livestream/AudioStream";
+import { configNms } from "./configNms";
 import { initGtArchive } from "./db/gtArchive";
 import { songInfo } from "../@types";
 
@@ -24,8 +24,7 @@ async function main(): Promise<void>{
     extended: true 
   }));
 
-  const RTMPconfig = configMainStream(ffmpegPath);
-  const nms = new NodeMediaServer(RTMPconfig);
+  const nms = new NodeMediaServer(configNms(ffmpegPath));
   nms.run();
 
   const gtArchiveDB = await initGtArchive();
@@ -43,7 +42,12 @@ async function main(): Promise<void>{
     console.log("Server is listening on port 3000...")
   );
   
-  const io = new Server(server);
+  const io = new Server(server, {
+    cors: {
+      origin: 'https://main--harmonious-starlight-ce07ff.netlify.app',
+      methods: ['GET', 'POST']
+    }
+  });
   
   io.on('connection', (socket) => {
     console.log('A client connected');
@@ -54,7 +58,7 @@ async function main(): Promise<void>{
   
     socket.on('fetchCurrentlyPlaying', () => {
       socket.emit('currentlyPlaying', mainAudioStream.getCurrentlyPlaying());
-    })
+    });
   
     socket.on('disconnect', () => {
       console.log('A client disconnected');
