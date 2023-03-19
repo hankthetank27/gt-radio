@@ -44,7 +44,7 @@ async function main(): Promise<void>{
   
   const io = new Server(server, {
     cors: {
-      origin: 'https://main--harmonious-starlight-ce07ff.netlify.app',
+      origin: 'http://localhost:3000',
       methods: ['GET', 'POST']
     }
   });
