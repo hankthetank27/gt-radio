@@ -7,7 +7,7 @@ interface props{
   src: string
 };
 
-function StreamPlayer({
+export function StreamPlayer({
   src
 }: props){
 
@@ -103,5 +103,3 @@ function StreamPlayer({
     </div>
   );
 };
-
-export default StreamPlayer;

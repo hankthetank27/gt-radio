@@ -12,7 +12,7 @@ export function CurrentSongDisplay({
   hlsAudio
 }: props): JSX.Element{
 
-  const socket = useContext(SocketContext);
+  const { socket, isConnected } = useContext(SocketContext);
   const [ currentlyPlaying, setCurrentlyPlaying ] = useState<songInfo | null>(null);
 
   useEffect(() => {
@@ -36,7 +36,7 @@ export function CurrentSongDisplay({
     return () => {
       socket.off('currentlyPlaying')
     };
-  }, [ currentlyPlaying, hlsAudio ]);
+  }, [ currentlyPlaying, hlsAudio, isConnected ]); // Do I need isConnected here?
 
 
   function displaySongInfo(

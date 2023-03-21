@@ -22,29 +22,29 @@ export class AudioStream extends EventEmitter{
   constructor(
     streamName: string,
     db: Db
-    ){
-      super();
-      // size of mp3 chunk
-      this.#stream = this._createStream(400);
-      this.#isLive = false;
-      this.#currentlyPlaying = null;
-      this.db = db;
-      this.streamName = streamName;
-      this.hlsMediaPath = path.resolve(
-        __dirname, `../../../media/live/${streamName}/`
-        );
-      };
+  ){
+    super();
+    // size of mp3 chunk
+    this.#stream = this._createStream(400);
+    this.#isLive = false;
+    this.#currentlyPlaying = null;
+    this.db = db;
+    this.streamName = streamName;
+    this.hlsMediaPath = path.resolve(
+      __dirname, `../../../media/live/${streamName}/`
+    );
+  };
       
       
-      async startStream(): Promise<void>{
+  async startStream(): Promise<void>{
         
-        this.#isLive = true;
-        this._initSongQueue();
-        
-        ffmpeg(this.#stream)
-        .inputOptions([
-          '-re'
-        ])
+    this.#isLive = true;
+    this._initSongQueue();
+    
+    ffmpeg(this.#stream)
+      .inputOptions([
+        '-re'
+      ])
       .outputOption([
         '-preset veryfast',
         '-tune zerolatency',
@@ -59,7 +59,7 @@ export class AudioStream extends EventEmitter{
   };
 
 
-  // TODO:
+  // TODO: handle stream destroy while pushSong is pushing transcoded audio into stream
   stopStream(): void{
     this.#isLive = false;
     this.#currentlyPlaying = null;
@@ -195,8 +195,8 @@ export class AudioStream extends EventEmitter{
           if (checkProcessingComplete(tracker)){
             resolveQueue(tracker);
           } else {
-            rejectQueue(`Error in queueSong. 
-              passToDestination completed before audio transcoding finsished.`
+            rejectQueue(
+              `Error in queueSong: passToDestination completed before audio transcoding finsished.`
             );
           };
         })

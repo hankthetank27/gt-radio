@@ -3,14 +3,16 @@ import { useEffect, useState } from "react";
 import { configNms } from "../server/configNms";
 import { v4 as uuid } from 'uuid'
 import { socket, SocketContext } from "./context/socket";
-import StreamPlayer from "./components/StreamPlayer";
-
+import { StreamPlayer } from "./components/StreamPlayer";
+import { Chat }  from "./components/Chat"
 
 const nmsPort = configNms('dummyInput').http.port;
 const streamsListAPI = `http://localhost:${nmsPort}/api/streams`;
 
 function App(): JSX.Element{
 
+  // dummy value
+  const [ userID, setUserId ] = useState(uuid());
   const [ streamsConnectedTo, setStreamsConnectedTo ] = useState<Set<string>>(new Set());
   const [ liveStreams, setLiveStreams ] = useState<string[][]>([]);
   const [ isConnected, setIsConnected ] = useState(socket.connected);
@@ -63,7 +65,7 @@ function App(): JSX.Element{
 
 
   return (
-    <SocketContext.Provider value={socket}>      
+    <SocketContext.Provider value={{ socket, isConnected }}>      
       <div className="App">
         {liveStreams.reduce((acc: JSX.Element[], streamInfo) => {
             const [ nmsPort, stream ] = streamInfo;
@@ -79,6 +81,7 @@ function App(): JSX.Element{
           }, [])
         }
       </div>
+      <Chat userId={userID}/>
     </SocketContext.Provider>
   );
 }

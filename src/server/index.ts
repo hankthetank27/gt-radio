@@ -16,7 +16,6 @@ async function main(): Promise<void>{
   dotenv.config();
   const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
   ffmpeg.setFfmpegPath(ffmpegPath);
-  console.log(ffmpegPath)
   
   const app = express();
   app.use(cookieParser())
@@ -59,8 +58,12 @@ async function main(): Promise<void>{
     socket.on('fetchCurrentlyPlaying', () => {
       socket.emit('currentlyPlaying', mainAudioStream.getCurrentlyPlaying());
     });
+
+    socket.on('chat-message', async (message: string[]) => {
+      socket.broadcast.emit('receive-chat-message', message)
+    });
   
   });
-}
+};
 
 main();
