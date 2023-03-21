@@ -1,0 +1,13 @@
+.playerContainer{
+    display: flex;
+    justify-content: left;
+    padding-left: 28px;
+    padding-bottom: 30px;
+}
+
+audio{
+    border: 1px solid black;
+    background: yellow;
+    width: 100px;
+    height: 100px;
+}

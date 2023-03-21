@@ -2,6 +2,8 @@ import Hls from "hls.js";
 import { useEffect, useState, createRef, RefObject } from "react";
 import { v4 as uuid } from 'uuid'
 import { CurrentSongDisplay } from "./CurrentSongDisplay";
+import '../stylesheets/StreamPlayer.css'
+
 
 interface props{
   src: string
@@ -32,10 +34,11 @@ export function StreamPlayer({
       hls.destroy()
     };
 
+    // TODO: need to find option for attempting restart after stream interruption/disconnect
     const newHls = new Hls({
       enableWorker: false,
       lowLatencyMode: true,
-      liveSyncDuration: 3,
+      liveSyncDuration: 6,
       liveDurationInfinity: true,
       backBufferLength: 0
     });
@@ -97,9 +100,11 @@ export function StreamPlayer({
   };
 
   return(
-    <div className="player">
+    <div className="playerAndDataContainer">
+      <div className="playerContainer">
+        {renderAudioElement()}
+      </div>
       <CurrentSongDisplay key={uuid()} hlsAudio={hlsAudio}/>
-      { renderAudioElement() }
     </div>
   );
 };
