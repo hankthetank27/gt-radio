@@ -4,6 +4,7 @@ import { SocketContext } from "../context/socket";
 import { v4 as uuid } from 'uuid'
 import { songInfo } from "../../@types";
 
+
 interface props{
   hlsAudio: Hls | null
 };
@@ -19,22 +20,22 @@ export function CurrentSongDisplay({
     socket.on('currentlyPlaying', (songData) => {
 
       if (!currentlyPlaying){
-        return setCurrentlyPlaying(songData)
+        return setCurrentlyPlaying(songData);
       };
 
       if (hlsAudio){
         setTimeout(() => {
-          setCurrentlyPlaying(songData)
+          setCurrentlyPlaying(songData);
         }, hlsAudio.latency * 1000);
       };
     });
 
     if (!currentlyPlaying){
-      socket.emit('fetchCurrentlyPlaying')
+      socket.emit('fetchCurrentlyPlaying');
     };
 
     return () => {
-      socket.off('currentlyPlaying')
+      socket.off('currentlyPlaying');
     };
   }, [ currentlyPlaying, hlsAudio, isConnected ]); // Do I need isConnected here?
 
@@ -46,7 +47,7 @@ export function CurrentSongDisplay({
       <ul key={uuid()}>
         {
           Object.entries(currentlyPlaying)
-            .filter(([_, val]) => val)
+            .filter(([key, val]) => val && key !== 'itag' && key !== 'length') 
             .map(([key, val]) => <li key={uuid()}>{ `${key}: ${val}` }</li>)
         }
       </ul>

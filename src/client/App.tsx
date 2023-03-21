@@ -12,7 +12,7 @@ const streamsListAPI = `http://localhost:${nmsPort}/api/streams`;
 function App(): JSX.Element{
 
   // dummy value
-  const [ userID, setUserId ] = useState(uuid());
+  const [ userID, setUserId ] = useState('');
   const [ streamsConnectedTo, setStreamsConnectedTo ] = useState<Set<string>>(new Set());
   const [ liveStreams, setLiveStreams ] = useState<string[][]>([]);
   const [ isConnected, setIsConnected ] = useState(socket.connected);
@@ -39,6 +39,10 @@ function App(): JSX.Element{
   useEffect(() => {
     if (isConnected){
       getLiveStreams();
+      
+      socket.emit('set-socket-id', (socketId: string) => {
+        setUserId(socketId);
+      });
     };
   }, [ isConnected ]);
 
@@ -81,11 +85,12 @@ function App(): JSX.Element{
           }, [])
         }
       </div>
-      <Chat userId={userID}/>
+      {userID
+        ?<Chat userId={userID}/>
+        : null 
+      }
     </SocketContext.Provider>
   );
-}
-
-
+};
 
 export default App;

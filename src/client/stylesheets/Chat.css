@@ -5,10 +5,11 @@
     justify-content: space-between;
     align-items: center;
     flex-direction: column;
-    width: 500px;
-    height: 300px;
+    width: 750px;
+    height: 750px;
     /* overflow: hidden; */
-    padding-top: 10px;
+    padding: 5px;
+    margin-left: 30px;
 }
 
 .msgForm{
@@ -18,17 +19,36 @@
 .chatContents{
     border: 3px solid rgba(255, 38, 0, 0.445);
     border-radius: 3px;
-    width: 480px;
-    height: 250px;
+    width: 700px;
+    height: 700px;
     overflow-y: scroll;
+}
+
+.chatItem {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.sender {
+    font-size: 11px;
+    font-style: italic;
 }
 
 .myMessage {
     display: flex;
-    justify-content: flex-end;
+    flex-direction: column;
+    align-items: flex-end;
     padding-right: 5px;
+}
+
+.myMessage .sender {
+    color: beige;
 }
 
 .opMessage{
     padding-left: 5px;
+}
+
+.opMessage .sender{
+    color: rgb(95, 239, 193);
 }

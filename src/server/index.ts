@@ -62,6 +62,10 @@ async function main(): Promise<void>{
     socket.on('chat-message', async (message: string[]) => {
       socket.broadcast.emit('receive-chat-message', message)
     });
+
+    socket.on('set-socket-id', (setUserId: (userId: string) => void) => {
+      setUserId(socket.id);
+    });
   
   });
 };

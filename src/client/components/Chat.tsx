@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useContext } from "react";
 import { SocketContext } from "../context/socket";
-import '../stylesheets/Chat.css'
+import '../stylesheets/Chat.css';
+
 
 interface Props{
   userId: string;
@@ -10,7 +11,7 @@ export const Chat = ({
   userId
 }: Props) => {
 
-  const chatContentsEl = useRef<HTMLDivElement>(null)
+  const chatContentsEl = useRef<HTMLDivElement>(null);
 
   const { socket, isConnected } = useContext(SocketContext);
   const [ handleChange, setHandleChange ] = useState<string>('');
@@ -26,38 +27,46 @@ export const Chat = ({
     socket.on('receive-chat-message', callback);
 
     return () => {
-      socket.off('receive-chat-message', callback);
+      socket.off('receive-chat-message');
     };
   }, [isConnected]);
 
 
   useEffect(() => {
     if (chatContentsEl.current){
-      chatContentsEl.current.scrollTop = chatContentsEl.current.scrollHeight
+      chatContentsEl.current.scrollTop = chatContentsEl.current.scrollHeight;
     };
   }, [chatHistory]);
+
+
+  function makeMessage(message: string, senderId: string){
+    const messageType = 
+      senderId === userId
+        ? 'myMessage' 
+        : 'opMessage'
+    return (
+      <div className={`${messageType} chatItem`}>
+        <div className="sender"> {senderId}</div>
+        <div className="messageContents">{message}</div>
+      </div>
+    );
+  };
 
 
   return(
     <div className="chatContainer">
       <div className="chatContents" ref={chatContentsEl}>
-        { chatHistory.map(entry => {
-          const [ messageId, message ] = entry
-          return (
-            <div>
-              { messageId === userId
-                ? <div className="myMessage"><span>{message}</span></div>
-                : <div className="opMessage"><span>{message}</span></div>
-              }
-            </div>
-          )
-        })}
+        { chatHistory.map( m => {
+            const [ senderId, message ] = m;
+            return makeMessage(message, senderId);
+          })
+        }
       </div>
       <form className="msgForm" onSubmit={(e) => {
-        e.preventDefault()
-        setChatHistory([...chatHistory, [userId, handleChange]])
-        socket.emit('chat-message', [userId, handleChange])
-        setHandleChange('')
+        e.preventDefault();
+        setChatHistory([...chatHistory, [userId, handleChange]]);
+        socket.emit('chat-message', [userId, handleChange]);
+        setHandleChange('');
       }}>
         <div>Chat</div>
         <input type="text" value={handleChange} onChange={(e) => { setHandleChange(e.target.value) }}/>
