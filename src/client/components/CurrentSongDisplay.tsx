@@ -44,18 +44,49 @@ export function CurrentSongDisplay({
     currentlyPlaying: songInfo
   ): JSX.Element{
     return (
-      <ul key={uuid()}>
-        {
-          Object.entries(currentlyPlaying)
-            .filter(([key, val]) => val && key !== 'itag' && key !== 'length') 
-            .map(([key, val]) => <li key={uuid()}>{ `${key}: ${val}` }</li>)
-        }
-      </ul>
+      <div className="currentlyPlaying">
+        <ul key={uuid()}>
+          {
+            Object.entries(currentlyPlaying)
+              .filter(([key, val]) => 
+                val &&
+                key !== 'itag' && 
+                key !== 'length' && 
+                key !== 'duration' && 
+                key !== 'channel'
+              ) 
+              .map(entry =>{
+                const [ key, val ] = translateInfo(entry);
+                return <li key={uuid()}>{ `${key ? key + ':' : ''} ${val}` }</li>;
+              })
+          }
+        </ul>
+      </div>
     );
   };
 
+  function translateInfo([
+    key,
+    val
+  ]: string[]){
+    switch (key){
+      case 'title':
+        return ['', val];
+      case 'memberPosted':
+        return ['Posted By', val];
+      case 'postText':
+        return [null, `"${val}"`];
+      case 'datePosted':
+        return ['Posted On', new Date(val).toDateString()];
+      case 'src':
+        return ['Source', val];
+      default:
+        return [key, val];
+    };
+  };
+
   return(
-    <div className="currentlyPlaying">
+    <div className="currentlyPlayingContainer">
       {currentlyPlaying
         ? displaySongInfo(currentlyPlaying)
         : null

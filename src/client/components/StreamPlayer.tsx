@@ -38,7 +38,7 @@ export function StreamPlayer({
     const newHls = new Hls({
       enableWorker: false,
       lowLatencyMode: true,
-      liveSyncDuration: 6,
+      liveSyncDuration: 6, // Might be better to keep this at default...
       liveDurationInfinity: true,
       backBufferLength: 0
     });
@@ -48,7 +48,6 @@ export function StreamPlayer({
     };
 
     newHls.on(Hls.Events.MEDIA_ATTACHED, () => {
-      console.log('Media attached');
       newHls.loadSource(src);
     });
 

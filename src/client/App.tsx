@@ -1,4 +1,5 @@
 import "./stylesheets/App.css";
+import headerImg from './assets/header-image.jpg'
 import { useEffect, useState } from "react";
 import { configNms } from "../server/configNms";
 import { v4 as uuid } from 'uuid'
@@ -69,26 +70,31 @@ function App(): JSX.Element{
 
 
   return (
-    <SocketContext.Provider value={{ socket, isConnected }}>      
+    <SocketContext.Provider value={{ socket, isConnected }}>
       <div className="App">
-        {liveStreams.reduce((acc: JSX.Element[], streamInfo) => {
-            const [ nmsPort, stream ] = streamInfo;
-            // if (isConnected && stream in streamsConnectedTo){
-              acc.push(
-                <StreamPlayer 
-                  key={uuid()} 
-                  src={makeStreamUrl(nmsPort, stream)}
-                />
-              );
-            // };
-            return acc;
-          }, [])
-        }
+        <img className="headerImg" src={headerImg}/>
+        <div className="mainContentContainer">
+          <div className="streamContainer">
+            {liveStreams.reduce((acc: JSX.Element[], streamInfo) => {
+                const [ nmsPort, stream ] = streamInfo;
+                // if (isConnected && stream in streamsConnectedTo){
+                  acc.push(
+                    <StreamPlayer 
+                      key={uuid()} 
+                      src={makeStreamUrl(nmsPort, stream)}
+                    />
+                  );
+                // };
+                return acc;
+              }, [])
+            }
+          </div>
+          {userID
+            ?<Chat userId={userID}/>
+            : null 
+          }
+        </div>
       </div>
-      {userID
-        ?<Chat userId={userID}/>
-        : null 
-      }
     </SocketContext.Provider>
   );
 };

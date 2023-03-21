@@ -1,10 +1,35 @@
 #root {
     display: flex;
-    max-width: 1280px;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.mainContentContainer{
+    top: 140px;
+    position: fixed;
+    display: flex;
+    max-width: 1000px;
     margin: 0 auto;
     padding: 2rem;
+    bottom: 0;
+}
+
+.headerImg{
+    position: fixed;
+    top: 0;
+    width: 1200px;
+    height: 120px;
+    padding-bottom: 20px;
 }
 
 .App{
-    width: 400px;
+    /* position: relative; */
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+}
+
+.streamContainer{
+    width: 500px;
 }
