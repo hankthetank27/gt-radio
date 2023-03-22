@@ -1,8 +1,8 @@
 .playerContainer{
     display: flex;
     justify-content: center;
-    padding-left: 28px;
-    padding-bottom: 30px;
+    padding-left: 10px;
+    padding-bottom: 10px;
 }
 
 .streamContainer{

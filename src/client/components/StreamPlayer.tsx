@@ -34,7 +34,7 @@ export function StreamPlayer({
   ): Hls{
 
     if (hls){
-      hls.destroy()
+      hls.destroy();
     };
 
     // TODO: need to find option for attempting restart after stream interruption/disconnect
@@ -66,9 +66,9 @@ export function StreamPlayer({
           default:
             _initPlayer(hls);
             break;
-        }
-      }
-    })
+        };
+      };
+    });
 
     return newHls;
   };

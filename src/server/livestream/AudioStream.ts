@@ -236,8 +236,8 @@ export class AudioStream extends EventEmitter{
     return {
       title: videoDetails.title,
       memberPosted: src?.user_name,
-      postText: src?.text,
       datePosted: src?.date_posted,
+      postText: src?.text,
       src: videoDetails.video_url || src.link,
       duration: videoDetails.lengthSeconds,
       channel: videoDetails.ownerProfileUrl,

@@ -9,6 +9,7 @@ import { AudioStream } from "./livestream/AudioStream";
 import { configNms } from "./configNms";
 import { initGtArchive } from "./db/gtArchive";
 import { songInfo } from "../@types";
+import { serverEmiters, clientEmiters } from "../socketEvents";
 
 
 async function main(): Promise<void>{
@@ -52,20 +53,22 @@ async function main(): Promise<void>{
   io.on('connection', (socket) => {
   
     mainAudioStream.on('currentlyPlaying', (songData: songInfo) => {
-      socket.emit('currentlyPlaying', songData);
+      socket.emit(serverEmiters.CURRENTLY_PLAYING, songData);
     });
   
-    socket.on('fetchCurrentlyPlaying', () => {
-      socket.emit('currentlyPlaying', mainAudioStream.getCurrentlyPlaying());
+    socket.on(clientEmiters.FETCH_CURRENTLY_PLAYING, () => {
+      socket.emit(serverEmiters.CURRENTLY_PLAYING, mainAudioStream.getCurrentlyPlaying());
     });
 
-    socket.on('chat-message', async (message: string[]) => {
-      socket.broadcast.emit('receive-chat-message', message)
+    socket.on(clientEmiters.CHAT_MESSAGE, async (message: string[]) => {
+      socket.broadcast.emit(serverEmiters.RECEIVE_CHAT_MESSAGE, message)
     });
 
-    socket.on('set-socket-id', (setUserId: (userId: string) => void) => {
+    socket.on(clientEmiters.SET_SOCKET_ID, (setUserId: (userId: string) => void) => {
       setUserId(socket.id);
     });
+
+
   
   });
 };

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useContext } from "react";
 import { SocketContext } from "../context/socket";
 import '../stylesheets/Chat.css';
+import { serverEmiters, clientEmiters } from "../../socketEvents";
 
 
 interface Props{
@@ -24,10 +25,10 @@ export const Chat = ({
       });
     };
 
-    socket.on('receive-chat-message', callback);
+    socket.on(serverEmiters.RECEIVE_CHAT_MESSAGE, callback);
 
     return () => {
-      socket.off('receive-chat-message');
+      socket.off(serverEmiters.RECEIVE_CHAT_MESSAGE);
     };
   }, [isConnected]);
 
@@ -66,7 +67,7 @@ export const Chat = ({
       <form className="msgForm" onSubmit={(e) => {
         e.preventDefault();
         setChatHistory([...chatHistory, [userId, handleChange]]);
-        socket.emit('chat-message', [userId, handleChange]);
+        socket.emit(clientEmiters.CHAT_MESSAGE, [userId, handleChange]);
         setHandleChange('');
       }}>
         <div>Chat</div>

@@ -4,6 +4,7 @@ import { SocketContext } from "../context/socket";
 import { v4 as uuid } from 'uuid'
 import { songInfo } from "../../@types";
 import '../stylesheets/CurrentSongDisplay.css'
+import { serverEmiters, clientEmiters } from "../../socketEvents";
 
 
 interface props{
@@ -16,27 +17,37 @@ export function CurrentSongDisplay({
 
   const { socket, isConnected } = useContext(SocketContext);
   const [ currentlyPlaying, setCurrentlyPlaying ] = useState<songInfo | null>(null);
+  const [ avrgHlsLatency, setAvrgHlsLatency ] = useState<number>(6); // estimation based on average
+
 
   useEffect(() => {
-    socket.on('currentlyPlaying', (songData) => {
+    socket.on(serverEmiters.CURRENTLY_PLAYING, (songData) => {
 
       if (!currentlyPlaying){
         return setCurrentlyPlaying(songData);
       };
 
-      if (hlsAudio){
+      if (hlsAudio && hlsAudio.latency < avrgHlsLatency * 2){
         setTimeout(() => {
           setCurrentlyPlaying(songData);
+          if (hlsAudio.latency !== 0){
+            setAvrgHlsLatency((prevAvrg) => 
+              (prevAvrg + hlsAudio.latency) / 2);
+          };
         }, hlsAudio.latency * 1000);
+      } else {   //handle user has stream paused
+        setTimeout(() => {
+          setCurrentlyPlaying(songData);
+        }, avrgHlsLatency * 1000);
       };
     });
 
     if (!currentlyPlaying){
-      socket.emit('fetchCurrentlyPlaying');
+      socket.emit(clientEmiters.FETCH_CURRENTLY_PLAYING);
     };
 
     return () => {
-      socket.off('currentlyPlaying');
+      socket.off(serverEmiters.CURRENTLY_PLAYING);
     };
   }, [ currentlyPlaying, hlsAudio, isConnected ]); // Do I need isConnected here?
 
@@ -58,13 +69,14 @@ export function CurrentSongDisplay({
               ) 
               .map(entry =>{
                 const [ key, val ] = translateInfo(entry);
-                return <li key={uuid()}>{ `${key ? key + ':' : ''} ${val}` }</li>;
+                return <li key={uuid()}>{ `${key} ${val}` }</li>;
               })
           }
         </ul>
       </div>
     );
   };
+
 
   function translateInfo([
     key,
@@ -74,17 +86,18 @@ export function CurrentSongDisplay({
       case 'title':
         return ['', val];
       case 'memberPosted':
-        return ['Posted By', val];
-      case 'postText':
-        return [null, `"${val}"`];
+        return ['Posted by', val];
       case 'datePosted':
-        return ['Posted On', new Date(val).toDateString()];
+        return ['', new Date(val).toDateString()];
+      case 'postText':
+        return ['', `"${val}"`];
       case 'src':
-        return ['Source', val];
+        return ['Source:', val];
       default:
         return [key, val];
     };
   };
+
 
   return(
     <div className="currentlyPlayingContainer">

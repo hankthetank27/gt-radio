@@ -6,6 +6,7 @@ import { v4 as uuid } from 'uuid'
 import { socket, SocketContext } from "./context/socket";
 import { StreamPlayer } from "./components/StreamPlayer";
 import { Chat }  from "./components/Chat"
+import { serverEmiters, clientEmiters } from "../socketEvents";
 
 const nmsPort = configNms('dummyInput').http.port;
 const streamsListAPI = `http://localhost:${nmsPort}/api/streams`;
@@ -20,19 +21,19 @@ function App(): JSX.Element{
 
 
   useEffect(() => {
-    socket.on('connect', () => {
+    socket.on(serverEmiters.CONNECT, () => {
       // socket.emit('joinStream', 'main');
       setIsConnected(true);
       // setStreamsConnectedTo((prevState) => 
       //   new Set([...prevState, 'main'])
       // );
     });
-    socket.on('disconnect', () => {
+    socket.on(serverEmiters.DISCONNECT, () => {
       setIsConnected(false);
     });
     return () => {
-      socket.off('connect')
-      socket.off('disconnect')
+      socket.off(serverEmiters.CONNECT)
+      socket.off(serverEmiters.DISCONNECT)
     };
   }, []);
 
@@ -41,7 +42,7 @@ function App(): JSX.Element{
     if (isConnected){
       getLiveStreams();
       
-      socket.emit('set-socket-id', (socketId: string) => {
+      socket.emit(clientEmiters.SET_SOCKET_ID, (socketId: string) => {
         setUserId(socketId);
       });
     };
