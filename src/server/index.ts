@@ -25,11 +25,12 @@ async function main(): Promise<void>{
     extended: true
   }));
 
+  
   const nms = new NodeMediaServer(configNms(ffmpegPath));
   nms.run();
 
   const gtArchiveDB = await initGtArchive();
-
+  
   if (gtArchiveDB){
     console.log('connected to mongoDb: gt_data');
   } else {
@@ -42,10 +43,12 @@ async function main(): Promise<void>{
   const server = ViteExpress.listen(app, 3000, () =>
     console.log("Server is listening on port 3000...")
   );
+
+  // app.use((req, res) => res.status(404).send('404, page not found :('));
   
   const io = new Server(server, {
     cors: {
-      origin: 'http://localhost:3000',
+      origin: `${process.env.VITE_API_URL}`,
       methods: ['GET', 'POST']
     }
   });
@@ -68,8 +71,6 @@ async function main(): Promise<void>{
       setUserId(socket.id);
     });
 
-
-  
   });
 };
 

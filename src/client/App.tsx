@@ -8,8 +8,9 @@ import { StreamPlayer } from "./components/StreamPlayer";
 import { Chat }  from "./components/Chat"
 import { serverEmiters, clientEmiters } from "../socketEvents";
 
+
 const nmsPort = configNms('dummyInput').http.port;
-const streamsListAPI = `http://localhost:${nmsPort}/api/streams`;
+const streamsListAPI = `${import.meta.env.VITE_API_URL}:${nmsPort}/api/streams`;
 
 function App(): JSX.Element{
 
@@ -69,7 +70,7 @@ function App(): JSX.Element{
     nmsPort: string,
     stream: string
   ): string{
-    return `http://localhost:${nmsPort}/live/${stream}/index.m3u8`;
+    return `${import.meta.env.VITE_API_URL}:${nmsPort}/live/${stream}/index.m3u8`;
   };
 
 

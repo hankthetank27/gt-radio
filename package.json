@@ -19,6 +19,7 @@
     "node-media-server": "^2.4.9",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-scripts": "^5.0.1",
     "socket.io": "^4.6.1",
     "socket.io-client": "^4.6.1",
     "ts-node": "^10.9.1",
