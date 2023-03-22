@@ -29,7 +29,10 @@ export function StreamPlayer({
   }, [src]);
 
 
-  function _initPlayer(hls: Hls | null) {
+  function _initPlayer(
+    hls: Hls | null
+  ): Hls{
+
     if (hls){
       hls.destroy()
     };
@@ -71,14 +74,16 @@ export function StreamPlayer({
   };
 
 
-  function setAudioPlaybackPosition(audioElement: RefObject<HTMLAudioElement>){
+  function setAudioPlaybackPosition(
+    audioElement: RefObject<HTMLAudioElement>
+  ): void{
     if (audioElement.current && hlsAudio && hlsAudio.liveSyncPosition){
       audioElement.current.currentTime = hlsAudio.liveSyncPosition;
     };
   };
 
 
-  function renderAudioElement(){
+  function renderAudioElement(): JSX.Element{
     if (Hls.isSupported()){
       return (
         <audio
@@ -99,7 +104,7 @@ export function StreamPlayer({
   };
 
   return(
-    <div className="playerAndDataContainer">
+    <div className="streamContainer">
       <div className="playerContainer">
         {renderAudioElement()}
       </div>

@@ -3,6 +3,7 @@ import { useState, useEffect, useContext } from "react";
 import { SocketContext } from "../context/socket";
 import { v4 as uuid } from 'uuid'
 import { songInfo } from "../../@types";
+import '../stylesheets/CurrentSongDisplay.css'
 
 
 interface props{

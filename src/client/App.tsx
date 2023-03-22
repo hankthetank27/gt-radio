@@ -64,7 +64,10 @@ function App(): JSX.Element{
   };
 
 
-  function makeStreamUrl(nmsPort: string, stream: string): string{
+  function makeStreamUrl(
+    nmsPort: string,
+    stream: string
+  ): string{
     return `http://localhost:${nmsPort}/live/${stream}/index.m3u8`;
   };
 
@@ -74,7 +77,7 @@ function App(): JSX.Element{
       <div className="App">
         <img className="headerImg" src={headerImg}/>
         <div className="mainContentContainer">
-          <div className="streamContainer">
+          {/* <div className="streamContainer"> */}
             {liveStreams.reduce((acc: JSX.Element[], streamInfo) => {
                 const [ nmsPort, stream ] = streamInfo;
                 // if (isConnected && stream in streamsConnectedTo){
@@ -88,7 +91,7 @@ function App(): JSX.Element{
                 return acc;
               }, [])
             }
-          </div>
+          {/* </div> */}
           {userID
             ?<Chat userId={userID}/>
             : null 

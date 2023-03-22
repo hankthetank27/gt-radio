@@ -39,7 +39,10 @@ export const Chat = ({
   }, [chatHistory]);
 
 
-  function makeMessage(message: string, senderId: string){
+  function makeMessage(
+    message: string,
+    senderId: string
+  ): JSX.Element{
     const messageType = 
       senderId === userId
         ? 'myMessage' 
@@ -56,10 +59,8 @@ export const Chat = ({
   return(
     <div className="chatContainer">
       <div className="chatContents" ref={chatContentsEl}>
-        { chatHistory.map( m => {
-            const [ senderId, message ] = m;
-            return makeMessage(message, senderId);
-          })
+        {chatHistory.map(([ senderId, message ]) => 
+          makeMessage(message, senderId))
         }
       </div>
       <form className="msgForm" onSubmit={(e) => {
@@ -69,7 +70,11 @@ export const Chat = ({
         setHandleChange('');
       }}>
         <div>Chat</div>
-        <input type="text" value={handleChange} onChange={(e) => { setHandleChange(e.target.value) }}/>
+        <input 
+          type="text" 
+          value={handleChange} 
+          onChange={e => setHandleChange(e.target.value)}
+        />
       </form>
     </div>
   );

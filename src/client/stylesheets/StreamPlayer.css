@@ -1,13 +1,28 @@
 .playerContainer{
     display: flex;
-    justify-content: left;
+    justify-content: center;
     padding-left: 28px;
     padding-bottom: 30px;
 }
 
+.streamContainer{
+    display: flex;
+    justify-content: top;
+    flex-direction: column;
+    align-items: center;
+}
+
 audio{
+    margin: 5px;
     border: 1px solid black;
     background: yellow;
-    width: 100px;
+    width: 420px;
     height: 100px;
+}
+
+
+@media only screen and (max-width: 900px) {
+    audio{
+        width: 300px;
+    }
 }

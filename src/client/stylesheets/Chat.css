@@ -12,6 +12,7 @@
     /* overflow: hidden; */
     padding: 5px;
     margin-left: 30px;
+    
 }
 
 .msgForm{
@@ -61,4 +62,14 @@
 
 .opMessage .sender{
     color: rgb(58, 163, 130);
+}
+
+
+@media only screen and (max-width: 900px) {
+    .chatContainer {
+        width: 300px;
+    }
+    .chatContents{
+        width: 300px;
+    }
 }

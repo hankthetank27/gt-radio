@@ -3,11 +3,12 @@
     justify-content: center;
     width: 100%;
     height: 100%;
+    
 }
 
 .mainContentContainer{
     top: 140px;
-    position: fixed;
+    position: absolute;
     display: flex;
     max-width: 1000px;
     margin: 0 auto;
@@ -16,7 +17,7 @@
 }
 
 .headerImg{
-    position: fixed;
+    position: absolute;
     top: 0;
     width: 1200px;
     height: 120px;
@@ -24,7 +25,6 @@
 }
 
 .App{
-    /* position: relative; */
     align-items: center;
     display: flex;
     flex-direction: column;
@@ -32,4 +32,11 @@
 
 .streamContainer{
     width: 500px;
+}
+
+@media only screen and (max-width: 900px) {
+    .mainContentContainer{
+        flex-direction: column;
+        align-items: center;
+    }
 }
