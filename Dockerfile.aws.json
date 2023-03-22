@@ -1,0 +1,50 @@
+{
+  "AWSEBDockerrunVersion": "1",
+  "containerDefinitions": [
+    {
+      "name": "my-container",
+      "image": "node:16-alpine",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 3000,
+          "hostPort": 3000
+        },
+        {
+          "containerPort": 8000,
+          "hostPort": 8000
+        },
+        {
+          "containerPort": 1935,
+          "hostPort": 1935
+        }
+      ],
+      "mountPoints": [
+        {
+          "sourceVolume": "_docker-node-modules",
+          "containerPath": "/usr/src/app/node_modules",
+          "readOnly": true
+        }
+      ],
+      "workingDirectory": "/usr/src/app",
+      "command": [
+        "npm",
+        "start"
+      ],
+      "environment": [
+        {
+          "name": "DOCKER_HOST",
+          "value": "127.0.0.1"
+        }
+      ]
+    }
+  ],
+  "volumes": [
+    {
+      "name": "_docker-node-modules",
+      "host": {
+        "sourcePath": "./node_modules"
+      }
+    }
+  ]
+}
