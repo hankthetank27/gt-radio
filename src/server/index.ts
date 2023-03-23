@@ -25,7 +25,6 @@ async function main(): Promise<void>{
     extended: true
   }));
 
-  
   const nms = new NodeMediaServer(configNms(ffmpegPath));
   nms.run();
 
@@ -52,12 +51,18 @@ async function main(): Promise<void>{
       methods: ['GET', 'POST']
     }
   });
+
+  // i think this fix below issue? need more testing.
+  mainAudioStream.on('currentlyPlaying', (songData: songInfo) => {
+    io.emit(serverEmiters.CURRENTLY_PLAYING, songData);
+  });
   
   io.on('connection', (socket) => {
   
-    mainAudioStream.on('currentlyPlaying', (songData: songInfo) => {
-      socket.emit(serverEmiters.CURRENTLY_PLAYING, songData);
-    });
+    // causing mem leak with multiple connections
+    // mainAudioStream.on('currentlyPlaying', (songData: songInfo) => {
+    //   socket.emit(serverEmiters.CURRENTLY_PLAYING, songData);
+    // });
   
     socket.on(clientEmiters.FETCH_CURRENTLY_PLAYING, () => {
       socket.emit(serverEmiters.CURRENTLY_PLAYING, mainAudioStream.getCurrentlyPlaying());
