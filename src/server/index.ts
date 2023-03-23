@@ -47,7 +47,7 @@ async function main(): Promise<void>{
   
   const io = new Server(server, {
     cors: {
-      origin: `${process.env.VITE_API_URL}`,
+      origin: `*`,
       methods: ['GET', 'POST']
     }
   });
