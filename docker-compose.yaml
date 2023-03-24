@@ -1,9 +1,7 @@
 version: '3.8'
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile-aws
+    image: hjackson277/gt-radio
     ports:
       - "3000:3000"
       - "8000:8000"
