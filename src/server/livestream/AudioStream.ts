@@ -89,9 +89,7 @@ export class AudioStream extends EventEmitter{
         const song = await this._selectRandomSong();
         const songInfo = await this._getSongInfo(song);
   
-        // TODO: continue on song duration or DL size?
-        // songInfo.duration, songInfo.length
-        if (!songInfo) continue;
+        if (!songInfo || songInfo.length > 400000000) continue;
 
         await this._pushSong(songInfo);
   

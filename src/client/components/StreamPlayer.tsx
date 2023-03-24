@@ -37,7 +37,6 @@ export function StreamPlayer({
       hls.destroy();
     };
 
-    // TODO: need to find option for attempting restart after stream interruption/disconnect
     const newHls = new Hls({
       enableWorker: false,
       lowLatencyMode: true,

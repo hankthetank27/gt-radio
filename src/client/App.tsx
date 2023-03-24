@@ -8,7 +8,6 @@ import { StreamPlayer } from "./components/StreamPlayer";
 import { Chat }  from "./components/Chat"
 import { serverEmiters, clientEmiters } from "../socketEvents";
 
-console.log(socket, SocketContext)
 
 const nmsPort = configNms('dummyInput').http.port;
 const streamsListAPI = `${import.meta.env.VITE_API_URL}:${nmsPort}/api/streams`;

@@ -59,11 +59,6 @@ async function main(): Promise<void>{
   
   io.on('connection', (socket) => {
   
-    // causing mem leak with multiple connections
-    // mainAudioStream.on('currentlyPlaying', (songData: songInfo) => {
-    //   socket.emit(serverEmiters.CURRENTLY_PLAYING, songData);
-    // });
-  
     socket.on(clientEmiters.FETCH_CURRENTLY_PLAYING, () => {
       socket.emit(serverEmiters.CURRENTLY_PLAYING, mainAudioStream.getCurrentlyPlaying());
     });
