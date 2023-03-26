@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useContext } from "react";
 import { SocketContext } from "../context/socket";
 import '../stylesheets/Chat.css';
 import { serverEmiters, clientEmiters } from "../../socketEvents";
+import { chatMessage } from "../../@types";
 
 
 interface Props{
@@ -16,10 +17,13 @@ export const Chat = ({
 
   const { socket, isConnected } = useContext(SocketContext);
   const [ handleChange, setHandleChange ] = useState<string>('');
-  const [ chatHistory, setChatHistory ] = useState<string[][]>([]);
+  const [ chatHistory, setChatHistory ] = useState<chatMessage[]>([]);
 
   useEffect(() => {
-    const callback = (message: string[]) => {
+
+    getChatHistory();
+
+    const callback = (message: chatMessage) => {
       setChatHistory(prevHistory => {
         return [...prevHistory, message];
       });
@@ -40,6 +44,18 @@ export const Chat = ({
   }, [chatHistory]);
 
 
+  function getChatHistory(){
+    fetch('/api/chatHistory')
+    .then(res => res.json())
+    .then(data => {
+      setChatHistory(data)
+    })
+    .catch(err => {
+      console.log(err);
+    })
+  };
+  
+
   function makeMessage(
     message: string,
     senderId: string
@@ -57,19 +73,32 @@ export const Chat = ({
   };
 
 
+  function handleNewMessage(
+    e: React.FormEvent<HTMLFormElement>
+  ): void{
+    e.preventDefault();
+
+    const newMessage = {
+      userId: userId,
+      message: handleChange,
+      timeStamp: new Date()
+    };
+    
+    setChatHistory([...chatHistory, newMessage]);
+    socket.emit(clientEmiters.CHAT_MESSAGE, newMessage);
+
+    setHandleChange('');
+  };
+
+
   return(
     <div className="chatContainer">
       <div className="chatContents" ref={chatContentsEl}>
-        {chatHistory.map(([ senderId, message ]) => 
-          makeMessage(message, senderId))
+        {chatHistory.map(({ userId , message }) => 
+          makeMessage(message, userId))
         }
       </div>
-      <form className="msgForm" onSubmit={(e) => {
-        e.preventDefault();
-        setChatHistory([...chatHistory, [userId, handleChange]]);
-        socket.emit(clientEmiters.CHAT_MESSAGE, [userId, handleChange]);
-        setHandleChange('');
-      }}>
+      <form className="msgForm" onSubmit={handleNewMessage}>
         <div>Chat</div>
         <input 
           type="text" 

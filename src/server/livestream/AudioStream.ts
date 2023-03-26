@@ -36,7 +36,7 @@ export class AudioStream extends EventEmitter{
   };
       
       
-  async startStream(): Promise<void>{
+  startStream(): void{
         
     this.#isLive = true;
     this._initSongQueue();
@@ -52,19 +52,17 @@ export class AudioStream extends EventEmitter{
         '-ar 44100',
       ])
       .on('error', (err) => {
-        // TODO: need better error handling in start stream, and initSongQueue
+        // TODO: would like to find a way to immediately destroy this.#stream without potentailly causing the currently queded download
+        // to not have anywhere to pipe to leading to unresolvable promise in this._pushSong 
+        this.initiateStopStream();
         console.error(`Error transcoding stream audio: ${err.message}`);
       })
       .save(`rtmp://${process.env.DOCKER_HOST || 'localhost'}/live/${this.streamName}.flv`);
   };
 
-
-  // TODO: handle stream destroy while pushSong is pushing transcoded audio into stream
-  stopStream(): void{
+  // will eventually stop stream after currently queued item in _initSongQueue is drained
+  initiateStopStream(): void{
     this.#isLive = false;
-    this.#currentlyPlaying = null;
-    this.#stream.destroy();
-    this.#stream = this._createStream(400);
   };
 
 
@@ -97,6 +95,10 @@ export class AudioStream extends EventEmitter{
         console.error(`Error queuing audio: ${err}`);
       };
     };
+    this.#currentlyPlaying = null;
+    this.emit('currentlyPlaying', null);
+    this.#stream.destroy();
+    this.#stream = this._createStream(400);
   };
 
 

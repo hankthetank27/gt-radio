@@ -19,3 +19,9 @@ export interface streamProcessTracker {
   transcodeAudioDone: boolean;
   passToDestinationDone: boolean;
 };
+
+export interface chatMessage{
+  userId: string;
+  message: string;
+  timeStamp: Date;
+}

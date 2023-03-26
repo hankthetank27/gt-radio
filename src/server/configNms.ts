@@ -18,7 +18,7 @@ export function configNms(ffmpegPath: string){
         {
           app: 'live',
           hls: true,
-          hlsFlags: '[hls_time=4:hls_list_size=3:hls_flags=delete_segments]',
+          hlsFlags: '[hls_time=3:hls_list_size=3:hls_flags=delete_segments]', // list size may help w drops on client side
           hlsKeep: false
         }
       ]
