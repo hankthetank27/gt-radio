@@ -18,19 +18,13 @@ export const Chat = ({
   const { socket, isConnected } = useContext(SocketContext);
   const [ handleChange, setHandleChange ] = useState<string>('');
   const [ chatHistory, setChatHistory ] = useState<chatMessage[]>([]);
+  const [ chatError, setChatError ] = useState<string>('');
 
   useEffect(() => {
-
     getChatHistory();
-
-    const callback = (message: chatMessage) => {
-      setChatHistory(prevHistory => {
-        return [...prevHistory, message];
-      });
-    };
-
-    socket.on(serverEmiters.RECEIVE_CHAT_MESSAGE, callback);
-
+    socket.on(serverEmiters.RECEIVE_CHAT_MESSAGE, (messages: chatMessage[]) => {
+      setChatHistory(messages);
+    });
     return () => {
       socket.off(serverEmiters.RECEIVE_CHAT_MESSAGE);
     };
@@ -44,17 +38,15 @@ export const Chat = ({
   }, [chatHistory]);
 
 
-  function getChatHistory(){
+  function getChatHistory(): void{
     fetch('/api/chatHistory')
-    .then(res => res.json())
-    .then(data => {
-      setChatHistory(data)
-    })
-    .catch(err => {
-      console.log(err);
-    })
+      .then(res => res.json())
+      .then(data => setChatHistory(data))
+      .catch(err => {
+        console.error(`Error fetching chat history: ${err}`);
+      });
   };
-  
+
 
   function makeMessage(
     message: string,
@@ -73,10 +65,15 @@ export const Chat = ({
   };
 
 
-  function handleNewMessage(
-    e: React.FormEvent<HTMLFormElement>
-  ): void{
-    e.preventDefault();
+  function handleNewMessage(): void{
+
+    if (!handleChange) return;
+    if (handleChange.length > 500){
+      setChatError('Message cannot exceed 500 charaters.');
+      return;
+    };
+
+    setChatError('');
 
     const newMessage = {
       userId: userId,
@@ -98,14 +95,33 @@ export const Chat = ({
           makeMessage(message, userId))
         }
       </div>
-      <form className="msgForm" onSubmit={handleNewMessage}>
-        <div>Chat</div>
-        <input 
+      <form 
+        className="msgForm" 
+        onSubmit={e => {
+          e.preventDefault();
+          handleNewMessage();
+        }}
+      >
+        <input
+          className="msgFormInput"
           type="text" 
           value={handleChange} 
-          onChange={e => setHandleChange(e.target.value)}
+          onChange={e => 
+            setHandleChange(e.target.value)
+          }
         />
+        <button 
+          onSubmit={e => {
+            e.preventDefault();
+            handleNewMessage();
+          }}
+        >
+          Send
+        </button>
       </form>
+      <div className="chatError">
+        <span>{chatError}</span>
+      </div>
     </div>
   );
 };

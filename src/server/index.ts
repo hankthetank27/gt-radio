@@ -42,10 +42,9 @@ async function main(): Promise<void>{
     //   res.status(404)
     //   next(error)
     // });
-  app.get('/api/chatHistory', (req, res) => {
+  app.get('/api/chatHistory', (_, res) => {
     res.json(chat.messages);
   })
-  
     
   const server = ViteExpress.listen(app, 3000, () =>
     console.log("Server is listening on port 3000...")
@@ -79,8 +78,7 @@ async function main(): Promise<void>{
     });
     
     socket.on(clientEmiters.CHAT_MESSAGE, (message: chatMessage) => {
-      chat.addMessage(message);
-      socket.broadcast.emit(serverEmiters.RECEIVE_CHAT_MESSAGE, message)
+      socket.broadcast.emit(serverEmiters.RECEIVE_CHAT_MESSAGE, chat.addMessage(message));
     });
   });
 };

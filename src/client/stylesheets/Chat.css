@@ -16,10 +16,17 @@
 }
 
 .msgForm{
+    margin-top: 15px;
     display: flex;
-    flex-direction: column;
     align-items: center;
     padding-bottom: 15px;
+}
+
+.msgFormInput{
+    border: 1px solid black;
+    margin: 5px;
+    line-height: 18px;
+    width: 180px;
 }
 
 .chatContents{
