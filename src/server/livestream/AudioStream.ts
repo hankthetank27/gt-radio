@@ -6,6 +6,7 @@ import { PassThrough } from "node:stream";
 import { songInfo, streamProcessTracker } from '../../@types';
 import { Db, Document } from 'mongodb';
 import { EventEmitter } from 'stream';
+import { serverEmiters } from '../../socketEvents';
 // @ts-ignore
 import { Parser } from 'm3u8-parser';
 
@@ -36,10 +37,10 @@ export class AudioStream extends EventEmitter{
   };
       
       
-  startStream(): void{
+  startStream(): AudioStream{
         
     this.#isLive = true;
-    this._initSongQueue();
+    this._queueAudio();
     
     ffmpeg(this.#stream)
       .inputOptions([
@@ -58,9 +59,11 @@ export class AudioStream extends EventEmitter{
         console.error(`Error transcoding stream audio: ${err.message}`);
       })
       .save(`rtmp://${process.env.DOCKER_HOST || 'localhost'}/live/${this.streamName}.flv`);
+
+    return this;
   };
 
-  // will eventually stop stream after currently queued item in _initSongQueue is drained
+  // will eventually stop stream after currently queued item in _queueAudio is drained
   initiateStopStream(): void{
     this.#isLive = false;
   };
@@ -80,7 +83,8 @@ export class AudioStream extends EventEmitter{
   };
 
 
-  private async _initSongQueue(){
+  private async _queueAudio(){
+
     while (this.#isLive){
       try {
 
@@ -95,8 +99,9 @@ export class AudioStream extends EventEmitter{
         console.error(`Error queuing audio: ${err}`);
       };
     };
+
     this.#currentlyPlaying = null;
-    this.emit('currentlyPlaying', null);
+    this.emit(serverEmiters.CURRENTLY_PLAYING, null);
     this.#stream.destroy();
     this.#stream = this._createStream(400);
   };
@@ -270,7 +275,7 @@ export class AudioStream extends EventEmitter{
 
     if (!segments){
       this.#currentlyPlaying = songInfo;
-      this.emit('currentlyPlaying', songInfo);
+      this.emit(serverEmiters.CURRENTLY_PLAYING, songInfo);
       return;
     };
 
@@ -285,7 +290,7 @@ export class AudioStream extends EventEmitter{
 
         if (!m3u8Manifest.includes(leastRecentSegment)){
           this.#currentlyPlaying = songInfo;
-          this.emit('currentlyPlaying', songInfo);
+          this.emit(serverEmiters.CURRENTLY_PLAYING, songInfo);
           return;
         };
       };

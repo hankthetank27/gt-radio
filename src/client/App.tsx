@@ -33,8 +33,8 @@ function App(): JSX.Element{
       setIsConnected(false);
     });
     return () => {
-      socket.off(serverEmiters.CONNECT)
-      socket.off(serverEmiters.DISCONNECT)
+      socket.off(serverEmiters.CONNECT);
+      socket.off(serverEmiters.DISCONNECT);
     };
   }, []);
 
@@ -56,7 +56,8 @@ function App(): JSX.Element{
       .then(streams => {
         if (streams.live){
           const hlsAPIs: string[][] = Object.keys(streams.live)
-            .map(stream => [String(nmsPort), stream])
+            .map(stream => [String(nmsPort), stream]);
+            
           setLiveStreams(hlsAPIs)
         }
       })

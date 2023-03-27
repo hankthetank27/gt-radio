@@ -1,6 +1,6 @@
-import { MongoClient } from "mongodb";
+import { Db, MongoClient } from "mongodb";
 
-export async function initGtArchive() {
+export async function initDB() {
   const connectionString = process.env.GT_ARCHIVE_CONNECTION_STRING;
 
   if (!connectionString){

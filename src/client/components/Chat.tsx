@@ -28,14 +28,14 @@ export const Chat = ({
     return () => {
       socket.off(serverEmiters.RECEIVE_CHAT_MESSAGE);
     };
-  }, [isConnected]);
+  }, [ isConnected ]);
 
 
   useEffect(() => {
     if (chatContentsEl.current){
       chatContentsEl.current.scrollTop = chatContentsEl.current.scrollHeight;
     };
-  }, [chatHistory]);
+  }, [ chatHistory ]);
 
 
   function getChatHistory(): void{
