@@ -3,25 +3,27 @@ import { SocketContext } from "../context/socket";
 import '../stylesheets/Chat.css';
 import { serverEmiters, clientEmiters } from "../../socketEvents";
 import { chatMessage } from "../../@types";
-
+import { Login } from "./Login";
+import { v4 as uuid } from "uuid";
 
 interface Props{
   userId: string;
+  setUserId: React.Dispatch<React.SetStateAction<string>>
 };
 
-export const Chat = ({
-  userId
-}: Props) => {
+export const Chat = () => {
 
   const chatContentsEl = useRef<HTMLDivElement>(null);
 
   const { socket, isConnected } = useContext(SocketContext);
+  const [ userId, setUserId ] = useState<string>('');
   const [ handleChange, setHandleChange ] = useState<string>('');
   const [ chatHistory, setChatHistory ] = useState<chatMessage[]>([]);
   const [ chatError, setChatError ] = useState<string>('');
 
+
   useEffect(() => {
-    getChatHistory();
+    getChatHistory().then(verifySession)
     socket.on(serverEmiters.RECEIVE_CHAT_MESSAGE, (messages: chatMessage[]) => {
       setChatHistory(messages);
     });
@@ -38,13 +40,38 @@ export const Chat = ({
   }, [ chatHistory ]);
 
 
-  function getChatHistory(): void{
-    fetch('/api/chatHistory')
-      .then(res => res.json())
-      .then(data => setChatHistory(data))
-      .catch(err => {
-        console.error(`Error fetching chat history: ${err}`);
+  async function getChatHistory(): Promise<void>{
+    try {
+      const res = await fetch('/api/chatHistory');
+      if (!res.ok) return;
+      const data = await res.json();
+      setChatHistory(data);
+
+    } catch (err) {
+      console.error(`Error fetching chat history: ${err}`)
+    };
+  };
+
+
+  async function verifySession(): Promise<void>{
+
+    const session = window.localStorage.getItem('sessionJwt');
+    if (!session) return;
+
+    try {
+      const res = await fetch('/api/verifySession/', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session}`
+        }
       });
+      if (!res.ok) return;
+      const { username } = await res.json();
+      setUserId(username);
+
+    } catch (err){
+      console.error(`Error: could not verify session data ${err}`);
+    };
   };
 
 
@@ -52,10 +79,12 @@ export const Chat = ({
     message: string,
     senderId: string
   ): JSX.Element{
+
     const messageType = 
       senderId === userId
         ? 'myMessage' 
         : 'opMessage'
+
     return (
       <div className={`${messageType} chatItem`}>
         <div className="sender"> {senderId}</div>
@@ -73,6 +102,12 @@ export const Chat = ({
       return;
     };
 
+    const sessionJwt = window.localStorage.getItem('sessionJwt');
+
+    if (!sessionJwt){
+      setChatError('You are not logged in.')
+    };
+
     setChatError('');
 
     const newMessage = {
@@ -82,19 +117,14 @@ export const Chat = ({
     };
     
     setChatHistory([...chatHistory, newMessage]);
-    socket.emit(clientEmiters.CHAT_MESSAGE, newMessage);
+    socket.emit(clientEmiters.CHAT_MESSAGE, newMessage, sessionJwt);
 
     setHandleChange('');
   };
 
 
-  return(
-    <div className="chatContainer">
-      <div className="chatContents" ref={chatContentsEl}>
-        {chatHistory.map(({ userId , message }) => 
-          makeMessage(message, userId))
-        }
-      </div>
+  function chatMsgForm(): JSX.Element{
+    return (
       <form 
         className="msgForm" 
         onSubmit={e => {
@@ -119,9 +149,53 @@ export const Chat = ({
           Send
         </button>
       </form>
-      <div className="chatError">
-        <span>{chatError}</span>
+    );
+  };
+
+
+  function logout(){
+    return (
+      <div className="logoutContainer">
+        <span className="loggedInAs">Logged in as {userId}</span>
+        <button 
+          className="logoutButton" 
+          onClick={(e) => {
+            e.preventDefault();
+            window.localStorage.removeItem('sessionJwt');
+            setUserId('');
+          }}
+        >
+          Log out
+        </button>
       </div>
+    );
+  };
+
+
+  return(
+    <div className="outerChatContainer">
+      <div className="chatContainer">
+        {userId
+          ? null
+          : <Login key={uuid()} setUserId={setUserId}/>
+        }
+        <div className="chatContents" ref={chatContentsEl}>
+          {chatHistory.map(({ userId , message }) => 
+            makeMessage(message, userId))
+          }
+        </div>
+        {userId
+          ? chatMsgForm()
+          : <div>Login to join chat.</div>
+        }
+        <div className="chatError">
+          <span>{chatError}</span>
+        </div>
+      </div>
+      {userId
+        ? logout()
+        : null
+      } 
     </div>
   );
 };

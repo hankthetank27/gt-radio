@@ -2,7 +2,8 @@ export const serverEmiters = {
   CONNECT : 'connect',
   DISCONNECT: 'disconnect',
   CURRENTLY_PLAYING: 'currentlyPlaying',
-  RECEIVE_CHAT_MESSAGE: 'receive-chat-message'
+  RECEIVE_CHAT_MESSAGE: 'receive-chat-message',
+  CHAT_MESSAGE_ERROR: 'chat-message-error'
 };
 
 export const clientEmiters = {

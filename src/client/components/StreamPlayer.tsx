@@ -88,7 +88,7 @@ export function StreamPlayer({
         <audio
           ref={audioElement} 
           onPlay={() => setAudioPlaybackPosition(audioElement)} 
-          controls autoPlay
+          controls
         />
       );
     } else {
@@ -96,7 +96,7 @@ export function StreamPlayer({
         <audio 
           ref={audioElement} 
           src={src} 
-          controls autoPlay
+          controls
         />
       );
     };

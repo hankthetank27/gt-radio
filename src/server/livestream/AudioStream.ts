@@ -53,8 +53,8 @@ export class AudioStream extends EventEmitter{
         '-ar 44100',
       ])
       .on('error', (err) => {
-        // TODO: would like to find a way to immediately destroy this.#stream without potentailly causing the currently queded download
-        // to not have anywhere to pipe to leading to unresolvable promise in this._pushSong 
+        // TODO: would like to find a way to immediately destroy this.#stream without potentailly causing the currently queued download
+        // to not have anywhere to pipe, leading to unresolvable promise in this._pushSong 
         this.initiateStopStream();
         console.error(`Error transcoding stream audio: ${err.message}`);
       })

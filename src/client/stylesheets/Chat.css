@@ -10,9 +10,19 @@
     width: 400px;
     height: 80%;
     /* overflow: hidden; */
-    padding: 5px;
+    padding: 5px;    
+}
+
+.outerChatContainer{
     margin-left: 30px;
-    
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.loggedInAs{
+    font-style: italic;
+    font-size: 12px;
 }
 
 .msgForm{
@@ -20,6 +30,10 @@
     display: flex;
     align-items: center;
     padding-bottom: 15px;
+}
+
+.msgForm button{
+    background: none;
 }
 
 .msgFormInput{
@@ -36,7 +50,8 @@
     width: 400px;
     height: 100%;
     max-height: 800px;
-    min-height: 320px;
+    /* need to change min height when not logged in */
+    min-height: 320px; 
     overflow-y: scroll;
 }
 
