@@ -288,7 +288,10 @@ export class AudioStream extends EventEmitter{
 
         const m3u8Manifest = await this._getM3u8Segments(this.hlsMediaPath);
 
-        if (!m3u8Manifest.includes(leastRecentSegment)){
+        if (
+            m3u8Manifest[0] === leastRecentSegment ||
+            !m3u8Manifest.includes(leastRecentSegment)
+        ){
           this.#currentlyPlaying = songInfo;
           this.emit(serverEmiters.CURRENTLY_PLAYING, songInfo);
           return;
