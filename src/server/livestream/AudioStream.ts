@@ -50,7 +50,7 @@ export class AudioStream extends EventEmitter{
         '-preset veryfast',
         '-tune zerolatency',
         '-c:a aac',
-        '-ar 44100',
+        '-ar 48000',
       ])
       .on('error', (err) => {
         // TODO: would like to find a way to immediately destroy this.#stream without potentailly causing the currently queued download
