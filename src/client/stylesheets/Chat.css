@@ -29,7 +29,7 @@
     margin-top: 15px;
     display: flex;
     align-items: center;
-    padding-bottom: 15px;
+    padding-bottom: 0px;
 }
 
 .msgForm button{
@@ -58,11 +58,17 @@
 .chatItem {
     padding-top: 10px;
     padding-bottom: 10px;
+    font-size: 15px;
 }
 
 .sender {
     font-size: 11px;
     font-style: italic;
+}
+
+.messageContents{
+    overflow-wrap: break-word;
+    max-width: 200px;
 }
 
 .myMessage {
@@ -71,7 +77,6 @@
     align-items: flex-end;
     padding-right: 5px;
     padding-left: 15px;
-    /* text-align: right; */
 }
 
 .myMessage .sender {
@@ -84,15 +89,31 @@
 }
 
 .opMessage .sender{
-    color: rgb(58, 163, 130);
+    color: rgb(39, 132, 103);
 }
 
+.chatError{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 18px;
+}
+
+.chatErrorMsg{
+    font-size: 12px;
+    color: rgb(176, 11, 11) 
+}
+
+.loginErrorMsg{
+    font-size: 12px;
+    color: rgb(176, 11, 11);
+}
 
 @media only screen and (max-width: 900px) {
     .chatContainer {
-        width: 300px;
+        width: 320px;
     }
     .chatContents{
-        width: 300px;
+        width: 320px;
     }
 }

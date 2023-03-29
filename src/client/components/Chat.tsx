@@ -2,14 +2,10 @@ import { useEffect, useRef, useState, useContext } from "react";
 import { SocketContext } from "../context/socket";
 import '../stylesheets/Chat.css';
 import { serverEmiters, clientEmiters } from "../../socketEvents";
-import { chatMessage } from "../../@types";
+import { chatMessage, chatError } from "../../@types";
 import { Login } from "./Login";
 import { v4 as uuid } from "uuid";
 
-interface Props{
-  userId: string;
-  setUserId: React.Dispatch<React.SetStateAction<string>>
-};
 
 export const Chat = () => {
 
@@ -23,12 +19,22 @@ export const Chat = () => {
 
 
   useEffect(() => {
-    getChatHistory().then(verifySession)
+    getChatHistory()
+      .then(verifySession)
+    
+    socket.on(serverEmiters.CHAT_MESSAGE_ERROR, (error: chatError) => {
+      console.log(error)
+      setChatHistory(error.messages)
+      setChatError(error.errorMsg);
+    });
+
     socket.on(serverEmiters.RECEIVE_CHAT_MESSAGE, (messages: chatMessage[]) => {
       setChatHistory(messages);
     });
+
     return () => {
       socket.off(serverEmiters.RECEIVE_CHAT_MESSAGE);
+      socket.off(serverEmiters.CHAT_MESSAGE_ERROR);
     };
   }, [ isConnected ]);
 
@@ -189,7 +195,7 @@ export const Chat = () => {
           : <div>Login to join chat.</div>
         }
         <div className="chatError">
-          <span>{chatError}</span>
+          <span className="chatErrorMsg">{chatError}</span>
         </div>
       </div>
       {userId

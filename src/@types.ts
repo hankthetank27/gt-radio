@@ -25,3 +25,8 @@ export interface chatMessage{
   message: string;
   timeStamp: Date;
 }
+
+export interface chatError{
+  errorMsg: string;
+  messages: chatMessage[];
+}

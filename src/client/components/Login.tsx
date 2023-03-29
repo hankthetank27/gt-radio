@@ -151,7 +151,7 @@ export function Login({
         )}
       </button>
       <div className='loginError'>
-        <span>{loginError}</span>
+        <span className='loginErrorMsg'>{loginError}</span>
       </div>
       <span className='loading'>
         {isFetching
