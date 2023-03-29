@@ -103,8 +103,8 @@ export const Chat = () => {
   function handleNewMessage(): void{
 
     if (!handleChange) return;
-    if (handleChange.length > 500){
-      setChatError('Message cannot exceed 500 charaters.');
+    if (handleChange.length > 800){
+      setChatError('Message cannot exceed 800 charaters.');
       return;
     };
 

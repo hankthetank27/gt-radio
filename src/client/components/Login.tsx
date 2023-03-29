@@ -69,7 +69,7 @@ export function Login({
       if (!res.ok){
         const errorMsg = loginOrCreateOpts(
           'Inncorrect username or password',
-          'User alredy exists'
+          'User already exists'
         );
         setIsFetching(false);
         setLoginError(errorMsg);
@@ -125,7 +125,7 @@ export function Login({
         />
         <input
           className="passwordFormInput"
-          type="text"
+          type="password"
           placeholder='Password'
           value={handlePwChange} 
           onChange={e => setHandlePwChange(e.target.value)}

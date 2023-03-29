@@ -4,7 +4,7 @@ import { songInfo, chatMessage } from "../../@types";
 import { serverEmiters, clientEmiters } from "../../socketEvents";
 import { AudioStream } from "../livestream/AudioStream";
 import jwt from 'jsonwebtoken';
-import { Socket } from "socket.io-client";
+
 
 interface imports{
   mainAudioStream: AudioStream;
@@ -44,10 +44,10 @@ export function connectWebsockets(
     
     socket.on(clientEmiters.CHAT_MESSAGE, (message: chatMessage, token: string) => {
       try {
-        if (message.message.length > 500) {
+        if (message.message.length > 800) {
           return emitChatError(
             socket.id,
-            'Message cannot exceed 500 charaters'
+            'Message cannot exceed 800 charaters'
           );
         };
 
