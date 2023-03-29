@@ -84,7 +84,9 @@ function App(): JSX.Element{
   return (
     <SocketContext.Provider value={{ socket, isConnected }}>
       <div className="App">
-        <img className="headerImg" src={headerImg}/>
+        <div className="headerContainer">
+          <img className="headerImg" src={headerImg}/>
+        </div>
         <div className="mainContentContainer">
           { displayMainStream() }
           <Chat/>

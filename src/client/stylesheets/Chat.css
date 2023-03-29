@@ -116,4 +116,7 @@
     .chatContents{
         width: 320px;
     }
+    .outerChatContainer{
+        margin-left: 0px;
+    }
 }

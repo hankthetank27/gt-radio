@@ -11,13 +11,21 @@
     display: flex;
     max-width: 1000px;
     margin: 0 auto;
-    padding: 2rem;
+    padding-top: 2rem;
     bottom: 0;
 }
 
-.headerImg{
+.headerContainer{
     position: absolute;
+    display: flex;
+    justify-content: center;
     top: 0;
+    width: 100%;
+    overflow: hidden;
+}
+
+.headerImg{
+    flex-shrink: 0;
     width: 1200px;
     height: 120px;
     padding-bottom: 20px;
@@ -27,10 +35,6 @@
     align-items: center;
     display: flex;
     flex-direction: column;
-}
-
-.streamContainer{
-    width: 500px;
 }
 
 @media only screen and (max-width: 900px) {

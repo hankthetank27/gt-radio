@@ -47,8 +47,6 @@ export class AudioStream extends EventEmitter{
         '-re'
       ])
       .outputOption([
-        '-preset veryfast',
-        '-tune zerolatency',
         '-c:a aac',
         '-ar 48000',
       ])
