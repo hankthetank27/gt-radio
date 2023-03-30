@@ -3,7 +3,7 @@ import { useState, useEffect, useContext } from "react";
 import { SocketContext } from "../context/socket";
 import { v4 as uuid } from 'uuid'
 import { songInfo } from "../../@types";
-import '../stylesheets/CurrentSongDisplay.css'
+import styles from '@/styles/CurrentSongDisplay.module.css'
 import { serverEmiters, clientEmiters } from "../../socketEvents";
 
 
@@ -56,7 +56,7 @@ export function CurrentSongDisplay({
     currentlyPlaying: songInfo
   ): JSX.Element{
     return (
-      <div className="currentlyPlaying">
+      <div className={styles.currentlyPlaying}>
         <ul key={uuid()}>
           {
             Object.entries(currentlyPlaying)
@@ -100,7 +100,7 @@ export function CurrentSongDisplay({
 
 
   return(
-    <div className="currentlyPlayingContainer">
+    <div className={styles.currentlyPlayingContainer}>
       {currentlyPlaying
         ? displaySongInfo(currentlyPlaying)
         : null

@@ -30,8 +30,11 @@
     align-items: center;
 }
 
-.logoutButton{
-    margin: 5px;
-    background: none;
+.loading {
     font-size: 12px;
+}
+
+.loginErrorMsg{
+    font-size: 12px;
+    color: rgb(176, 11, 11);
 }

@@ -1,18 +1,18 @@
-import "./stylesheets/App.css";
-import headerImg from './assets/header-image.jpg'
+import Head from 'next/head'
+import styles from '@/styles/Home.module.css';
+import headerImg from '../public/header-image.jpg'
 import { useEffect, useState } from "react";
-import { configNms } from "../server/configNms";
 import { v4 as uuid } from 'uuid'
-import { socket, SocketContext } from "./context/socket";
-import { StreamPlayer } from "./components/StreamPlayer";
-import { Chat }  from "./components/Chat"
-import { serverEmiters } from "../socketEvents";
+import { socket, SocketContext } from "../context/socket";
+import { StreamPlayer } from "./../components/StreamPlayer";
+import { Chat }  from "./../components/Chat"
+import { serverEmiters } from "../../socketEvents";
 
+const nmsPort = 8000;
+const streamsListAPI = `${process.env.NEXT_PUBLIC_HOST}:${nmsPort}/api/streams`;
 
-const nmsPort = configNms('dummyInput').http.port;
-const streamsListAPI = `${import.meta.env.VITE_API_URL}:${nmsPort}/api/streams`;
+export default function Home() {
 
-function App(): JSX.Element{
 
   const [ liveStreams, setLiveStreams ] = useState<string[][]>([]);
   const [ isConnected, setIsConnected ] = useState(socket.connected);
@@ -61,7 +61,7 @@ function App(): JSX.Element{
     nmsPort: string,
     stream: string
   ): string{
-    return `${import.meta.env.VITE_API_URL}:${nmsPort}/live/${stream}/index.m3u8`;
+    return `${process.env.NEXT_PUBLIC_HOST}:${nmsPort}/live/${stream}/index.m3u8`;
   };
 
 
@@ -82,18 +82,24 @@ function App(): JSX.Element{
 
   
   return (
-    <SocketContext.Provider value={{ socket, isConnected }}>
-      <div className="App">
-        <div className="headerContainer">
-          <img className="headerImg" src={headerImg}/>
-        </div>
-        <div className="mainContentContainer">
-          { displayMainStream() }
-          <Chat/>
-        </div>
-      </div>
-    </SocketContext.Provider>
+    <>
+      <Head>
+        <title>Great Tunes Radio</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </Head>
+      <main id={styles.root}>
+        <SocketContext.Provider value={{ socket, isConnected }}>
+          <div className={styles.App}>
+            <div className={styles.headerContainer}>
+              <img className={styles.headerImg} src={headerImg.src}/>
+            </div>
+            <div className={styles.mainContentContainer}>
+              { displayMainStream() }
+              <Chat/>
+            </div>
+          </div>
+        </SocketContext.Provider>
+      </main>
+    </>
   );
 };
-
-export default App;

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useContext } from "react";
 import { SocketContext } from "../context/socket";
-import '../stylesheets/Chat.css';
+import styles from '@/styles/Chat.module.css'
 import { serverEmiters, clientEmiters } from "../../socketEvents";
 import { chatMessage, chatError } from "../../@types";
 import { Login } from "./Login";
@@ -92,9 +92,9 @@ export const Chat = () => {
         : 'opMessage'
 
     return (
-      <div className={`${messageType} chatItem`}>
-        <div className="sender"> {senderId}</div>
-        <div className="messageContents">{message}</div>
+      <div className={`${styles[messageType]} ${styles.chatItem}`}>
+        <div className={styles.sender}> {senderId}</div>
+        <div className={styles.messageContents}>{message}</div>
       </div>
     );
   };
@@ -132,14 +132,14 @@ export const Chat = () => {
   function chatMsgForm(): JSX.Element{
     return (
       <form 
-        className="msgForm" 
+        className={styles.msgForm} 
         onSubmit={e => {
           e.preventDefault();
           handleNewMessage();
         }}
       >
         <input
-          className="msgFormInput"
+          className={styles.msgFormInput}
           type="text" 
           value={handleChange} 
           onChange={e => 
@@ -161,10 +161,10 @@ export const Chat = () => {
 
   function logout(){
     return (
-      <div className="logoutContainer">
-        <span className="loggedInAs">Logged in as {userId}</span>
+      <div className={styles.logoutContainer}>
+        <span className={styles.loggedInAs}>Logged in as {userId}</span>
         <button 
-          className="logoutButton" 
+          className={styles.logoutButton} 
           onClick={(e) => {
             e.preventDefault();
             window.localStorage.removeItem('sessionJwt');
@@ -179,13 +179,13 @@ export const Chat = () => {
 
 
   return(
-    <div className="outerChatContainer">
-      <div className="chatContainer">
+    <div className={styles.outerChatContainer}>
+      <div className={styles.chatContainer}>
         {userId
           ? null
           : <Login key={uuid()} setUserId={setUserId}/>
         }
-        <div className="chatContents" ref={chatContentsEl}>
+        <div className={styles.chatContents} ref={chatContentsEl}>
           {chatHistory.map(({ userId , message }) => 
             makeMessage(message, userId))
           }
@@ -194,8 +194,8 @@ export const Chat = () => {
           ? chatMsgForm()
           : <div>Login to join chat.</div>
         }
-        <div className="chatError">
-          <span className="chatErrorMsg">{chatError}</span>
+        <div className={styles.chatError}>
+          <span className={styles.chatErrorMsg}>{chatError}</span>
         </div>
       </div>
       {userId

@@ -2,7 +2,7 @@ import Hls from "hls.js";
 import { useEffect, useState, createRef, RefObject } from "react";
 import { v4 as uuid } from 'uuid'
 import { CurrentSongDisplay } from "./CurrentSongDisplay";
-import '../stylesheets/StreamPlayer.css'
+import styles from '@/styles/StreamPlayer.module.css';
 
 
 interface props{
@@ -86,6 +86,7 @@ export function StreamPlayer({
     if (Hls.isSupported()){
       return (
         <audio
+          className={styles.player}
           ref={audioElement} 
           onPlay={() => setAudioPlaybackPosition(audioElement)} 
           controls
@@ -94,6 +95,7 @@ export function StreamPlayer({
     } else {
       return (
         <audio 
+          className={styles.player} 
           ref={audioElement} 
           src={src} 
           controls
@@ -104,8 +106,8 @@ export function StreamPlayer({
 
 
   return(
-    <div className="streamContainer">
-      <div className="playerContainer">
+    <div className={styles.streamContainer}>
+      <div className={styles.playerContainer}>
         {renderAudioElement()}
       </div>
       <CurrentSongDisplay key={uuid()} hlsAudio={hlsAudio}/>

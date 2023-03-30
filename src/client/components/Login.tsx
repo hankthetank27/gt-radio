@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import '../stylesheets/Login.css';
+import styles from '@/styles/Login.module.css'
 
 
 interface props{
@@ -34,14 +34,17 @@ export function Login({
     };
 
     setLoginError('');
-
-    const {username, jwt} = await sendRequest();
-
+    
+    const res = await sendRequest();
+    
     setHanldleUnChange('');
     setHandlePwChange('');
-    setUserId(username);
 
-    localStorage.setItem('sessionJwt', jwt);
+    if (!res) return;
+
+    setUserId(res.username);
+
+    localStorage.setItem('sessionJwt', res.jwt);
   };
 
   
@@ -107,24 +110,24 @@ export function Login({
 
 
   return (
-    <div className="loginWindow">
+    <div className={styles.loginWindow}>
       <h4>{loginOrCreateOpts('Log in', 'Sign Up')}</h4>
       <form 
-        className="submitLogin" 
+        className={styles.submitLogin} 
         onSubmit={(e) => {
           e.preventDefault();
           submitCredentials();
         }}
       >
         <input
-          className="usernameFormInput"
+          className={styles.usernameFormInput}
           type="text"
           placeholder='Username'
           value={hanldleUnChange} 
           onChange={(e) => setHanldleUnChange(e.target.value)}
         />
         <input
-          className="passwordFormInput"
+          className={styles.passwordFormInput}
           type="password"
           placeholder='Password'
           value={handlePwChange} 
@@ -150,10 +153,10 @@ export function Login({
           `Already have an account?`
         )}
       </button>
-      <div className='loginError'>
-        <span className='loginErrorMsg'>{loginError}</span>
+      <div className={styles.loginErrorContainer}>
+        <span className={styles.loginErrorMsg}>{loginError}</span>
       </div>
-      <span className='loading'>
+      <span className={styles.loading}>
         {isFetching
           ? 'Loading...'
           : null
