@@ -17,12 +17,6 @@ export function configNms(ffmpegPath: string){
       tasks: [
         {
           app: 'live',
-                  vc: "copy",
-        vcParam: [],
-        ac: "aac",
-        acParam: ['-ab', '64k', '-ac', '1', '-ar', '44100'],
-        rtmp:true,
-        rtmpApp:'live2',
           hls: true,
           hlsFlags: '[hls_time=3:hls_list_size=4:hls_flags=delete_segments]', // list size may help w drops on client side
           hlsKeep: false

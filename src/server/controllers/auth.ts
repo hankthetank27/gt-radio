@@ -135,6 +135,6 @@ export const auth = {
       return next();
     } catch (err) {
       return res.sendStatus(401);
-    }
+    };
   }
 };

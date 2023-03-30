@@ -58,7 +58,7 @@ export function StreamPlayer({
         switch (data.type) {
           case Hls.ErrorTypes.NETWORK_ERROR:
             newHls.startLoad();
-            break;
+           break;
           case Hls.ErrorTypes.MEDIA_ERROR:
             newHls.recoverMediaError();
             break;
@@ -101,6 +101,7 @@ export function StreamPlayer({
       );
     };
   };
+
 
   return(
     <div className="streamContainer">
