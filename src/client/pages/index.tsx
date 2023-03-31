@@ -1,15 +1,17 @@
 import Head from 'next/head'
 import styles from '@/styles/Home.module.css';
-import headerImg from '../public/header-image.jpg'
 import { useEffect, useState } from "react";
 import { v4 as uuid } from 'uuid'
 import { socket, SocketContext } from "../context/socket";
 import { StreamPlayer } from "./../components/StreamPlayer";
 import { Chat }  from "./../components/Chat"
+import { Header } from '@/components/Header';
 import { serverEmiters } from "../../socketEvents";
+import { PageWrapper } from '@/components/PageWrapper';
 
-const nmsPort = 8000;
-const streamsListAPI = `${process.env.NEXT_PUBLIC_HOST}:${nmsPort}/api/streams`;
+
+const NMS_PORT = 8000;
+const streamsListAPI = `${process.env.NEXT_PUBLIC_HOST}:${NMS_PORT}/api/streams`;
 
 export default function Home() {
 
@@ -46,7 +48,7 @@ export default function Home() {
       const streams = await res.json();
       if (streams.live){
         const hlsAPIs: string[][] = Object.keys(streams.live)
-          .map(stream => [String(nmsPort), stream]);
+          .map(stream => [String(NMS_PORT), stream]);
         setLiveStreams(hlsAPIs);
       };
     } catch (err) {
@@ -58,21 +60,21 @@ export default function Home() {
 
 
   function makeStreamUrl(
-    nmsPort: string,
+    NMS_PORT: string,
     stream: string
   ): string{
-    return `${process.env.NEXT_PUBLIC_HOST}:${nmsPort}/live/${stream}/index.m3u8`;
+    return `${process.env.NEXT_PUBLIC_HOST}:${NMS_PORT}/live/${stream}/index.m3u8`;
   };
 
 
   function displayMainStream(): JSX.Element[]{
     return liveStreams.reduce((acc: JSX.Element[], streamInfo) => {
-      const [ nmsPort, stream ] = streamInfo;
+      const [ NMS_PORT, stream ] = streamInfo;
       if (isConnected && stream === 'main'){
         acc.push(
           <StreamPlayer 
             key={uuid()} 
-            src={makeStreamUrl(nmsPort, stream)}
+            src={makeStreamUrl(NMS_PORT, stream)}
           />
         );
       };
@@ -82,24 +84,11 @@ export default function Home() {
 
   
   return (
-    <>
-      <Head>
-        <title>Great Tunes Radio</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-      </Head>
-      <main id={styles.root}>
-        <SocketContext.Provider value={{ socket, isConnected }}>
-          <div className={styles.App}>
-            <div className={styles.headerContainer}>
-              <img className={styles.headerImg} src={headerImg.src}/>
-            </div>
-            <div className={styles.mainContentContainer}>
-              { displayMainStream() }
-              <Chat/>
-            </div>
-          </div>
-        </SocketContext.Provider>
-      </main>
-    </>
+    <PageWrapper>
+      <SocketContext.Provider value={{ socket, isConnected }}>
+        { displayMainStream() }
+        <Chat/>
+      </SocketContext.Provider>
+    </PageWrapper>
   );
 };

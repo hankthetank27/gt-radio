@@ -11,17 +11,26 @@
     display: flex;
     max-width: 1000px;
     margin: 0 auto;
-    padding-top: 2rem;
+    transform: translateY(35px);
     bottom: 0;
 }
 
 .headerContainer{
     position: absolute;
     display: flex;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
     top: 0;
     width: 100%;
     overflow: hidden;
+    padding-bottom: 20px;
+}
+
+.navbar{
+    display: flex;
+    width: 350px;
+    justify-content: space-between;
 }
 
 .headerImg{
