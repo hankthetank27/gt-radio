@@ -2,7 +2,7 @@ import styles from '@/styles/Home.module.css';
 import headerImg from '../public/header-image.jpg'
 import Link from 'next/link';
 
-export function Header(){
+export function Header(): JSX.Element{
   return (
     <div className={styles.headerContainer}>
       <img className={styles.headerImg} src={headerImg.src}/>

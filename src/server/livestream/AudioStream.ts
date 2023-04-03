@@ -8,7 +8,7 @@ import { Db, Document } from 'mongodb';
 import { EventEmitter } from 'stream';
 import { serverEmiters } from '../../socketEvents';
 // @ts-ignore
-import { Parser } from 'm3u8-parser';
+import { Parser as m3u8Parser } from 'm3u8-parser';
 
 
 
@@ -320,7 +320,7 @@ export class AudioStream extends EventEmitter{
 
 
   private _parseM3u8(file: string){
-    const parser = new Parser();
+    const parser = new m3u8Parser();
     parser.push(file);
     parser.end();
     return parser.manifest;

@@ -1,11 +1,8 @@
-import Head from 'next/head'
-import styles from '@/styles/Home.module.css';
 import { useEffect, useState } from "react";
 import { v4 as uuid } from 'uuid'
 import { socket, SocketContext } from "../context/socket";
 import { StreamPlayer } from "./../components/StreamPlayer";
 import { Chat }  from "./../components/Chat"
-import { Header } from '@/components/Header';
 import { serverEmiters } from "../../socketEvents";
 import { PageWrapper } from '@/components/PageWrapper';
 
@@ -13,8 +10,7 @@ import { PageWrapper } from '@/components/PageWrapper';
 const NMS_PORT = 8000;
 const streamsListAPI = `${process.env.NEXT_PUBLIC_HOST}:${NMS_PORT}/api/streams`;
 
-export default function Home() {
-
+export default function Home(): JSX.Element{
 
   const [ liveStreams, setLiveStreams ] = useState<string[][]>([]);
   const [ isConnected, setIsConnected ] = useState(socket.connected);
@@ -36,7 +32,7 @@ export default function Home() {
 
   useEffect(() => {
     if (isConnected){
-      getLiveStreams()
+      getLiveStreams();
     };
   }, [ isConnected ]);
 

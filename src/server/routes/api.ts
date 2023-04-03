@@ -1,7 +1,7 @@
 import express from "express";
 import { auth } from "../controllers/auth";
 import { chat } from "../db/chat";
-
+import { queryArchive } from "../controllers/queryArchive";
 
 export const apiRouter = express.Router()
 
@@ -34,3 +34,10 @@ export const apiRouter = express.Router()
     })  
   )
 
+  .get('/listArchiveUsers',
+    queryArchive.showUsers,
+    (_, res) => res.json({
+        users: res.locals.users
+    })
+
+  )
