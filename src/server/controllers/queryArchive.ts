@@ -45,7 +45,7 @@ export const queryArchive = {
       const GtDb: Db = req.app.locals.gtdb;
 
       // list users that match query with wildcard in order of posts made
-      const argAutocompplete = {
+      const aggAutocomplete = {
         $search: {
           index: 'user_name_autocomplete',
           autocomplete: {
@@ -55,22 +55,26 @@ export const queryArchive = {
         }
       };
 
-      const argGroup = [{
-        $group: {
-          _id: "$user_name",
-          sum: {$sum:1}
-        }},
+      const aggGroupUsers = [
+        {$group: {
+            _id: "$user_name",
+            posts: {
+              $sum:1
+            }
+          }
+        },
         {$sort: {
-          sum: -1
-        }},
-        {$limit: 20},
+            posts: -1
+          }
+        },
+        {$limit: 20}
       ];
 
-      const posts = GtDb.collection('gt_posts')
+      const posts = GtDb.collection('gt_posts');
       const users = await posts.aggregate(
         name
-          ? [argAutocompplete, ...argGroup]
-          : argGroup
+          ? [aggAutocomplete, ...aggGroupUsers]
+          : aggGroupUsers
         )
         .toArray();
 

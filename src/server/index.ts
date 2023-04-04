@@ -1,4 +1,9 @@
-import express from 'express';
+import express, { 
+  ErrorRequestHandler, 
+  NextFunction, 
+  Request, 
+  Response 
+} from 'express';
 import next from 'next';
 import { createServer } from 'http';
 import ffmpeg from 'fluent-ffmpeg';
@@ -55,6 +60,23 @@ async function main(): Promise<void>{
   })
   
   app.use((_, res) => res.status(404).send('page not found'));
+
+  const errorHandler: ErrorRequestHandler = (
+    err: any,
+    _: Request,
+    res: Response, 
+  ) => {
+    const defaultErr = {
+      log: 'Express error handler caught unknown middleware error',
+      status: 500,
+      message: { err: 'An error occurred' },
+    };
+    const errorObj = Object.assign({}, defaultErr, err);
+    console.log(errorObj.log);
+    return res.status(errorObj.status).json(errorObj.message);
+  };
+
+  app.use(errorHandler);
 
   const nms = new NodeMediaServer(configNms(ffmpegPath));
   nms.run();
