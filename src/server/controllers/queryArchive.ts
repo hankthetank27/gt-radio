@@ -21,11 +21,18 @@ export const queryArchive = {
     next: NextFunction
   ) => {
 
-    const { userName, trackTitle, text, source } = req.query;
+    const { 
+      userName, 
+      trackTitle, 
+      text, 
+      source 
+    } = req.query;
+
     const GtDb: Db = req.app.locals.gtdb;
     
   },
 
+  
   showUsers: async (
     req: Request,
     res: Response,
@@ -37,18 +44,36 @@ export const queryArchive = {
       const name = req.query.name;
       const GtDb: Db = req.app.locals.gtdb;
 
-   // list users that match query with wildcard in order of posts made
-      const users = await GtDb.collection('gt_posts')
-        .aggregate([
-          { $search: {
-            wildcard: {
-              path: 'user_name',
-              query: `${name}*`
-            }
-          }}
-        ])
+      // list users that match query with wildcard in order of posts made
+      const argAutocompplete = {
+        $search: {
+          index: 'user_name_autocomplete',
+          autocomplete: {
+            query: `${name}`,
+            path: 'user_name'
+          }
+        }
+      };
+
+      const argGroup = [{
+        $group: {
+          _id: "$user_name",
+          sum: {$sum:1}
+        }},
+        {$sort: {
+          sum: -1
+        }},
+        {$limit: 20},
+      ];
+
+      const posts = GtDb.collection('gt_posts')
+      const users = await posts.aggregate(
+        name
+          ? [argAutocompplete, ...argGroup]
+          : argGroup
+        )
         .toArray();
-        
+
       res.locals.users = users;
       return next(); 
 
