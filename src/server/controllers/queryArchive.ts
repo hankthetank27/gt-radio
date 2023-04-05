@@ -1,17 +1,6 @@
 import { Response, Request, NextFunction } from "express";
 import { Db } from "mongodb";
-
-interface queryFilters {
-  userName: string | undefined;
-  trackTitle: string | undefined;
-  text: string | undefined;
-  source: string | undefined;
-};
-
-interface sortOptions{
-  sortBy: 'date' | 'reacts' | 'source';
-  direction: 'asc' | 'dec'; 
-};
+import { dbQueryFilters } from "../../@types";
 
 export const queryArchive = { 
 
@@ -20,16 +9,70 @@ export const queryArchive = {
     res: Response,
     next: NextFunction
   ) => {
+    try {
 
-    const { 
-      userName, 
-      trackTitle, 
-      text, 
-      source 
-    } = req.query;
+      const query = req.query as unknown as dbQueryFilters;
+      const GtDb: Db = req.app.locals.gtdb;
 
-    const GtDb: Db = req.app.locals.gtdb;
-    
+      function createSearchItem(
+        query: string,
+        path: string | {wildcard: '*'}
+      ){
+        return {
+          text: {
+            query: query,
+            path: path 
+          }
+        };
+      };      
+
+      const searchArr = Object.entries(query)
+        .filter(([ key, _ ]) => 
+          key === 'user_name' ||
+          key === 'track_title' ||
+          key === 'text' ||
+          key === 'link_source' ||
+          key === 'entry_contains_text'
+        )
+        .map(([ key, val ]) => 
+          key === 'entry_contains_text'
+            ? createSearchItem(val, { wildcard: '*' })
+            : createSearchItem(val, key)
+        )
+
+      const sortBy = query.sort_by
+        ? query.sort_by
+        : 'date_posted';
+
+      const sortDir = query.sort_dir
+        ? Number(query.sort_dir)
+        : -1;
+
+      const aggSearch = [{
+          $search: {
+            index: 'default',
+            compound: {
+              must: searchArr
+            }
+          }
+        },
+        {
+          $sort: {
+            [sortBy]: sortDir
+          }
+        }
+      ];
+      
+      const posts = GtDb.collection('gt_posts');
+      const selectedPosts = await posts.aggregate(aggSearch)
+        .toArray();
+
+      res.locals.selectedPosts = selectedPosts;
+      return next();
+
+    } catch (err){
+      return next(`Error querying archive ${err}`);
+    }
   },
 
   
@@ -38,7 +81,6 @@ export const queryArchive = {
     res: Response,
     next: NextFunction
   ) => {
-
     try{
 
       const name = req.query.name;
@@ -82,7 +124,7 @@ export const queryArchive = {
       return next(); 
 
     } catch(err) {
-      return next(`Error getting user list ${err}`);
+      return next(`Error getting user list: ${err}`);
     };
   }
 };

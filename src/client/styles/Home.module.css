@@ -10,7 +10,7 @@
     position: absolute;
     display: flex;
     max-width: 1000px;
-    margin: 0 auto;
+    margin: 0;
     transform: translateY(35px);
     bottom: 0;
 }

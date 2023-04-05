@@ -30,3 +30,13 @@ export interface chatError{
   errorMsg: string;
   messages: chatMessage[];
 }
+
+export interface dbQueryFilters {
+  user_name?: string; 
+  track_title?: string;
+  text?: string;
+  link_source?: string;
+  entry_contains_text?: string;
+  sort_by?: 'date_posted' | 'reacts' | 'link_source' | 'user_name';
+  sort_dir?: -1 | 1; 
+};

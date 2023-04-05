@@ -1,6 +1,5 @@
 import express, { 
   ErrorRequestHandler, 
-  NextFunction, 
   Request, 
   Response 
 } from 'express';
@@ -57,7 +56,7 @@ async function main(): Promise<void>{
   
   app.get('*', (req, res) => {
     return handle(req, res)
-  })
+  });
   
   app.use((_, res) => res.status(404).send('page not found'));
 
@@ -66,11 +65,13 @@ async function main(): Promise<void>{
     _: Request,
     res: Response, 
   ) => {
+
     const defaultErr = {
       log: 'Express error handler caught unknown middleware error',
       status: 500,
       message: { err: 'An error occurred' },
     };
+
     const errorObj = Object.assign({}, defaultErr, err);
     console.log(errorObj.log);
     return res.status(errorObj.status).json(errorObj.message);

@@ -37,7 +37,13 @@ export const apiRouter = express.Router()
   .get('/listArchiveUsers',
     queryArchive.showUsers,
     (_, res) => res.json({
-        users: res.locals.users
+      users: res.locals.users
     })
+  )
 
+  .get('/getPosts',
+    queryArchive.search,
+    (_, res) => res.json({
+      posts: res.locals.selectedPosts
+    })
   )
