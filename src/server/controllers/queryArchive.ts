@@ -38,7 +38,7 @@ export const queryArchive = {
           key === 'entry_contains_text'
             ? createSearchItem(val, { wildcard: '*' })
             : createSearchItem(val, key)
-        )
+        );
 
       const sortBy = query.sort_by
         ? query.sort_by
