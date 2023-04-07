@@ -40,3 +40,12 @@ export interface dbQueryFilters {
   sort_by?: 'date_posted' | 'reacts' | 'link_source' | 'user_name';
   sort_dir?: -1 | 1; 
 };
+
+export interface post{
+  user_name?: string; 
+  track_title?: string;
+  text?: string;
+  link_source?: string;
+  date_posted?: string;
+  reacts?: string;
+}
