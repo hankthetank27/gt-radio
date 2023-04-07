@@ -18,6 +18,7 @@ export const queryArchive = {
         query: string,
         path: string | {wildcard: '*'}
       ){
+        console.log(query, path)
         return {
           text: {
             query: query,
@@ -37,6 +38,8 @@ export const queryArchive = {
         .map(([ key, val ]) => 
           key === 'entry_contains_text'
             ? createSearchItem(val, { wildcard: '*' })
+            : key === 'user_name'
+            ? createSearchItem(`\"${val}\"`, key) // not sure why this isnt searching exact phrase
             : createSearchItem(val, key)
         );
 
@@ -47,7 +50,6 @@ export const queryArchive = {
       const sortDir = query.sort_dir
         ? Number(query.sort_dir)
         : -1;
-
       const aggSearch = [{
           $search: {
             index: 'default',
@@ -109,7 +111,7 @@ export const queryArchive = {
             posts: -1
           }
         },
-        {$limit: 20}
+        // {$limit: 20}
       ];
 
       const posts = GtDb.collection('gt_posts');
