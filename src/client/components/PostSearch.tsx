@@ -7,7 +7,7 @@ import { v4 as uuid } from "uuid";
 export function PostSearch(){
 
   const { register, handleSubmit, formState: { errors }} = useForm();
-  const [ posts, setPosts ] = useState([]);
+  const [ posts, setPosts ] = useState<post[]>([]);
   const [ userList, setUserList ] = useState<{_id: string, posts: number}[]>([]);
 
   useEffect(() => {
@@ -15,14 +15,14 @@ export function PostSearch(){
   }, [])
 
   async function getPosts(formData: dbQueryFilters){
-    const query = `/api/getPosts?${
-      Object.entries(formData)
-        .filter(([_, val]) => val)
-        .map(([key, val]) => `${key}=${val}&`)
-        .join('')
-      }`; 
+    const query = Object.entries(formData)
+      .filter(([_, val]) => val)
+      .map(([key, val]) => `${key}=${val}&`)
+      .join('');
 
-    const res = await fetch(query);
+    if (!query) return;
+
+    const res = await fetch(`api/getPosts?${query}`);
     const data = await res.json();
     setPosts(data.posts);
   };
@@ -36,7 +36,7 @@ export function PostSearch(){
   
   return (
     <div>
-      <form onSubmit={handleSubmit((data) => getPosts(data))}>
+      <form id="searchform" onSubmit={handleSubmit((data) => getPosts(data))}>
         <input type='text' list='userlist' autoComplete="off" placeholder="Posted by..." {...register('user_name')}/>
         <datalist id='userlist'>
           { userList.map(user => <option key={uuid()} value={user._id}/>) }
@@ -45,6 +45,16 @@ export function PostSearch(){
         <input type='text' autoComplete="off" placeholder="Post content..." {...register('text')}/>
         <input type='text' autoComplete="off" placeholder="Link source..." {...register('link_source')}/> 
         <input type='text' autoComplete="off" placeholder="Contains..." {...register('entry_contains_text')}/> 
+        <select form='searchform' {...register('sort_by')}>
+          <option>Sort By...</option>
+          <option value='date_posted'>Date posted</option>
+          <option value='reacts'>Likes</option>
+          <option value='user_name'>User name</option>
+        </select>
+        <select form='searchform' {...register('sort_dir')}>
+          <option value={-1}>Asc</option>
+          <option value={1}>Dec</option>
+        </select>
         <input type='submit'/>
       </form>
       <div>

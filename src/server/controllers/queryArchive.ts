@@ -18,7 +18,6 @@ export const queryArchive = {
         query: string,
         path: string | {wildcard: '*'}
       ){
-        console.log(query, path)
         return {
           text: {
             query: query,
@@ -43,13 +42,16 @@ export const queryArchive = {
             : createSearchItem(val, key)
         );
 
-      const sortBy = query.sort_by
-        ? query.sort_by
-        : 'date_posted';
+      const sortBy = 
+        query.sort_by === 'reacts' || query.sort_by === 'link_source' 
+          ? query.sort_by
+          : 'date_posted';
 
-      const sortDir = query.sort_dir
-        ? Number(query.sort_dir)
-        : -1;
+      const sortDir = 
+        Number(query.sort_dir) === 1
+          ? 1
+          : -1;
+
       const aggSearch = [{
           $search: {
             index: 'default',
