@@ -45,7 +45,8 @@ export interface post{
   user_name?: string; 
   track_title?: string;
   text?: string;
+  link?: string;
   link_source?: string;
-  date_posted?: string;
+  date_posted: string;
   reacts?: string;
 }
