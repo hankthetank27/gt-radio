@@ -43,7 +43,7 @@ export const queryArchive = {
         );
 
       const sortBy = 
-        query.sort_by === 'reacts' || query.sort_by === 'link_source' 
+        query.sort_by === 'reacts' || query.sort_by === 'user_name' 
           ? query.sort_by
           : 'date_posted';
 

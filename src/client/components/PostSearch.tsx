@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form"
 import { v4 as uuid } from "uuid";
 
 
-export function PostSearch(){
+export function PostSearch(): JSX.Element{
 
   const { register, handleSubmit, formState: { errors }} = useForm();
   const [ posts, setPosts ] = useState<post[]>([]);
@@ -12,9 +12,13 @@ export function PostSearch(){
 
   useEffect(() => {
     getUsers()
-  }, [])
+  }, []);
 
-  async function getPosts(formData: dbQueryFilters){
+
+  async function getPosts(
+    formData: dbQueryFilters
+  ): Promise<void>{
+
     const query = Object.entries(formData)
       .filter(([_, val]) => val)
       .map(([key, val]) => `${key}=${val}&`)
@@ -22,18 +26,30 @@ export function PostSearch(){
 
     if (!query) return;
 
-    const res = await fetch(`api/getPosts?${query}`);
-    const data = await res.json();
-    setPosts(data.posts);
+    try{
+      const res = await fetch(`api/getPosts?${query}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      setPosts(data.posts);
+    } catch(err){
+      console.error(`Error getting posts: ${err}`)
+    };
   };
 
-  async function getUsers(){
+
+  async function getUsers(): Promise<void>{
     const query = `/api/listArchiveUsers`;
-    const res = await fetch(query);
-    const data = await res.json();
-    setUserList(data.users);
+    try{
+      const res = await fetch(query);
+      if (!res.ok) return;
+      const data = await res.json();
+      setUserList(data.users);
+    } catch (err){
+      console.error(`Error getting users: ${err}`)
+    };
   };
   
+
   return (
     <div>
       <form id="searchform" onSubmit={handleSubmit((data) => getPosts(data))}>
@@ -42,16 +58,24 @@ export function PostSearch(){
           { userList.map(user => <option key={uuid()} value={user._id}/>) }
         </datalist>
         <input type='text' autoComplete="off" placeholder="Track title..." {...register('track_title')}/>
-        <input type='text' autoComplete="off" placeholder="Post content..." {...register('text')}/>
-        <input type='text' autoComplete="off" placeholder="Link source..." {...register('link_source')}/> 
-        <input type='text' autoComplete="off" placeholder="Contains..." {...register('entry_contains_text')}/> 
+        <input type='text' autoComplete="off" placeholder="Post text..." {...register('text')}/>
+        <input type='text' autoComplete="off" placeholder="Contains anywhere..." {...register('entry_contains_text')}/> 
+        <select form='searchform' {...register('link_source')}>
+          <option value=''>Media source...</option>
+          <option value=''>Any</option>
+          <option value='youtube'>Youtube</option>
+          <option value='bandcamp'>Bandcamp</option>
+          <option value='soundcloud'>Soundcloud</option>
+          <option value='other'>All Other</option>
+        </select>
         <select form='searchform' {...register('sort_by')}>
-          <option>Sort By...</option>
+          <option value='date_posted'>Sort By...</option>
           <option value='date_posted'>Date posted</option>
           <option value='reacts'>Likes</option>
           <option value='user_name'>User name</option>
         </select>
         <select form='searchform' {...register('sort_dir')}>
+          <option value={-1}>Order...</option>
           <option value={-1}>Asc</option>
           <option value={1}>Dec</option>
         </select>

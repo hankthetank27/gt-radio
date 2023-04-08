@@ -35,9 +35,9 @@ export interface dbQueryFilters {
   user_name?: string; 
   track_title?: string;
   text?: string;
-  link_source?: string;
+  link_source?: 'youtube' | 'bandcamp' | 'soundcloud' | 'other';
   entry_contains_text?: string;
-  sort_by?: 'date_posted' | 'reacts' | 'link_source'; 
+  sort_by?: 'date_posted' | 'reacts' | 'user_name'; 
   sort_dir?: -1 | 1; 
 };
 
