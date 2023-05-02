@@ -39,6 +39,7 @@ export interface dbQueryFilters {
   entry_contains_text?: string;
   sort_by?: 'date_posted' | 'reacts' | 'user_name'; 
   sort_dir?: -1 | 1; 
+  page: number;
 };
 
 export interface post{

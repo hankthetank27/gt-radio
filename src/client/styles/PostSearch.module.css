@@ -1,0 +1,15 @@
+.pageNav{
+    display: flex;
+    padding: 50px;
+    list-style-type: none;
+}
+
+.pageNav * {
+    margin-left: 10px;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.activePage {
+    text-decoration-line: underline;
+}

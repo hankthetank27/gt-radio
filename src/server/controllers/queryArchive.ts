@@ -42,6 +42,15 @@ export const queryArchive = {
             : createSearchItem(val, key)
         );
 
+      const baseSearch = {
+          $search: {
+              index: 'default',
+              compound: {
+                  must: searchArr
+              },
+          },
+       };
+
       const sortBy = 
         query.sort_by === 'reacts' || query.sort_by === 'user_name' 
           ? query.sort_by
@@ -52,26 +61,46 @@ export const queryArchive = {
           ? 1
           : -1;
 
-      const aggSearch = [{
-          $search: {
-            index: 'default',
-            compound: {
-              must: searchArr
+      const currPage = (query.page || 0) * 20
+
+      const aggSearch = [
+        baseSearch,
+        {
+            $match: {
+                link_source: {
+                    $exists: true
+                }
             }
-          }
         },
         {
           $sort: {
             [sortBy]: sortDir
           }
-        }
+        },
+        { $facet: {
+            paginatedResults: [
+                {
+                    $skip: currPage
+                },
+                {
+                    $limit: 20
+                }
+            ],
+            totalCount: [
+                { $count: "count" }
+            ]
+        }}
       ];
-      
+
       const posts = GtDb.collection('gt_posts');
       const selectedPosts = await posts.aggregate(aggSearch)
         .toArray();
 
-      res.locals.selectedPosts = selectedPosts;
+      res.locals.selectedPosts = {
+        posts: selectedPosts[0].paginatedResults,
+        queryPages: Math.ceil(selectedPosts[0].totalCount[0].count / 20) 
+      };
+
       return next();
 
     } catch (err){

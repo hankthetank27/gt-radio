@@ -1,4 +1,4 @@
-import { Db, MongoClient } from "mongodb";
+import { MongoClient } from "mongodb";
 
 export async function initDB() {
   const connectionString = process.env.GT_ARCHIVE_CONNECTION_STRING;
