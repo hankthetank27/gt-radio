@@ -14,7 +14,7 @@ import { AudioStream } from "./livestream/AudioStream";
 import { configNms } from "./configNms";
 import { apiRouter } from "./routes/api";
 import { initDB } from "./db/initDB";
-import { connectWebsockets } from "./routes/websockets";
+import { registerChatEvents } from "./routes/websockets";
 
 dotenv.config();
 
@@ -79,19 +79,6 @@ async function main(): Promise<void>{
 
     app.use(errorHandler);
 
-    const nms = new NodeMediaServer(configNms(ffmpegPath));
-    nms.run();
-
-    // TODO: restart main stream on teardown
-    nms.on('prePublish', (id, StreamPath) => {
-         if (StreamPath === '/live/main/'){
-            const sessionId = id
-         }
-    })
-
-    const mainAudioStream = new AudioStream('main', gtArchiveDB)
-        .startStream();
-
     const io = new Server(server, {
         cors: {
             origin: `*`,
@@ -99,9 +86,33 @@ async function main(): Promise<void>{
         }
     });
 
-    connectWebsockets(io, {
-        mainAudioStream: mainAudioStream
+    let mainAudioStream = new AudioStream('main', gtArchiveDB, io);
+
+    const nms = new NodeMediaServer(configNms(ffmpegPath));
+
+    // reboot stream on interrupt
+    nms.on('donePublish', (_, StreamPath) => {
+        if (StreamPath === '/live/main'){
+            mainAudioStream.initiateStreamTeardown();
+            mainAudioStream = new AudioStream('main', gtArchiveDB, io)
+                // TODO: this is causing a memory leak by attatching
+                // event listeners. Curretly trying to fix in initiateStreamTeardown
+                // but is not workings as expected.
+                .registerCurrentlyPlayingEvents()
+                .startStream();
+            testSteamHolder.stream = mainAudioStream
+        };
     });
+
+    nms.run();
+
+    mainAudioStream
+        .registerCurrentlyPlayingEvents()
+        .startStream();
+    const testSteamHolder = {
+        stream: mainAudioStream
+    }
+    registerChatEvents(io, testSteamHolder);
 
     server.listen(PORT, () => {
         console.log(`Server listening on port: ${PORT}.`)

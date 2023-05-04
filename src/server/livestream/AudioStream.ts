@@ -1,3 +1,4 @@
+import { Server } from 'socket.io';
 import fs from 'fs/promises';
 import path from 'path';
 import ytdl from "ytdl-core";
@@ -6,23 +7,25 @@ import { PassThrough } from "node:stream";
 import { songInfo, streamProcessTracker } from '../../@types';
 import { Db, Document } from 'mongodb';
 import { EventEmitter } from 'stream';
-import { serverEmiters } from '../../socketEvents';
+import { serverEmiters, clientEmiters } from '../../socketEvents';
 // @ts-ignore
 import { Parser as m3u8Parser } from 'm3u8-parser';
-
 
 
 export class AudioStream extends EventEmitter{
   #stream: PassThrough
   #isLive: boolean
   #currentlyPlaying: songInfo | null;
+  #ffmpegCmd?: ffmpeg.FfmpegCommand;
   readonly db: Db
+  readonly io: Server
   readonly streamName: string;
   readonly hlsMediaPath: string;
   
   constructor(
     streamName: string,
-    db: Db
+    db: Db,
+    io: Server
   ){
     super();
     // size of mp3 chunk
@@ -30,6 +33,7 @@ export class AudioStream extends EventEmitter{
     this.#isLive = false;
     this.#currentlyPlaying = null;
     this.db = db;
+    this.io = io;
     this.streamName = streamName;
     this.hlsMediaPath = path.resolve(
       __dirname, `../../../media/live/${streamName}/`
@@ -38,11 +42,13 @@ export class AudioStream extends EventEmitter{
       
       
   startStream(): AudioStream{
-        
+       
+    if (this.#isLive) return this;
+
     this.#isLive = true;
     this._queueAudio();
     
-    ffmpeg(this.#stream)
+    this.#ffmpegCmd = ffmpeg(this.#stream)
       .inputOptions([
         '-re'
       ])
@@ -53,7 +59,7 @@ export class AudioStream extends EventEmitter{
       .on('error', (err) => {
         // TODO: would like to find a way to immediately destroy this.#stream without potentailly causing the currently queued download
         // to not have anywhere to pipe, leading to unresolvable promise in this._pushSong 
-        this.initiateStopStream();
+        this.initiateStreamTeardown();
         console.error(`Error transcoding stream audio: ${err.message}`);
       })
       .save(`rtmp://${process.env.DOCKER_HOST || 'localhost'}/live/${this.streamName}.flv`);
@@ -61,14 +67,38 @@ export class AudioStream extends EventEmitter{
     return this;
   };
 
-  // will eventually stop stream after currently queued item in _queueAudio is drained
-  initiateStopStream(): void{
+
+  initiateStreamTeardown(): void{
     this.#isLive = false;
+    this.emit('teardownStream');
+    this.#stream.destroy();
+    this.io.emit('deregisterSocket');
+    if (this.#ffmpegCmd) {
+        this.#ffmpegCmd.kill('SIGKILL') 
+    };
   };
 
 
-  getCurrentlyPlaying(): songInfo | null{
-    return this.#currentlyPlaying;
+  registerCurrentlyPlayingEvents(): AudioStream{
+
+      this.on(serverEmiters.CURRENTLY_PLAYING, (songData: songInfo) => {
+          this.io.emit(serverEmiters.CURRENTLY_PLAYING, songData);
+      });
+
+      this.io.on('connection', (socket) => {
+          socket.on(clientEmiters.FETCH_CURRENTLY_PLAYING, () => {
+              socket.emit(
+                  serverEmiters.CURRENTLY_PLAYING, this.#currentlyPlaying
+              );
+          });
+
+          socket.on('deregisterSocket', () => {
+            socket.removeAllListeners(clientEmiters.FETCH_CURRENTLY_PLAYING)
+            socket.removeAllListeners('deregisterSocket')
+          })
+      });
+    
+      return this;
   };
 
 
@@ -100,8 +130,6 @@ export class AudioStream extends EventEmitter{
 
     this.#currentlyPlaying = null;
     this.emit(serverEmiters.CURRENTLY_PLAYING, null);
-    this.#stream.destroy();
-    this.#stream = this._createStream(400);
   };
 
 
@@ -114,7 +142,11 @@ export class AudioStream extends EventEmitter{
       // use extra passthorough to manually destroy stream, preventing 
       // memory leak caused by end option in call to pipe.
       const passToDestination = this._createStream(songInfo.length);
-      
+
+      this.on('teardownStream', 
+        () => rejectQueue('Stream teardown initiated')
+      );
+
       const tracker: streamProcessTracker = {
         startTime: Date.now(),
         downloaded: 0,
@@ -287,6 +319,7 @@ export class AudioStream extends EventEmitter{
         const m3u8Manifest = await this._getM3u8Segments(this.hlsMediaPath);
 
         if (
+            !m3u8Manifest ||
             m3u8Manifest[0] === leastRecentSegment ||
             !m3u8Manifest.includes(leastRecentSegment)
         ){
@@ -301,21 +334,24 @@ export class AudioStream extends EventEmitter{
 
   private async _getM3u8Segments(
     mediaPath: string
-  ): Promise<string[]>{
+  ): Promise<string[] | null>{
+    try {
+        const m3u8FilePath = `${mediaPath}/index.m3u8`;
+        const fileStr = await fs.readFile(m3u8FilePath, {
+            encoding: 'utf-8'
+        });
+        const segments = this._parseM3u8(fileStr).segments;
 
-    const m3u8FilePath = `${mediaPath}/index.m3u8`;
-    const fileStr = await fs.readFile(m3u8FilePath, {
-      encoding: 'utf-8'
-    });
-    const segments = this._parseM3u8(fileStr).segments;
+        if (!segments){
+            return [];
+        };
 
-    if (!segments){
-      return [];
-    };
-
-    return segments.map(
-      (s: Record<string, number | string>) => s.uri
-    );
+        return segments.map(
+            (s: Record<string, number | string>) => s.uri
+        );
+    } catch (err) {
+        return null; 
+    }
   };
 
 

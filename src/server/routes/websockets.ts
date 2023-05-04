@@ -1,19 +1,13 @@
 import { chat } from "../db/chat";
 import { Server } from "socket.io";
-import { songInfo, chatMessage } from "../../@types";
+import { chatMessage } from "../../@types";
 import { serverEmiters, clientEmiters } from "../../socketEvents";
-import { AudioStream } from "../livestream/AudioStream";
 import jwt from 'jsonwebtoken';
 
 
-interface imports{
-  mainAudioStream: AudioStream;
-}
-
-export function connectWebsockets(
-  io: Server, {
-    mainAudioStream
-  }: imports
+export function registerChatEvents(
+  io: Server,
+  stream: any,
 ): void{
 
   function emitChatError(recipient: string, errorMsg: string){
@@ -23,26 +17,14 @@ export function connectWebsockets(
     });
   };
 
-  mainAudioStream.on(serverEmiters.CURRENTLY_PLAYING, (songData: songInfo) => {
-    io.emit(serverEmiters.CURRENTLY_PLAYING, songData);
-  });
-  
   io.on('connection', (socket) => {
     
-    // stream related ~~~~~~~~~~~~~~~~~~
-    socket.on(clientEmiters.FETCH_CURRENTLY_PLAYING, () => {
-      socket.emit(
-        serverEmiters.CURRENTLY_PLAYING, mainAudioStream.getCurrentlyPlaying()
-        );
-      });
-      
-      // chat related ~~~~~~~~~~~~~~~~~~~~
-      
     socket.on(clientEmiters.SET_SOCKET_ID, (setUserId: (userId: string) => void) => {
       setUserId(socket.id);
     });
     
     socket.on(clientEmiters.CHAT_MESSAGE, (message: chatMessage, token: string) => {
+        stream.stream.initiateStreamTeardown()
       try {
         if (message.message.length > 800) {
           return emitChatError(

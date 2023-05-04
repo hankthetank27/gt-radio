@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "nodemon src/server/index.ts -w src/server",
     "build": "next build ./src/client/",
-    "start": "NODE_ENV=production ts-node ./src/server/index.ts"
+    "start": "NODE_ENV=production ts-node ./src/server/index.ts",
+    "trace": "NODE_OPTIONS=--trace-warnings nodemon src/server/index.ts -w src/server"
   },
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",

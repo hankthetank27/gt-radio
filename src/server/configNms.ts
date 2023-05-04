@@ -1,5 +1,6 @@
 export function configNms(ffmpegPath: string){
   const config = {
+    logType: 1,
     rtmp: {
         port: 1935,
         chunk_size: 60000,
@@ -30,7 +31,7 @@ export function configNms(ffmpegPath: string){
       ]
     },
     mediaServer: {
-      idleTimeout: 120
+      idleTimeout: 10
     }
   };
   return config;
