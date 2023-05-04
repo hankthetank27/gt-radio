@@ -1,3 +1,9 @@
+import { AudioStream } from "./server/livestream/AudioStream";
+
+export interface broadcast {
+  main: AudioStream
+};
+
 export interface songInfo{
   title: string;
   memberPosted: string | undefined;
@@ -24,12 +30,12 @@ export interface chatMessage{
   userId: string;
   message: string;
   timeStamp: Date;
-}
+};
 
 export interface chatError{
   errorMsg: string;
   messages: chatMessage[];
-}
+};
 
 export interface dbQueryFilters {
   user_name?: string; 
@@ -50,4 +56,4 @@ export interface post{
   link_source?: string;
   date_posted: string;
   reacts?: string;
-}
+};

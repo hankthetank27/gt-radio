@@ -1,13 +1,13 @@
 import { chat } from "../db/chat";
 import { Server } from "socket.io";
-import { chatMessage } from "../../@types";
+import { broadcast, chatMessage, songInfo } from "../../@types";
 import { serverEmiters, clientEmiters } from "../../socketEvents";
 import jwt from 'jsonwebtoken';
 
 
-export function registerChatEvents(
+export function registerWebsocketEvents(
   io: Server,
-  stream: any,
+  broadcast: broadcast,
 ): void{
 
   function emitChatError(recipient: string, errorMsg: string){
@@ -17,14 +17,25 @@ export function registerChatEvents(
     });
   };
 
+  broadcast.main.on(serverEmiters.CURRENTLY_PLAYING, (songData: songInfo) => {
+    io.emit(serverEmiters.CURRENTLY_PLAYING, songData);
+  });
+
   io.on('connection', (socket) => {
     
+    // stream events ~~~~~~~~~~~~~~~~~~~~~~~~~
+    socket.on(clientEmiters.FETCH_CURRENTLY_PLAYING, () => {
+      socket.emit(
+        serverEmiters.CURRENTLY_PLAYING, broadcast.main.getCurrentlyPlaying()
+      );
+    });
+
+    // chat events ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     socket.on(clientEmiters.SET_SOCKET_ID, (setUserId: (userId: string) => void) => {
       setUserId(socket.id);
     });
     
     socket.on(clientEmiters.CHAT_MESSAGE, (message: chatMessage, token: string) => {
-        stream.stream.initiateStreamTeardown()
       try {
         if (message.message.length > 800) {
           return emitChatError(
@@ -65,3 +76,4 @@ export function registerChatEvents(
     });
   });
 };
+

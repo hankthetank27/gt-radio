@@ -14,7 +14,7 @@ import { AudioStream } from "./livestream/AudioStream";
 import { configNms } from "./configNms";
 import { apiRouter } from "./routes/api";
 import { initDB } from "./db/initDB";
-import { registerChatEvents } from "./routes/websockets";
+import { registerWebsocketEvents } from "./routes/websockets";
 
 dotenv.config();
 
@@ -86,33 +86,28 @@ async function main(): Promise<void>{
         }
     });
 
-    let mainAudioStream = new AudioStream('main', gtArchiveDB, io);
+    const broadast = {
+        main: new AudioStream('main', gtArchiveDB)
+    };
 
     const nms = new NodeMediaServer(configNms(ffmpegPath));
 
     // reboot stream on interrupt
     nms.on('donePublish', (_, StreamPath) => {
         if (StreamPath === '/live/main'){
-            mainAudioStream.initiateStreamTeardown();
-            mainAudioStream = new AudioStream('main', gtArchiveDB, io)
-                // TODO: this is causing a memory leak by attatching
-                // event listeners. Curretly trying to fix in initiateStreamTeardown
-                // but is not workings as expected.
-                .registerCurrentlyPlayingEvents()
+            broadast.main
+                .initiateStreamTeardown();
+            broadast.main = new AudioStream('main', gtArchiveDB)
                 .startStream();
-            testSteamHolder.stream = mainAudioStream
         };
     });
 
     nms.run();
 
-    mainAudioStream
-        .registerCurrentlyPlayingEvents()
+    broadast.main
         .startStream();
-    const testSteamHolder = {
-        stream: mainAudioStream
-    }
-    registerChatEvents(io, testSteamHolder);
+
+    registerWebsocketEvents(io, broadast);
 
     server.listen(PORT, () => {
         console.log(`Server listening on port: ${PORT}.`)

@@ -1,4 +1,3 @@
-import { Server } from 'socket.io';
 import fs from 'fs/promises';
 import path from 'path';
 import ytdl from "ytdl-core";
@@ -12,20 +11,20 @@ import { serverEmiters, clientEmiters } from '../../socketEvents';
 import { Parser as m3u8Parser } from 'm3u8-parser';
 
 
+const TEARDOWN_STREAM = 'teardownStream';
+
 export class AudioStream extends EventEmitter{
   #stream: PassThrough
   #isLive: boolean
   #currentlyPlaying: songInfo | null;
   #ffmpegCmd?: ffmpeg.FfmpegCommand;
   readonly db: Db
-  readonly io: Server
   readonly streamName: string;
   readonly hlsMediaPath: string;
   
   constructor(
     streamName: string,
     db: Db,
-    io: Server
   ){
     super();
     // size of mp3 chunk
@@ -33,7 +32,6 @@ export class AudioStream extends EventEmitter{
     this.#isLive = false;
     this.#currentlyPlaying = null;
     this.db = db;
-    this.io = io;
     this.streamName = streamName;
     this.hlsMediaPath = path.resolve(
       __dirname, `../../../media/live/${streamName}/`
@@ -57,8 +55,6 @@ export class AudioStream extends EventEmitter{
         '-ar 48000',
       ])
       .on('error', (err) => {
-        // TODO: would like to find a way to immediately destroy this.#stream without potentailly causing the currently queued download
-        // to not have anywhere to pipe, leading to unresolvable promise in this._pushSong 
         this.initiateStreamTeardown();
         console.error(`Error transcoding stream audio: ${err.message}`);
       })
@@ -70,35 +66,16 @@ export class AudioStream extends EventEmitter{
 
   initiateStreamTeardown(): void{
     this.#isLive = false;
-    this.emit('teardownStream');
+    this.emit(TEARDOWN_STREAM);
     this.#stream.destroy();
-    this.io.emit('deregisterSocket');
     if (this.#ffmpegCmd) {
-        this.#ffmpegCmd.kill('SIGKILL') 
+        this.#ffmpegCmd.kill('SIGKILL');
     };
   };
 
 
-  registerCurrentlyPlayingEvents(): AudioStream{
-
-      this.on(serverEmiters.CURRENTLY_PLAYING, (songData: songInfo) => {
-          this.io.emit(serverEmiters.CURRENTLY_PLAYING, songData);
-      });
-
-      this.io.on('connection', (socket) => {
-          socket.on(clientEmiters.FETCH_CURRENTLY_PLAYING, () => {
-              socket.emit(
-                  serverEmiters.CURRENTLY_PLAYING, this.#currentlyPlaying
-              );
-          });
-
-          socket.on('deregisterSocket', () => {
-            socket.removeAllListeners(clientEmiters.FETCH_CURRENTLY_PLAYING)
-            socket.removeAllListeners('deregisterSocket')
-          })
-      });
-    
-      return this;
+  getCurrentlyPlaying(): songInfo | null{
+    return this.#currentlyPlaying;
   };
 
 
@@ -111,7 +88,7 @@ export class AudioStream extends EventEmitter{
   };
 
 
-  private async _queueAudio(){
+  private async _queueAudio(): Promise<void>{
 
     while (this.#isLive){
       try {
@@ -143,7 +120,7 @@ export class AudioStream extends EventEmitter{
       // memory leak caused by end option in call to pipe.
       const passToDestination = this._createStream(songInfo.length);
 
-      this.on('teardownStream', 
+      this.on(TEARDOWN_STREAM, 
         () => rejectQueue('Stream teardown initiated')
       );
 
