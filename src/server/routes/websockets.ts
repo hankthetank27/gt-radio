@@ -1,6 +1,7 @@
 import { chat } from "../db/chat";
 import { Server } from "socket.io";
-import { broadcast, chatMessage, songInfo } from "../../@types";
+import { chatMessage, songInfo } from "../../@types";
+import { broadcast } from "../@types";
 import { serverEmiters, clientEmiters } from "../../socketEvents";
 import jwt from 'jsonwebtoken';
 

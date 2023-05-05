@@ -61,7 +61,8 @@ export const queryArchive = {
           ? 1
           : -1;
 
-      const currPage = (query.page || 0) * 20
+      const postsPerPage = 15;
+      const currPage = (query.page || 0) * postsPerPage;
 
       const aggSearch = [
         baseSearch,
@@ -83,7 +84,7 @@ export const queryArchive = {
                     $skip: currPage
                 },
                 {
-                    $limit: 20
+                    $limit: postsPerPage
                 }
             ],
             totalCount: [
@@ -93,12 +94,15 @@ export const queryArchive = {
       ];
 
       const posts = GtDb.collection('gt_posts');
-      const selectedPosts = await posts.aggregate(aggSearch)
+      const selectedPosts = await posts
+        .aggregate(aggSearch)
         .toArray();
 
       res.locals.selectedPosts = {
         posts: selectedPosts[0].paginatedResults,
-        queryPages: Math.ceil(selectedPosts[0].totalCount[0].count / 20) 
+        queryPages: Math.ceil(
+            selectedPosts[0].totalCount[0].count / postsPerPage
+        ) 
       };
 
       return next();

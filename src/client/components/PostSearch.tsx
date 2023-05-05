@@ -5,11 +5,13 @@ import { useForm } from "react-hook-form"
 import { v4 as uuid } from "uuid";
 import ytdl from 'ytdl-core';
 import ReactPaginate from 'react-paginate';
+import { BeatLoader } from 'react-spinners';
+
 
 interface posts {
     posts: post[], 
     queryPages: number
-}
+};
 
 export function PostSearch(): JSX.Element{
 
@@ -17,6 +19,7 @@ export function PostSearch(): JSX.Element{
   const [ postsData, setPostsData ] = useState<posts>({posts: [], queryPages: 0});
   const [ userList, setUserList ] = useState<{_id: string, posts: number}[]>([]);
   const [ searchData , setSearchData ] = useState<dbQueryFilters | null>(null);
+  const [ loadingPosts, setLoadingPosts ] = useState<boolean>(false);
 
   useEffect(() => {
     getUsers();
@@ -43,19 +46,26 @@ export function PostSearch(): JSX.Element{
     formData: dbQueryFilters
   ): Promise<posts | void>{
 
+    setLoadingPosts(true);
+
     const query = Object.entries(formData)
       .filter(([_, val]) => val)
       .map(([key, val]) => `${key}=${val}&`)
       .join('');
 
-    if (!query) return;
+    if (!query){
+        setLoadingPosts(false);
+        return;
+    };
 
     try{
       const res = await fetch(`api/getPosts?${query}`);
       if (!res.ok) return;
       const data = await res.json();
+      setLoadingPosts(false);
       return data.posts;
     } catch(err){
+      setLoadingPosts(false);
       console.error(`Error getting posts: ${err}`)
     };
   };
@@ -77,10 +87,13 @@ export function PostSearch(): JSX.Element{
     post: post
   ): JSX.Element{
     return (
-      <div>
+      <div className={ styles.post }>
         <ul>
           <li>{post.user_name}</li>
-          { post.track_title ? <li>{post.track_title}</li> : null }
+          { post.track_title 
+              ? <li>{post.track_title}</li> 
+              : null 
+          }
           { post.link && post.link_source 
               ? <li>{hanldeIframeEmbed(post.link_source, post.link)}</li> 
               : null
@@ -93,14 +106,17 @@ export function PostSearch(): JSX.Element{
   };
   
 
-  async function handlePageClick(event: {selected: number}){
+  async function handlePageClick(
+    event: {selected: number}
+  ): Promise<void>{
     const pageNum = event.selected; 
     if (!searchData) return;
     setSearchData((prev) => {
         return {...prev, page : pageNum};
     });
     window.scrollTo(0, 0);
-  }
+  };
+
 
   function hanldeIframeEmbed(
     mediaSrc: string,
@@ -147,7 +163,7 @@ export function PostSearch(): JSX.Element{
   };
 
  
-    function paginatePosts(){
+    function paginatePosts(): JSX.Element{
         return (<>  
             { postsData.posts.length 
                 ? <ReactPaginate
@@ -165,8 +181,9 @@ export function PostSearch(): JSX.Element{
       </>)
     };
 
+
   return (
-    <div>
+    <div className={styles.searchContainer}>
       <form 
         id="searchform" 
         onSubmit={handleSubmit(async (data) => {
@@ -202,8 +219,15 @@ export function PostSearch(): JSX.Element{
         </select>
         <input type='submit'/>
       </form>
-      <div>
-        { postsData.posts.map((post: post) => makePost(post)) }
+      <div className={styles.searchResults}>
+        {loadingPosts
+            ? <BeatLoader 
+                color="#000000"
+                cssOverride={{
+                    margin: "200px"
+                }}
+              /> 
+            : postsData.posts.map((post: post) => makePost(post)) }
       </div>
       { paginatePosts() }
     </div>

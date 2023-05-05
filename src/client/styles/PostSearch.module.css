@@ -13,3 +13,15 @@
 .activePage {
     text-decoration-line: underline;
 }
+
+.searchResults{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* need to fix off center larger posts */
+.post * {
+    width: 500;
+}

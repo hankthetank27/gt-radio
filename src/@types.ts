@@ -1,9 +1,3 @@
-import { AudioStream } from "./server/livestream/AudioStream";
-
-export interface broadcast {
-  main: AudioStream
-};
-
 export interface songInfo{
   title: string;
   memberPosted: string | undefined;

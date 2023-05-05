@@ -5,7 +5,7 @@ import { StreamPlayer } from "./../components/StreamPlayer";
 import { Chat }  from "./../components/Chat"
 import { serverEmiters } from "../../socketEvents";
 import { PageWrapper } from '@/components/PageWrapper';
-
+import { BeatLoader } from "react-spinners";
 
 const NMS_PORT = 8000;
 const streamsListAPI = `${process.env.NEXT_PUBLIC_HOST}:${NMS_PORT}/api/streams`;
@@ -14,7 +14,7 @@ export default function Home(): JSX.Element{
 
   const [ liveStreams, setLiveStreams ] = useState<string[][]>([]);
   const [ isConnected, setIsConnected ] = useState(socket.connected);
-
+  const [ streamLoaded, setStreamLoaded ] = useState<boolean>(false);
 
   useEffect(() => {
     socket.on(serverEmiters.CONNECT, () => {
@@ -46,6 +46,7 @@ export default function Home(): JSX.Element{
         const hlsAPIs: string[][] = Object.keys(streams.live)
           .map(stream => [String(NMS_PORT), stream]);
         setLiveStreams(hlsAPIs);
+        setStreamLoaded(true);
       };
     } catch (err) {
       console.error(
@@ -82,7 +83,15 @@ export default function Home(): JSX.Element{
   return (
     <PageWrapper>
       <SocketContext.Provider value={{ socket, isConnected }}>
-        { displayMainStream() }
+        { streamLoaded
+            ? displayMainStream()
+            : <BeatLoader 
+                color="#000000"
+                cssOverride={{
+                    margin: "200px"
+                }}
+              />
+        }
         <Chat/>
       </SocketContext.Provider>
     </PageWrapper>

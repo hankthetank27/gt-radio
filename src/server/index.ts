@@ -15,6 +15,7 @@ import { configNms } from "./configNms";
 import { apiRouter } from "./routes/api";
 import { initDB } from "./db/initDB";
 import { registerWebsocketEvents } from "./routes/websockets";
+import rateLimit from 'express-rate-limit';
 
 dotenv.config();
 
@@ -28,6 +29,12 @@ const nextApp = next({
 });
 const handle = nextApp.getRequestHandler();
 
+const apiLimiter = rateLimit({
+	windowMs: 15 * 60 * 1000, // 15 minutes
+	max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+	standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
 
 async function main(): Promise<void>{
 
@@ -52,7 +59,7 @@ async function main(): Promise<void>{
 
     app.locals.gtdb = gtArchiveDB;
 
-    app.use('/api', apiRouter);
+    app.use('/api', apiLimiter, apiRouter);
 
     app.get('*', (req, res) => {
         return handle(req, res)
@@ -86,7 +93,7 @@ async function main(): Promise<void>{
         }
     });
 
-    const broadast = {
+    const broadcast = {
         main: new AudioStream('main', gtArchiveDB)
     };
 
@@ -95,19 +102,19 @@ async function main(): Promise<void>{
     // reboot stream on interrupt
     nms.on('donePublish', (_, StreamPath) => {
         if (StreamPath === '/live/main'){
-            broadast.main
+            broadcast.main
                 .initiateStreamTeardown();
-            broadast.main = new AudioStream('main', gtArchiveDB)
+            broadcast.main = new AudioStream('main', gtArchiveDB)
                 .startStream();
         };
     });
 
     nms.run();
 
-    broadast.main
+    broadcast.main
         .startStream();
 
-    registerWebsocketEvents(io, broadast);
+    registerWebsocketEvents(io, broadcast);
 
     server.listen(PORT, () => {
         console.log(`Server listening on port: ${PORT}.`)
