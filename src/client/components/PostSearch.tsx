@@ -1,11 +1,11 @@
 import styles from '@/styles/PostSearch.module.css' 
 import { dbQueryFilters, post } from "@/../@types"
-import { useEffect, useState } from "react"
+import { useEffect, useState, Dispatch, SetStateAction } from "react"
 import { useForm } from "react-hook-form"
 import { v4 as uuid } from "uuid";
-import ytdl from 'ytdl-core';
 import ReactPaginate from 'react-paginate';
 import { BeatLoader } from 'react-spinners';
+import { Post } from '../components/Post'
 
 
 interface posts {
@@ -83,105 +83,6 @@ export function PostSearch(): JSX.Element{
   };
 
 
-  function makePost(
-    post: post
-  ): JSX.Element{
-    return (
-      <div className={ styles.post }>
-        <ul>
-          <li>{post.user_name}</li>
-          { post.track_title 
-              ? <li>{post.track_title}</li> 
-              : null 
-          }
-          { post.link && post.link_source 
-              ? <li>{hanldeIframeEmbed(post.link_source, post.link)}</li> 
-              : null
-          }
-          { post.text ? <li>{post.text}</li> : null }
-          <li>{new Date(post.date_posted).toDateString()}</li>
-        </ul>
-      </div>
-    )  
-  };
-  
-
-  async function handlePageClick(
-    event: {selected: number}
-  ): Promise<void>{
-    const pageNum = event.selected; 
-    if (!searchData) return;
-    setSearchData((prev) => {
-        return {...prev, page : pageNum};
-    });
-    window.scrollTo(0, 0);
-  };
-
-
-  function hanldeIframeEmbed(
-    mediaSrc: string,
-    src: string
-  ): JSX.Element{
-    switch (mediaSrc){
-      case('youtube'):
-        try {
-          const videoId = ytdl.getURLVideoID(src);
-          return (
-            <div>
-              <iframe
-                width="500"
-                height="280"
-                src={`https://www.youtube.com/embed/${videoId}`} 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              >
-                <a href={src}>Youtube</a>
-              </iframe>
-            </div>
-          );
-        } catch (err){
-          return <div><a href={src}>Youtube</a></div>;
-        };
-      case('bandcamp'):
-        return (
-          <div>
-            <a href={src}>Bandcamp</a>
-          </div>
-        );
-      case('soundcloud'):
-        return (
-          <div>
-            <a href={src}>Soundcloud</a>
-          </div>
-        );
-      default:
-        return(
-          <div>
-            <a href={src}>{src}</a>
-          </div>
-        );
-    }
-  };
-
- 
-    function paginatePosts(): JSX.Element{
-        return (<>  
-            { postsData.posts.length 
-                ? <ReactPaginate
-                    nextLabel="next"
-                    previousLabel="prev"
-                    onPageChange={handlePageClick}
-                    pageRangeDisplayed={5}
-                    pageCount={postsData.queryPages}
-                    renderOnZeroPageCount={null}
-                    className={styles.pageNav}
-                    activeClassName={styles.activePage}
-                  />
-                : null
-            }
-      </>)
-    };
-
-
   return (
     <div className={styles.searchContainer}>
       <form 
@@ -227,9 +128,57 @@ export function PostSearch(): JSX.Element{
                     margin: "200px"
                 }}
               /> 
-            : postsData.posts.map((post: post) => makePost(post)) }
+            : postsData.posts.map((post: post) => <Post post={post}/>)
+        }
       </div>
-      { paginatePosts() }
+      <PaginatePosts
+        postsData={postsData}
+        searchData={searchData}
+        setSearchData={setSearchData}
+      />
     </div>
   )
+};
+
+
+interface pageinateProps{
+    postsData: posts
+    searchData: dbQueryFilters | null
+    setSearchData: Dispatch<SetStateAction<dbQueryFilters | null>>
+};
+
+function PaginatePosts({
+    postsData,
+    searchData,
+    setSearchData,
+}: pageinateProps): JSX.Element{
+
+    async function handlePageClick(
+        event: {selected: number}
+    ): Promise<void>{
+        const pageNum = event.selected; 
+        if (!searchData) return;
+        setSearchData((prev) => {
+            return {...prev, page : pageNum};
+        });
+        window.scrollTo(0, 0);
+    };
+
+    return (
+        <>  
+        { postsData.posts.length 
+            ? <ReactPaginate
+                nextLabel="next"
+                previousLabel="prev"
+                onPageChange={handlePageClick}
+                pageRangeDisplayed={5}
+                pageCount={postsData.queryPages}
+                renderOnZeroPageCount={null}
+                className={styles.pageNav}
+                activeClassName={styles.activePage}
+              />
+            : null
+        }
+        </>
+    )
 };
