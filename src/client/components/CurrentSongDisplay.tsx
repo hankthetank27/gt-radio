@@ -57,7 +57,7 @@ export function CurrentSongDisplay({
   ): JSX.Element{
     return (
       <div className={styles.currentlyPlaying}>
-        <ul key={uuid()}>
+        <ul key={uuid()} className={ styles.currentlyPlayingList }>
           {
             Object.entries(currentlyPlaying)
               .filter(([key, val]) => 
@@ -67,10 +67,7 @@ export function CurrentSongDisplay({
                 key !== 'duration' && 
                 key !== 'channel'
               ) 
-              .map(entry =>{
-                const [ key, val ] = translateInfo(entry);
-                return <li key={uuid()}>{ `${key} ${val}` }</li>;
-              })
+              .map(entry => <li key={uuid()} className={ styles.listItem }>{ translateInfo(entry) }</li>)
           }
         </ul>
       </div>
@@ -81,20 +78,25 @@ export function CurrentSongDisplay({
   function translateInfo([
     key,
     val
-  ]: string[]){
+  ]: string[]): JSX.Element{
     switch (key){
       case 'title':
-        return ['', val];
+        return (
+            <div>
+                <h4 className={ styles.songTitle }>{ val }</h4>
+                <hr className={ styles.titleLineBreak }/>
+            </div>
+        )
       case 'memberPosted':
-        return ['Posted by', val];
+        return <span>Posted by { val }</span>;
       case 'datePosted':
-        return ['', new Date(val).toDateString()];
+        return <span>{ new Date(val).toDateString() }</span>;
       case 'postText':
-        return ['', `"${val}"`];
+        return <span>"{ val }"</span>;
       case 'src':
-        return ['Source:', val];
+        return <span><a href={ val }>{ val }</a></span>;
       default:
-        return [key, val];
+        return <span>{ key }{ val }</span>;
     };
   };
 

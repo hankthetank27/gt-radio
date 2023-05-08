@@ -25,3 +25,11 @@
 .post * {
     width: 500;
 }
+
+.postList{
+    list-style-type: none;
+}
+
+.postTitle{
+    font-style: italic;
+}

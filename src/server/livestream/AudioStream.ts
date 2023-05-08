@@ -6,7 +6,7 @@ import { PassThrough } from "node:stream";
 import { songInfo, streamProcessTracker } from '../../@types';
 import { Db, Document } from 'mongodb';
 import { EventEmitter } from 'stream';
-import { serverEmiters, clientEmiters } from '../../socketEvents';
+import { serverEmiters } from '../../socketEvents';
 // @ts-ignore
 import { Parser as m3u8Parser } from 'm3u8-parser';
 

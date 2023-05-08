@@ -1,5 +1,5 @@
 import { post } from '../../@types';
-import styles from '@/styles/PostSearch.module.css' 
+import styles from '@/styles/PostSearch.module.css';
 import ytdl from 'ytdl-core';
 
 
@@ -12,23 +12,26 @@ export function Post({
 }: postProps): JSX.Element{
     return (
       <div className={ styles.post }>
-        <ul>
-          <li>{post.user_name}</li>
-          { post.track_title 
-              ? <li>{post.track_title}</li> 
-              : null 
-          }
-          { post.link && post.link_source 
-              ? <li>
+        <ul className={ styles.postList }>
+            { post.track_title 
+                ? <li className={ styles.postTitle }>{post.track_title}</li> 
+                : null 
+            }
+            { post.link && post.link_source 
+                ? <li>
                     <EmbedIframe
                         mediaSrc={post.link_source}
                         src={post.link}
                     />
                 </li> 
               : null
-          }
-          { post.text ? <li>{post.text}</li> : null }
-          <li>{new Date(post.date_posted).toDateString()}</li>
+            }
+            <li>{post.user_name}</li>
+            <li>{new Date(post.date_posted).toDateString()}</li>
+            { post.text 
+                ? <li>"{post.text}"</li> 
+                : null 
+            }
         </ul>
       </div>
     );
