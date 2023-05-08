@@ -26,10 +26,10 @@ export function Post({
                 </li> 
               : null
             }
-            <li>{post.user_name}</li>
+            <li>Posted by {post.user_name}</li>
             <li>{new Date(post.date_posted).toDateString()}</li>
             { post.text 
-                ? <li>"{post.text}"</li> 
+                ? <li className={ styles.postText }>"{post.text}"</li> 
                 : null 
             }
         </ul>

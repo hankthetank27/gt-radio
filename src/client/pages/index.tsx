@@ -86,6 +86,7 @@ export default function Home(): JSX.Element{
         { streamLoaded
             ? displayMainStream()
             : <BeatLoader 
+                size={13}
                 color="#000000"
                 cssOverride={{
                     margin: "200px"

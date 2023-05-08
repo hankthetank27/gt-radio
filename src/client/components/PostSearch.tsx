@@ -123,6 +123,7 @@ export function PostSearch(): JSX.Element{
       <div className={styles.searchResults}>
         {loadingPosts
             ? <BeatLoader 
+                size={12}
                 color="#000000"
                 cssOverride={{
                     margin: "200px"
