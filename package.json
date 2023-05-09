@@ -7,7 +7,8 @@
     "build": "next build ./src/client/",
     "start": "NODE_ENV=production ts-node ./src/server/index.ts",
     "test-start": "ts-node ./src/server/index.ts",
-    "trace": "NODE_OPTIONS=--trace-warnings nodemon src/server/index.ts -w src/server"
+    "trace-dev": "NODE_OPTIONS=--trace-warnings nodemon src/server/index.ts -w src/server",
+    "heap-prof": "node --heap-prof --trace-warnings -r ts-node/register ./src/server/index.ts"
   },
   "dependencies": {
     "@ffmpeg-installer/ffmpeg": "^1.1.0",

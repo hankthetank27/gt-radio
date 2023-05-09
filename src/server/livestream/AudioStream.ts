@@ -116,13 +116,14 @@ export class AudioStream extends EventEmitter{
       
     return new Promise<void>(async (resolve, reject) => {
 
+      this.on(TEARDOWN_STREAM, 
+        () => rejectQueue('Stream teardown initiated')
+      );
+
       // use extra passthorough to manually destroy stream, preventing 
       // memory leak caused by end option in call to pipe.
       const passToDestination = this._createStream(songInfo.length);
 
-      this.on(TEARDOWN_STREAM, 
-        () => rejectQueue('Stream teardown initiated')
-      );
 
       const tracker: streamProcessTracker = {
         startTime: Date.now(),
@@ -133,23 +134,30 @@ export class AudioStream extends EventEmitter{
         transcodeAudioDone: false,
         passToDestinationDone: false
       };
+      
+      const cleanupStreams = () => {
+        this.removeAllListeners(TEARDOWN_STREAM);
+        passToDestination.destroy();
+        ytAudio.destroy();
+        transcodeAudio.kill('SIGKILL');
+      };
 
-      function resolveQueue(
+      const resolveQueue = (
         tracker: streamProcessTracker
-      ): void{
+      ): void => {
         const completionTime = Math.round(
             ((Date.now() - tracker.startTime) / 60000) * 10
           ) / 10;
         console.log(`Completed processing in ${completionTime}m`);
-        passToDestination.destroy();
+        cleanupStreams();
         resolve();
       };
 
 
-      function rejectQueue(
+      const rejectQueue = (
         err: string
-      ): void{
-        passToDestination.destroy();
+      ): void => {
+        cleanupStreams();
         reject(err);
       };
 
@@ -170,9 +178,9 @@ export class AudioStream extends EventEmitter{
           passToDestinationDone
         );
       };
-  
-      console.log(`Download started... ${songInfo.title}`);
 
+      console.log(`Download started... ${songInfo.title}`);
+      
       const ytAudio = ytdl(songInfo.src, {
           filter: format => format.itag === songInfo.itag
         })
@@ -183,7 +191,7 @@ export class AudioStream extends EventEmitter{
         .on('error', (err) => {
           rejectQueue(`Error in queueSong -> ytAudio: ${err}`);
         });
-      
+
       const transcodeAudio = ffmpeg(ytAudio)
         .audioBitrate(128)
         .format('mp3')
@@ -215,7 +223,7 @@ export class AudioStream extends EventEmitter{
         .on('error', (err) => {
           rejectQueue(`Error in queueSong -> passToDestination: ${err}`);
         });
- 
+
       transcodeAudio
         .pipe(passToDestination)
         .pipe(this.#stream, {
@@ -296,9 +304,9 @@ export class AudioStream extends EventEmitter{
         const m3u8Manifest = await this._getM3u8Segments(this.hlsMediaPath);
 
         if (
-            !m3u8Manifest ||
-            m3u8Manifest[0] === leastRecentSegment ||
-            !m3u8Manifest.includes(leastRecentSegment)
+          !m3u8Manifest ||
+          m3u8Manifest[0] === leastRecentSegment ||
+          !m3u8Manifest.includes(leastRecentSegment)
         ){
           this.#currentlyPlaying = songInfo;
           this.emit(serverEmiters.CURRENTLY_PLAYING, songInfo);
@@ -313,21 +321,21 @@ export class AudioStream extends EventEmitter{
     mediaPath: string
   ): Promise<string[] | null>{
     try {
-        const m3u8FilePath = `${mediaPath}/index.m3u8`;
-        const fileStr = await fs.readFile(m3u8FilePath, {
-            encoding: 'utf-8'
-        });
-        const segments = this._parseM3u8(fileStr).segments;
+      const m3u8FilePath = `${mediaPath}/index.m3u8`;
+      const fileStr = await fs.readFile(m3u8FilePath, {
+        encoding: 'utf-8'
+      });
+      const segments = this._parseM3u8(fileStr).segments;
 
-        if (!segments){
-            return [];
-        };
+      if (!segments){
+        return [];
+      };
 
-        return segments.map(
-            (s: Record<string, number | string>) => s.uri
-        );
+      return segments.map(
+        (s: Record<string, number | string>) => s.uri
+      );
     } catch (err) {
-        return null; 
+      return null; 
     }
   };
 
