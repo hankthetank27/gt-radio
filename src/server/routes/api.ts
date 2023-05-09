@@ -14,6 +14,7 @@ export const apiRouter = express.Router()
     auth.setJwt, 
     (_, res) => res.json({
       username: res.locals.username,
+      chatColor: res.locals.chatColor,
       jwt: res.locals.jwt
     })
   )
@@ -23,6 +24,7 @@ export const apiRouter = express.Router()
     auth.setJwt,
     (_, res) => res.json({
       username: res.locals.username,
+      chatColor: res.locals.chatColor,
       jwt: res.locals.jwt
     })
   )
@@ -30,7 +32,8 @@ export const apiRouter = express.Router()
   .get('/verifySession',
     auth.vaildateJwt,
     (_, res) => res.json({
-      username: res.locals.username
+      username: res.locals.username,
+      chatColor: res.locals.chatColor
     })  
   )
 

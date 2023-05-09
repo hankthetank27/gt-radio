@@ -83,15 +83,15 @@ export default function Home(): JSX.Element{
   return (
     <PageWrapper>
       <SocketContext.Provider value={{ socket, isConnected }}>
-        { streamLoaded
-            ? displayMainStream()
-            : <BeatLoader 
-                size={13}
-                color="#000000"
-                cssOverride={{
-                    margin: "200px"
-                }}
-              />
+        {streamLoaded
+          ? displayMainStream()
+          : <BeatLoader 
+              size={13}
+              color="#000000"
+              cssOverride={{
+                  margin: "200px"
+              }}
+            />
         }
         <Chat/>
       </SocketContext.Provider>

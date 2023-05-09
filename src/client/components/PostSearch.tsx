@@ -9,13 +9,13 @@ import { Post } from '../components/Post'
 
 
 interface posts {
-    posts: post[], 
-    queryPages: number
+  posts: post[]
+  queryPages: number
 };
 
 export function PostSearch(): JSX.Element{
 
-  const { register, handleSubmit, formState: { errors }} = useForm();
+  const { register, handleSubmit } = useForm();
   const [ postsData, setPostsData ] = useState<posts>({posts: [], queryPages: 0});
   const [ userList, setUserList ] = useState<{_id: string, posts: number}[]>([]);
   const [ searchData , setSearchData ] = useState<dbQueryFilters | null>(null);
@@ -24,21 +24,21 @@ export function PostSearch(): JSX.Element{
   useEffect(() => {
     getUsers();
     setSearchData({
-        page: 0,
-        link_source: 'youtube'
+      page: 0,
+      link_source: 'youtube'
     })
   }, []);
 
   useEffect(() => {
-      handleUpdatePosts();
+    handleUpdatePosts();
   }, [ searchData ]);
 
 
-  async function handleUpdatePosts(){
-      if (!searchData) return;
-      const newPosts = await getPosts(searchData);
-      if (!newPosts) return;
-      setPostsData(newPosts);
+  async function handleUpdatePosts(): Promise<void>{
+    if (!searchData) return;
+    const newPosts = await getPosts(searchData);
+    if (!newPosts) return;
+    setPostsData(newPosts);
   };
 
 
@@ -54,8 +54,8 @@ export function PostSearch(): JSX.Element{
       .join('');
 
     if (!query){
-        setLoadingPosts(false);
-        return;
+      setLoadingPosts(false);
+      return;
     };
 
     try{
@@ -122,14 +122,14 @@ export function PostSearch(): JSX.Element{
       </form>
       <div className={styles.searchResults}>
         {loadingPosts
-            ? <BeatLoader 
-                size={12}
-                color="#000000"
-                cssOverride={{
-                    margin: "200px"
-                }}
-              /> 
-            : postsData.posts.map((post: post) => <Post post={post}/>)
+          ? <BeatLoader 
+              size={13}
+              color="#000000"
+              cssOverride={{
+                margin: "200px"
+              }}
+            /> 
+          : postsData.posts.map((post: post) => <Post post={post}/>)
         }
       </div>
       <PaginatePosts
@@ -138,48 +138,46 @@ export function PostSearch(): JSX.Element{
         setSearchData={setSearchData}
       />
     </div>
-  )
+  );
 };
 
 
 interface pageinateProps{
-    postsData: posts
-    searchData: dbQueryFilters | null
-    setSearchData: Dispatch<SetStateAction<dbQueryFilters | null>>
+  postsData: posts
+  searchData: dbQueryFilters | null
+  setSearchData: Dispatch<SetStateAction<dbQueryFilters | null>>
 };
 
 function PaginatePosts({
-    postsData,
-    searchData,
-    setSearchData,
+  postsData,
+  searchData,
+  setSearchData,
 }: pageinateProps): JSX.Element{
 
-    async function handlePageClick(
-        event: {selected: number}
-    ): Promise<void>{
-        const pageNum = event.selected; 
-        if (!searchData) return;
-        setSearchData((prev) => {
-            return {...prev, page : pageNum};
-        });
-        window.scrollTo(0, 0);
-    };
+  async function handlePageClick(
+    event: {selected: number}
+  ): Promise<void>{
+    const pageNum = event.selected; 
+    if (!searchData) return;
+    setSearchData((prev) => {
+      return {...prev, page : pageNum};
+    });
+    window.scrollTo(0, 0);
+  };
 
-    return (
-        <>  
-        { postsData.posts.length 
-            ? <ReactPaginate
-                nextLabel="next"
-                previousLabel="prev"
-                onPageChange={handlePageClick}
-                pageRangeDisplayed={5}
-                pageCount={postsData.queryPages}
-                renderOnZeroPageCount={null}
-                className={styles.pageNav}
-                activeClassName={styles.activePage}
-              />
-            : null
-        }
-        </>
-    )
+  return (<>  
+    {postsData.posts.length 
+      ? <ReactPaginate
+          nextLabel="next"
+          previousLabel="prev"
+          onPageChange={handlePageClick}
+          pageRangeDisplayed={5}
+          pageCount={postsData.queryPages}
+          renderOnZeroPageCount={null}
+          className={styles.pageNav}
+          activeClassName={styles.activePage}
+        />
+      : null
+    }
+  </>);
 };

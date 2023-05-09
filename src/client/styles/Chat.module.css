@@ -79,18 +79,12 @@
     padding-left: 15px;
 }
 
-.myMessage .sender {
-    color: rgb(132, 79, 15);
-}
 
 .opMessage{
     padding-right: 15px;
     padding-left: 5px;
 }
 
-.opMessage .sender{
-    color: rgb(39, 132, 103);
-}
 
 .chatError{
     display: flex;

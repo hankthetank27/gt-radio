@@ -67,7 +67,14 @@ export function CurrentSongDisplay({
                 key !== 'duration' && 
                 key !== 'channel'
               ) 
-              .map(entry => <li key={uuid()} className={ styles.listItem }>{ translateInfo(entry) }</li>)
+              .map(entry => 
+                <li 
+                  key={uuid()} 
+                  className={ styles.listItem }
+                >
+                  { translateInfo(entry) }
+                </li>
+              )
           }
         </ul>
       </div>
@@ -81,22 +88,31 @@ export function CurrentSongDisplay({
   ]: string[]): JSX.Element{
     switch (key){
       case 'title':
-        return (
-            <div>
-                <h4 className={ styles.songTitle }>{ val }</h4>
-                <hr className={ styles.titleLineBreak }/>
-            </div>
-        )
+        return(
+          <div>
+            <h4 className={styles.songTitle}>{val}</h4>
+            <hr className={styles.titleLineBreak}/>
+          </div>
+        );
       case 'memberPosted':
-        return <span>Posted by { val }</span>;
+        return <span>Posted by {val}</span>;
       case 'datePosted':
-        return <span>{ new Date(val).toDateString() }</span>;
+        return <span>{new Date(val).toDateString()}</span>;
       case 'postText':
-        return <span>"{ val }"</span>;
+        return <span>"{val}"</span>;
       case 'src':
-        return <span><a href={ val }>{ val }</a></span>;
+        return(
+          <span>
+            <a 
+              href={val} 
+              target="_blank"
+            >
+              {val}
+            </a>
+          </span>
+        );
       default:
-        return <span>{ key }{ val }</span>;
+        return <span>{key}{val}</span>;
     };
   };
 

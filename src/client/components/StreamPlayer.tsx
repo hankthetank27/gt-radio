@@ -110,7 +110,10 @@ export function StreamPlayer({
       <div className={styles.playerContainer}>
         {renderAudioElement()}
       </div>
-      <CurrentSongDisplay key={uuid()} hlsAudio={hlsAudio}/>
+      <CurrentSongDisplay 
+        key={uuid()} 
+        hlsAudio={hlsAudio}
+      />
     </div>
   );
 };

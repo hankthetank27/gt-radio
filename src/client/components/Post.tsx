@@ -4,85 +4,85 @@ import ytdl from 'ytdl-core';
 
 
 interface postProps {
-    post: post
+post: post
 };
 
 export function Post({
-    post
+  post
 }: postProps): JSX.Element{
-    return (
-      <div className={ styles.post }>
-        <ul className={ styles.postList }>
-            { post.track_title 
-                ? <li className={ styles.postTitle }>{post.track_title}</li> 
-                : null 
-            }
-            { post.link && post.link_source 
-                ? <li>
-                    <EmbedIframe
-                        mediaSrc={post.link_source}
-                        src={post.link}
-                    />
-                </li> 
-              : null
-            }
-            <li>Posted by {post.user_name}</li>
-            <li>{new Date(post.date_posted).toDateString()}</li>
-            { post.text 
-                ? <li className={ styles.postText }>"{post.text}"</li> 
-                : null 
-            }
-        </ul>
-      </div>
-    );
+  return (
+    <div className={styles.post}>
+      <ul className={styles.postList}>
+        {post.track_title 
+          ? <li className={styles.postTitle}>{post.track_title}</li> 
+          : null 
+        }
+        {post.link && post.link_source 
+          ? <li>
+              <EmbedIframe
+                mediaSrc={post.link_source}
+                src={post.link}
+              />
+            </li> 
+          : null
+        }
+        <li>Posted by {post.user_name}</li>
+        <li>{new Date(post.date_posted).toDateString()}</li>
+        {post.text 
+          ? <li className={styles.postText}>"{post.text}"</li> 
+          : null 
+        }
+      </ul>
+    </div>
+  );
 };
 
 
 interface embedIframeProps{
-    mediaSrc: string
-    src: string
+  mediaSrc: string
+  src: string
 };
 
 function EmbedIframe({
-    mediaSrc,
-    src,
+  mediaSrc,
+  src,
 }: embedIframeProps): JSX.Element{
-    switch (mediaSrc){
-        case('youtube'):
-            try {
-                const videoId = ytdl.getURLVideoID(src);
-                return (
-                    <div>
-                        <iframe
-                            width="500"
-                            height="280"
-                            src={`https://www.youtube.com/embed/${videoId}`} 
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        >
-                        <a href={src}>Youtube</a>
-                        </iframe>
-                    </div>
-                );
-            } catch (err){
-                return <div><a href={src}>Youtube</a></div>;
-            };
-        case('bandcamp'):
-            return (
-                <div>
-                    <a href={src}>Bandcamp</a>
-                </div>
-            );
-        case('soundcloud'):
-            return (
-                <div>
-                    <a href={src}>Soundcloud</a>
-                </div>
-            );
-        default:
-            return(
-                <div>
-                    <a href={src}>{src}</a>
-                </div>
-            );
-    }
+  switch (mediaSrc){
+    case('youtube'):
+      try {
+        const videoId = ytdl.getURLVideoID(src);
+        return (
+          <div>
+            <iframe
+              width="500"
+              height="280"
+              src={`https://www.youtube.com/embed/${videoId}`} 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            >
+            <a href={src}>Youtube</a>
+            </iframe>
+          </div>
+        );
+      } catch (err){
+        return <div><a href={src} target='_blank'>Youtube</a></div>;
+      };
+    case('bandcamp'):
+      return (
+        <div>
+          <a href={src} target='_blank'>Bandcamp</a>
+        </div>
+      );
+    case('soundcloud'):
+      return (
+        <div>
+          <a href={src} target='_blank'>Soundcloud</a>
+        </div>
+      );
+    default:
+      return (
+        <div>
+          <a href={src} target='_blank'>{src}</a>
+        </div>
+      );
+  }
 };

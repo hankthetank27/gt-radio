@@ -1,4 +1,11 @@
-import { useEffect, useRef, useState, useContext } from "react";
+import { 
+  useEffect,
+  useRef, 
+  useState, 
+  useContext, 
+  Dispatch, 
+  SetStateAction 
+} from "react";
 import { SocketContext } from "../context/socket";
 import styles from '@/styles/Chat.module.css'
 import { serverEmiters, clientEmiters } from "../../socketEvents";
@@ -13,7 +20,7 @@ export const Chat = () => {
 
   const { socket, isConnected } = useContext(SocketContext);
   const [ userId, setUserId ] = useState<string>('');
-  const [ handleChange, setHandleChange ] = useState<string>('');
+  const [ userColor, setUserColor ] = useState<string>("#4955af")
   const [ chatHistory, setChatHistory ] = useState<chatMessage[]>([]);
   const [ chatError, setChatError ] = useState<string>('');
 
@@ -72,8 +79,9 @@ export const Chat = () => {
         }
       });
       if (!res.ok) return;
-      const { username } = await res.json();
+      const { username, chatColor } = await res.json();
       setUserId(username);
+      setUserColor(chatColor);
 
     } catch (err){
       console.error(`Error: could not verify session data ${err}`);
@@ -81,24 +89,73 @@ export const Chat = () => {
   };
 
 
-  function makeMessage(
-    message: string,
-    senderId: string
-  ): JSX.Element{
-
-    const messageType = 
-      senderId === userId
-        ? 'myMessage' 
-        : 'opMessage'
-
-    return (
-      <div className={`${styles[messageType]} ${styles.chatItem}`}>
-        <div className={styles.sender}> {senderId}</div>
-        <div className={styles.messageContents}>{message}</div>
+  return(
+    <div className={styles.outerChatContainer}>
+      <div className={styles.chatContainer}>
+        {userId
+          ? null
+          : <Login 
+              key={uuid()} 
+              setUserId={setUserId}
+              setUserColor={setUserColor}
+          />
+        }
+        <div className={styles.chatContents} ref={chatContentsEl}>
+          {chatHistory.map(m => 
+            <Message
+              key={uuid()}
+              message={m.message}
+              senderId={m.userId}
+              color={m.color}
+              userId={userId}
+            />
+          )}
+        </div>
+        {userId
+          ? <ChatMessageForm
+              key={uuid()}
+              userId={userId}
+              userColor={userColor}
+              chatHistory={chatHistory}
+              setChatError={setChatError}
+              setChatHistory={setChatHistory}
+            />
+          : <div>Login to join chat.</div>
+        }
+        <div className={styles.chatError}>
+          <span className={styles.chatErrorMsg}>{chatError}</span>
+        </div>
       </div>
-    );
-  };
+      {userId
+        ? <Logout
+            userId={userId}
+            setUserId={setUserId}
+          />
+        : null
+      } 
+    </div>
+  );
+};
 
+
+interface chatFormProps {
+  userId: string
+  userColor: string
+  chatHistory: chatMessage[]
+  setChatError: Dispatch<SetStateAction<string>>
+  setChatHistory: Dispatch<SetStateAction<chatMessage[]>>
+};
+
+function ChatMessageForm({
+  userId,
+  userColor,
+  chatHistory,
+  setChatError,
+  setChatHistory
+}: chatFormProps): JSX.Element{
+
+  const { socket } = useContext(SocketContext);
+  const [ handleChange, setHandleChange ] = useState<string>('');
 
   function handleNewMessage(): void{
 
@@ -119,7 +176,8 @@ export const Chat = () => {
     const newMessage = {
       userId: userId,
       message: handleChange,
-      timeStamp: new Date()
+      timeStamp: new Date(),
+      color: userColor
     };
     
     setChatHistory([...chatHistory, newMessage]);
@@ -128,80 +186,95 @@ export const Chat = () => {
     setHandleChange('');
   };
 
-
-  function chatMsgForm(): JSX.Element{
-    return (
-      <form 
-        className={styles.msgForm} 
+  return (
+    <form 
+      className={styles.msgForm} 
+      onSubmit={e => {
+        e.preventDefault();
+        handleNewMessage();
+      }}
+    >
+      <input
+        autoFocus
+        className={styles.msgFormInput}
+        type="text" 
+        value={handleChange} 
+        onChange={e => {
+          setHandleChange(e.target.value)
+        }}
+      />
+      <button 
         onSubmit={e => {
           e.preventDefault();
           handleNewMessage();
         }}
       >
-        <input
-          className={styles.msgFormInput}
-          type="text" 
-          value={handleChange} 
-          onChange={e => 
-            setHandleChange(e.target.value)
-          }
-        />
-        <button 
-          onSubmit={e => {
-            e.preventDefault();
-            handleNewMessage();
-          }}
-        >
-          Send
-        </button>
-      </form>
-    );
-  };
+        Send
+      </button>
+    </form>
+  );
+};
 
 
-  function logout(){
-    return (
-      <div className={styles.logoutContainer}>
-        <span className={styles.loggedInAs}>Logged in as {userId}</span>
-        <button 
-          className={styles.logoutButton} 
-          onClick={(e) => {
-            e.preventDefault();
-            window.localStorage.removeItem('sessionJwt');
-            setUserId('');
-          }}
-        >
-          Log out
-        </button>
+interface logoutProps{
+  userId: string
+  setUserId: Dispatch<SetStateAction<string>>
+};
+
+function Logout({
+  userId,
+  setUserId
+}: logoutProps): JSX.Element{
+  return (
+    <div className={styles.logoutContainer}>
+      <span className={styles.loggedInAs}>Logged in as {userId}</span>
+      <button 
+        className={styles.logoutButton} 
+        onClick={(e) => {
+          e.preventDefault();
+          window.localStorage.removeItem('sessionJwt');
+          setUserId('');
+        }}
+      >
+        Log out
+      </button>
+    </div>
+  );
+};
+
+
+interface messageProps{
+  message: string
+  color: string
+  senderId: string
+  userId: string
+};
+
+function Message({
+  message,
+  color,
+  senderId,
+  userId,
+}: messageProps): JSX.Element{
+
+  const messageType = 
+    senderId === userId
+      ? 'myMessage' 
+      : 'opMessage'
+
+  return (
+    <div className={`${styles[messageType]} ${styles.chatItem}`}>
+      <div 
+        className={styles.sender}
+        style={{
+          color: messageType === 'opMessage'
+            ? color 
+            : "#c6a15b"
+        }}
+      > 
+        {senderId}
       </div>
-    );
-  };
-
-
-  return(
-    <div className={styles.outerChatContainer}>
-      <div className={styles.chatContainer}>
-        {userId
-          ? null
-          : <Login key={uuid()} setUserId={setUserId}/>
-        }
-        <div className={styles.chatContents} ref={chatContentsEl}>
-          {chatHistory.map(({ userId , message }) => 
-            makeMessage(message, userId))
-          }
-        </div>
-        {userId
-          ? chatMsgForm()
-          : <div>Login to join chat.</div>
-        }
-        <div className={styles.chatError}>
-          <span className={styles.chatErrorMsg}>{chatError}</span>
-        </div>
-      </div>
-      {userId
-        ? logout()
-        : null
-      } 
+      <div className={styles.messageContents}>{message}</div>
     </div>
   );
 };

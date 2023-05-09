@@ -2,6 +2,8 @@ import { Response, Request, NextFunction } from "express";
 import { Db } from "mongodb";
 import bcrypt from "bcrypt";
 import jwt from 'jsonwebtoken'
+import makeColor from "../../utils/makeColor";
+
 
 export const auth = {
 
@@ -29,15 +31,18 @@ export const auth = {
 
     try {
       const hashedPw = await bcrypt.hash(password, 5);
+      const chatColor = makeColor();
 
       await GtDb
         .collection('users')
         .insertOne({
           username: username,
-          password: hashedPw
+          password: hashedPw,
+          chatColor: chatColor
         });
 
       res.locals.username = username;
+      res.locals.chatColor = chatColor;
       return next();
 
     } catch (err) {
@@ -78,7 +83,8 @@ export const auth = {
         return res.status(401).send('Incorrect password');
       };
 
-      res.locals.username = username;
+      res.locals.username = user.username;
+      res.locals.chatColor = user.chatColor;
       return next();
 
     } catch (err) {
@@ -94,6 +100,7 @@ export const auth = {
   ) => {
 
     const username = res.locals.username;
+    const chatColor = res.locals.chatColor;
     const jwtKey = process.env.JWT_KEY;
 
     if (!username || !jwtKey){
@@ -101,7 +108,10 @@ export const auth = {
     };
 
     const accessToken = jwt.sign(
-      {username: username},
+      {
+        username: username,
+        chatColor: chatColor
+      },
       jwtKey, 
       { expiresIn: "25d" }
     );
@@ -125,12 +135,13 @@ export const auth = {
   
       if (!token) return res.sendStatus(401);
 
-      const { username } = jwt.verify(
+      const { username, chatColor } = jwt.verify(
         token, 
         process.env.JWT_KEY
       ) as jwt.JwtPayload;
 
       res.locals.username = username;
+      res.locals.chatColor = chatColor;
 
       return next();
     } catch (err) {

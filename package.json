@@ -6,6 +6,7 @@
     "dev": "nodemon src/server/index.ts -w src/server",
     "build": "next build ./src/client/",
     "start": "NODE_ENV=production ts-node ./src/server/index.ts",
+    "test-start": "ts-node ./src/server/index.ts",
     "trace": "NODE_OPTIONS=--trace-warnings nodemon src/server/index.ts -w src/server"
   },
   "dependencies": {

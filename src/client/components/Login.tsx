@@ -1,13 +1,17 @@
-import { useState } from 'react';
+import { useState, Dispatch, SetStateAction } from 'react';
 import styles from '@/styles/Login.module.css'
+import { BeatLoader } from 'react-spinners';
+import makeColor from '../../utils/makeColor'
 
 
 interface props{
-  setUserId: React.Dispatch<React.SetStateAction<string>>
+  setUserId: Dispatch<SetStateAction<string>>
+  setUserColor: Dispatch<SetStateAction<string>>
 };
 
 export function Login({
-  setUserId
+  setUserId,
+  setUserColor
 }: props){
 
   const [ isFetching, setIsFetching ] = useState<boolean>(false);
@@ -43,6 +47,7 @@ export function Login({
     if (!res) return;
 
     setUserId(res.username);
+    setUserColor(res.chatColor || makeColor());
 
     localStorage.setItem('sessionJwt', res.jwt);
   };
@@ -158,7 +163,10 @@ export function Login({
       </div>
       <span className={styles.loading}>
         {isFetching
-          ? 'Loading...'
+          ? <BeatLoader
+              size={8}
+              color= "#000000"
+            />
           : null
         }
       </span>

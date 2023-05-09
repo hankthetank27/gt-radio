@@ -24,6 +24,7 @@ export interface chatMessage{
   userId: string;
   message: string;
   timeStamp: Date;
+  color: string;
 };
 
 export interface chatError{
