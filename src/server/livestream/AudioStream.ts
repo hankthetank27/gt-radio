@@ -124,7 +124,6 @@ export class AudioStream extends EventEmitter{
       // memory leak caused by end option in call to pipe.
       const passToDestination = this._createStream(songInfo.length);
 
-
       const tracker: streamProcessTracker = {
         startTime: Date.now(),
         downloaded: 0,
@@ -135,29 +134,30 @@ export class AudioStream extends EventEmitter{
         passToDestinationDone: false
       };
       
-      const cleanupStreams = () => {
+      const cleanup = () => {
         this.removeAllListeners(TEARDOWN_STREAM);
+        passToDestination.unpipe();
         passToDestination.destroy();
         ytAudio.destroy();
         transcodeAudio.kill('SIGKILL');
       };
 
-      const resolveQueue = (
+      function resolveQueue(
         tracker: streamProcessTracker
-      ): void => {
+      ): void {
         const completionTime = Math.round(
             ((Date.now() - tracker.startTime) / 60000) * 10
           ) / 10;
         console.log(`Completed processing in ${completionTime}m`);
-        cleanupStreams();
+        cleanup();
         resolve();
       };
 
 
-      const rejectQueue = (
+      function rejectQueue(
         err: string
-      ): void => {
-        cleanupStreams();
+      ): void{
+        cleanup();
         reject(err);
       };
 
