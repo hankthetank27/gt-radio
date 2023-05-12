@@ -9,7 +9,7 @@ export const chat: chat = {
   messages: [],
   addMessage: (message: chatMessage) => {
     chat.messages.push(message);
-    if (chat.messages.length > 50){
+    if (chat.messages.length > 100){
       chat.messages.shift();
     };
     return chat.messages;

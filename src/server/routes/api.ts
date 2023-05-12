@@ -1,7 +1,8 @@
-import express from "express";
+import express, {Request, Response} from "express";
 import { auth } from "../controllers/auth";
 import { chat } from "../db/chat";
 import { queryArchive } from "../controllers/queryArchive";
+import apicache from 'apicache';
 
 export const apiRouter = express.Router()
 
@@ -45,6 +46,10 @@ export const apiRouter = express.Router()
   )
 
   .get('/getPosts',
+    apicache.middleware(
+      '1 day', 
+      (_: Request, res: Response) => res.statusCode === 200
+    ),
     queryArchive.search,
     (_, res) => res.json({
       posts: res.locals.selectedPosts
