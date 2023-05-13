@@ -1,25 +1,25 @@
 .pageNav{
-    display: flex;
-    padding: 50px;
-    list-style-type: none;
-    justify-content: center;
+  display: flex;
+  padding: 50px;
+  list-style-type: none;
+  justify-content: center;
 }
 
 .pageNav * {
-    margin-left: 10px;
-    margin-right: 10px;
-    cursor: pointer;
+  margin-left: 10px;
+  margin-right: 10px;
+  cursor: pointer;
 }
 
 .activePage {
-    text-decoration-line: underline;
+  text-decoration-line: underline;
 }
 
 .searchResults{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 /* need to fix off center larger posts */
@@ -28,13 +28,13 @@
 }
 
 .postList{
-    list-style-type: none;
+  list-style-type: none;
 }
 
 .postTitle{
-    font-style: italic;
+  font-style: italic;
 }
 
 .postText{
-    overflow-wrap: break-word;
+  overflow-wrap: break-word;
 }

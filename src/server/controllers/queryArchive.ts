@@ -44,11 +44,11 @@ export const queryArchive = {
 
       const baseSearch = {
           $search: {
-              index: 'default',
-              compound: {
-                  must: searchArr
-              },
-          },
+            index: 'default',
+            compound: {
+              must: searchArr
+            },
+        },
        };
 
       const sortBy = 
@@ -67,11 +67,11 @@ export const queryArchive = {
       const aggSearch = [
         baseSearch,
         {
-            $match: {
-                link_source: {
-                    $exists: true
-                }
+          $match: {
+            link_source: {
+              $exists: true
             }
+          }
         },
         {
           $sort: {
@@ -79,17 +79,17 @@ export const queryArchive = {
           }
         },
         { $facet: {
-            paginatedResults: [
-                {
-                    $skip: currPage
-                },
-                {
-                    $limit: postsPerPage
-                }
-            ],
-            totalCount: [
-                { $count: "count" }
-            ]
+          paginatedResults: [
+            {
+              $skip: currPage
+            },
+            {
+              $limit: postsPerPage
+            }
+          ],
+          totalCount: [
+            { $count: "count" }
+          ]
         }}
       ];
 
@@ -101,7 +101,7 @@ export const queryArchive = {
       res.locals.selectedPosts = {
         posts: selectedPosts[0].paginatedResults,
         queryPages: Math.ceil(
-            selectedPosts[0].totalCount[0].count / postsPerPage
+          (selectedPosts[0]?.totalCount[0]?.count || 0) / postsPerPage
         ) 
       };
 
