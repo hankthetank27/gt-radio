@@ -16,13 +16,23 @@ export const queryArchive = {
 
       function createSearchItem(
         query: string,
-        path: string | {wildcard: '*'}
+        path: string | { wildcard: '*' },
+        exactMatch?: boolean
       ){
-        return {
-          text: {
-            query: query,
-            path: path 
-          }
+        if (exactMatch){
+          return {
+            phrase: {
+              query: query,
+              path: path
+            }
+          };
+        } else {
+          return {
+            text: {
+              query: query,
+              path: path
+            }
+          };
         };
       };      
 
@@ -38,18 +48,18 @@ export const queryArchive = {
           key === 'entry_contains_text'
             ? createSearchItem(val, { wildcard: '*' })
             : key === 'user_name'
-            ? createSearchItem(`\"${val}\"`, key) // not sure why this isnt searching exact phrase
+            ? createSearchItem(val, key, true)
             : createSearchItem(val, key)
         );
 
       const baseSearch = {
-          $search: {
-            index: 'default',
-            compound: {
-              must: searchArr
-            },
+        $search: {
+          index: 'default',
+          compound: {
+            must: searchArr
+          },
         },
-       };
+      };
 
       const sortBy = 
         query.sort_by === 'reacts' || query.sort_by === 'user_name' 
@@ -75,7 +85,7 @@ export const queryArchive = {
         },
         {
           $sort: {
-            [sortBy]: sortDir
+            [ sortBy ]: sortDir
           }
         },
         { $facet: {
@@ -106,7 +116,6 @@ export const queryArchive = {
       };
 
       return next();
-
     } catch (err){
       return next(`Error querying archive ${err}`);
     }
@@ -145,8 +154,7 @@ export const queryArchive = {
         {$sort: {
             posts: -1
           }
-        },
-        // {$limit: 20}
+        }
       ];
 
       const posts = GtDb.collection('gt_posts');
