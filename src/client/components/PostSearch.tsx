@@ -60,9 +60,9 @@ export function PostSearch(): JSX.Element{
 
     try{
       const res = await fetch(`api/getPosts?${query}`);
+      setLoadingPosts(false);
       if (!res.ok) return;
       const data = await res.json();
-      setLoadingPosts(false);
       return data.posts;
     } catch(err){
       setLoadingPosts(false);
