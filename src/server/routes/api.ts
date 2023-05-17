@@ -40,6 +40,10 @@ export const apiRouter = express.Router()
 
   .get('/listArchiveUsers',
     queryArchive.showUsers,
+    apicache.middleware(
+      '1 day',
+      (_: Request, res: Response) => res.statusCode === 200
+    ),
     (_, res) => res.json({
       users: res.locals.users
     })
