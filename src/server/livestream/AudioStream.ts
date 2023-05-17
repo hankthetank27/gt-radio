@@ -69,7 +69,7 @@ export class AudioStream extends EventEmitter{
     this.emit(TEARDOWN_STREAM);
     this.#stream.destroy();
     if (this.#ffmpegCmd) {
-        this.#ffmpegCmd.kill('SIGKILL');
+      this.#ffmpegCmd.kill('SIGKILL');
     };
   };
 
@@ -141,6 +141,7 @@ export class AudioStream extends EventEmitter{
         ytAudio.destroy();
         transcodeAudio.kill('SIGKILL');
       };
+
 
       function resolveQueue(
         tracker: streamProcessTracker
@@ -284,7 +285,7 @@ export class AudioStream extends EventEmitter{
 
   private async _queueDisplaySong(
     songInfo: songInfo
-  ): Promise<undefined>{
+  ): Promise<void>{
     
     const segments = await this._getM3u8Segments(this.hlsMediaPath);
 
@@ -336,7 +337,7 @@ export class AudioStream extends EventEmitter{
       );
     } catch (err) {
       return null; 
-    }
+    };
   };
 
 

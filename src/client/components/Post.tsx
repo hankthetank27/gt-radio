@@ -1,6 +1,7 @@
 import { post } from '../../@types';
 import styles from '@/styles/PostSearch.module.css';
 import ytdl from 'ytdl-core';
+import { Dispatch, SetStateAction, useState } from 'react';
 
 
 interface postProps {
@@ -19,7 +20,7 @@ export function Post({
         }
         {post.link && post.link_source 
           ? <li>
-              <EmbedIframe
+              <MediaEmbed
                 mediaSrc={post.link_source}
                 src={post.link}
               />
@@ -43,24 +44,29 @@ interface embedIframeProps{
   src: string
 };
 
-function EmbedIframe({
+function MediaEmbed({
   mediaSrc,
   src,
 }: embedIframeProps): JSX.Element{
+
+  const [ pressedPlay, setPressedPlay ] = useState<boolean>(false);
+
   switch (mediaSrc){
     case('youtube'):
       try {
         const videoId = ytdl.getURLVideoID(src);
         return (
-          <div>
-            <iframe
-              width="500"
-              height="280"
-              src={`https://www.youtube.com/embed/${videoId}`} 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            >
-            <a href={src}>Youtube</a>
-            </iframe>
+          <div className={styles.youtube_player}>
+            {!pressedPlay
+              ? <PlaceHolderImg
+                  videoId={videoId}
+                  setPressedPlay={setPressedPlay}
+                />
+              : <EmbedIframe
+                  videoId={videoId}
+                  src={src}
+                />
+            }
           </div>
         );
       } catch (err){
@@ -84,5 +90,52 @@ function EmbedIframe({
           <a href={src} target='_blank'>{src}</a>
         </div>
       );
-  }
+  };
 };
+
+
+interface embedProps{
+  videoId: string  
+  src: string
+};
+
+function EmbedIframe({
+  videoId,
+  src
+}: embedProps): JSX.Element{
+  return (
+    <iframe
+      width="500"
+      height="280"
+      src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`} 
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+    >
+      <a href={src}>Youtube</a>
+    </iframe>
+  );
+};
+
+
+interface placeHolderImgProps{
+  videoId: string
+  setPressedPlay: Dispatch<SetStateAction<boolean>>
+};
+
+function PlaceHolderImg({
+  videoId,
+  setPressedPlay
+}: placeHolderImgProps): JSX.Element{
+  return (
+    <div>
+      <img 
+        src={"https://i.ytimg.com/vi/ID/hqdefault.jpg".replace("ID", videoId)}>
+      </img>
+      <button 
+        className={ styles.play }
+        onClick={() => setPressedPlay(true)}
+      />
+    </div>
+  );
+};
+
+
