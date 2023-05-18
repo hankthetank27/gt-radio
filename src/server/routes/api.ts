@@ -40,20 +40,31 @@ export const apiRouter = express.Router()
 
   .get('/listArchiveUsers',
     queryArchive.showUsers,
-    apicache.middleware(
-      '1 day',
-      (_: Request, res: Response) => res.statusCode === 200
-    ),
     (_, res) => res.json({
       users: res.locals.users
     })
   )
 
   .get('/getPosts',
-    apicache.middleware(
-      '1 day', 
-      (_: Request, res: Response) => res.statusCode === 200
-    ),
+    (_, res, next) => {
+      res.locals.getAll = false;
+      return next();
+    },
+    queryArchive.search,
+    (_, res) => res.json({
+      posts: res.locals.selectedPosts
+    })
+  )
+
+  .get('/getAllPosts',
+    (_, res, next) => {
+      res.locals.getAll = true;
+      return next();
+    },
+    //apicache.middleware(
+     // '1 day', 
+      //(_: Request, res: Response) => res.statusCode === 200
+    //),
     queryArchive.search,
     (_, res) => res.json({
       posts: res.locals.selectedPosts

@@ -60,6 +60,27 @@ export const queryArchive = {
           },
         },
       };
+      
+      const matchGetAll = {
+        $match: {
+          $and: res.locals.getAll
+            ? [{
+                link_source: {
+                  $exists: true
+                }
+              }
+            ]
+            : [{
+                link_source: {
+                  $exists: true
+                }
+              },
+              {
+                has_been_played: true
+              }
+            ]
+        }
+      };
 
       const sortBy = 
         query.sort_by === 'reacts' || query.sort_by === 'user_name' 
@@ -76,13 +97,7 @@ export const queryArchive = {
 
       const aggSearch = [
         baseSearch,
-        {
-          $match: {
-            link_source: {
-              $exists: true
-            }
-          }
-        },
+        matchGetAll,
         {
           $sort: {
             [ sortBy ]: sortDir
@@ -166,6 +181,7 @@ export const queryArchive = {
         .toArray();
 
       res.locals.users = users;
+      
       return next(); 
 
     } catch(err) {

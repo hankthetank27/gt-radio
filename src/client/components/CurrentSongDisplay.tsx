@@ -7,13 +7,13 @@ import styles from '@/styles/CurrentSongDisplay.module.css'
 import { serverEmiters, clientEmiters } from "../../socketEvents";
 
 
-interface props{
+interface currentSongDisplayProps{
   hlsAudio: Hls | null
 };
 
 export function CurrentSongDisplay({
   hlsAudio
-}: props): JSX.Element{
+}: currentSongDisplayProps): JSX.Element{
 
   const { socket, isConnected } = useContext(SocketContext);
   const [ currentlyPlaying, setCurrentlyPlaying ] = useState<songInfo | null>(null);
@@ -35,7 +35,8 @@ export function CurrentSongDisplay({
               (prevAvrg + hlsAudio.latency) / 2);
           };
         }, hlsAudio.latency * 1000);
-      } else {   //handle user has stream paused
+      } else {  
+        //handle user has stream paused
         setTimeout(() => {
           setCurrentlyPlaying(songData);
         }, avrgHlsLatency * 1000);
@@ -49,80 +50,68 @@ export function CurrentSongDisplay({
     return () => {
       socket.off(serverEmiters.CURRENTLY_PLAYING);
     };
-  }, [ currentlyPlaying, hlsAudio, isConnected ]); // Do I need isConnected here?
-
-
-  function displaySongInfo(
-    currentlyPlaying: songInfo
-  ): JSX.Element{
-    return (
-      <div className={styles.currentlyPlaying}>
-        <ul key={uuid()} className={ styles.currentlyPlayingList }>
-          {
-            Object.entries(currentlyPlaying)
-              .filter(([key, val]) => 
-                val &&
-                key !== 'itag' && 
-                key !== 'length' && 
-                key !== 'duration' && 
-                key !== 'channel'
-              ) 
-              .map(entry => 
-                <li 
-                  key={uuid()} 
-                  className={ styles.listItem }
-                >
-                  { translateInfo(entry) }
-                </li>
-              )
-          }
-        </ul>
-      </div>
-    );
-  };
-
-
-  function translateInfo([
-    key,
-    val
-  ]: string[]): JSX.Element{
-    switch (key){
-      case 'title':
-        return(
-          <div>
-            <h4 className={styles.songTitle}>{val}</h4>
-            <hr className={styles.titleLineBreak}/>
-          </div>
-        );
-      case 'memberPosted':
-        return <span>Posted by {val}</span>;
-      case 'datePosted':
-        return <span>{new Date(val).toDateString()}</span>;
-      case 'postText':
-        return <span>"{val}"</span>;
-      case 'src':
-        return(
-          <span>
-            <a 
-              href={val} 
-              target="_blank"
-            >
-              {val}
-            </a>
-          </span>
-        );
-      default:
-        return <span>{key}{val}</span>;
-    };
-  };
+  }, [ currentlyPlaying, hlsAudio, isConnected ]); 
 
 
   return(
     <div className={styles.currentlyPlayingContainer}>
       {currentlyPlaying
-        ? displaySongInfo(currentlyPlaying)
+        ? <DisplaySongInfo currentlyPlaying={currentlyPlaying}/>
         : null
       }
+    </div>
+  );
+};
+
+
+interface displaySongInfoProps{
+  currentlyPlaying: songInfo
+};
+
+function DisplaySongInfo({
+  currentlyPlaying
+}: displaySongInfoProps): JSX.Element{
+
+  const {
+    title,
+    memberPosted,
+    datePosted,
+    postText,
+    src
+  } = currentlyPlaying
+
+  return (
+    <div className={styles.currentlyPlaying}>
+      <ul key={uuid()} className={ styles.currentlyPlayingList }>
+        <li className={ styles.listItem }>
+          <div>
+            <h4 className={styles.songTitle}>
+              <a
+                target="_blank"
+                href={src}
+              >
+                {title}
+              </a>
+            </h4>
+            <hr className={styles.titleLineBreak}/>
+          </div>
+        </li>
+        <li className={ styles.listItem }>
+          <span>Posted by {memberPosted}</span>
+        </li>
+        <li className={ styles.listItem }>
+          {datePosted
+            ? <span>{new Date(datePosted).toDateString()}</span>
+            : null
+          }
+        </li>
+        <li className={ styles.listItem }>
+          {postText
+            ? <span>"{postText}"</span>
+            : null
+          }
+        </li>
+      </ul>
     </div>
   );
 };
