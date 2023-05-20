@@ -5,8 +5,8 @@ export function configNms(ffmpegPath: string){
       port: 1935,
       chunk_size: 60000,
       gop_cache: false,
-      ping: 30,
-      ping_timeout: 60
+      ping: 60,
+      ping_timeout: 120
     },
     http: {
       port: 8000,

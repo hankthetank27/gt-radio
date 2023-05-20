@@ -17,6 +17,7 @@ import { initDB } from "./db/initDB";
 import { registerWebsocketEvents } from "./routes/websockets";
 import rateLimit from 'express-rate-limit';
 import { broadcast } from './@types';
+import { clientEmiters } from '../socketEvents';
 
 dotenv.config();
 
@@ -104,14 +105,15 @@ async function main(): Promise<void>{
 
   const nms = new NodeMediaServer(configNms(ffmpegPath));
 
-  // reboot stream on interrupt
-  nms.on('postPublish', (id, StreamPath) => {
+  // reboot stream on interrupt/ping timeout
+  nms.on('postPlay', (id, StreamPath) => {
     if (StreamPath === '/live/main'){
       broadcast.id = id
     };
   });
 
   nms.on('doneConnect', (id) => {
+    console.log(id)
     if (id === broadcast.id){
       broadcast.main
         .initiateStreamTeardown();
@@ -119,42 +121,6 @@ async function main(): Promise<void>{
         .startStream();
     };
   });
-
-  //nms.on('donePlay', (_, StreamPath) => {
-  //  if (StreamPath === '/live/main'){
-  //    broadcast.main
-  //      .initiateStreamTeardown();
-  //    broadcast.main = new AudioStream('main', gtArchiveDB)
-  //     .startStream();
-  // };
-  // });
- 
-
-  // testing random stream close events
-  // ```````````````````````````````````````````````````````
-  nms.on('postPlay', (id, StreamPath, args) => {
-    console.log('FIRED POSTPLAY~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
-    console.trace()
-    console.log('[NodeEvent on postPlay]', `id=${id} StreamPath=${StreamPath} args=${JSON.stringify(args)}`);
-  });
-
-  nms.on('donePlay', (id, StreamPath, args) => {
-    console.log('FIRED DONEPLAY~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
-    console.trace()
-    console.log('[NodeEvent on donePlay]', `id=${id} StreamPath=${StreamPath} args=${JSON.stringify(args)}`);
-  });
-  nms.on('postPublish', (id, StreamPath, args) => {
-    console.log('FIRED POSTPUBLISH~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
-    console.trace()
-    console.log('[NodeEvent on postPublish]', `id=${id} StreamPath=${StreamPath} args=${JSON.stringify(args)}`);
-  });
-
-  nms.on('donePublish', (id, StreamPath, args) => {
-    console.log('FIRED DONEPUBISH~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
-    console.trace()
-    console.log('[NodeEvent on donePublish]', `id=${id} StreamPath=${StreamPath} args=${JSON.stringify(args)}`);
-  });
-  // ``````````````````````````````````````````````````````
 
   nms.run();
 
