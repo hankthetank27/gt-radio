@@ -61,10 +61,10 @@ export const apiRouter = express.Router()
       res.locals.getAll = true;
       return next();
     },
-    //apicache.middleware(
-     // '1 day', 
-      //(_: Request, res: Response) => res.statusCode === 200
-    //),
+    apicache.middleware(
+      '1 day', 
+      (_: Request, res: Response) => res.statusCode === 200
+    ),
     queryArchive.search,
     (_, res) => res.json({
       posts: res.locals.selectedPosts
