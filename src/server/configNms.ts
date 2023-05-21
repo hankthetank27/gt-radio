@@ -1,6 +1,9 @@
 export function configNms(ffmpegPath: string){
+  //if (!process.env.NMS_KEY){
+  //  throw new Error('NMS config requies key in process.env.NMS_KEY');
+  //}
   const config = {
-    logType: 3,
+    logType: 2,
     rtmp: {
       port: 1935,
       chunk_size: 60000,
@@ -32,7 +35,11 @@ export function configNms(ffmpegPath: string){
     },
     mediaServer: {
       idleTimeout: 30
-    }
+    },
+    //auth: {
+    //  publish: true,
+    //  secret: process.env.NNS_KEY
+    //}
   };
   return config;
 };

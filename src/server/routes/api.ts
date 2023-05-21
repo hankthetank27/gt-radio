@@ -45,6 +45,16 @@ export const apiRouter = express.Router()
     })
   )
 
+  .post('/memberLogin',
+    auth.verifyMemberLogin,
+    (_, res) => res.sendStatus(200)
+  )
+  
+  .get('/verifyMemberSession',
+    auth.verifyMemberSession,
+    (_, res) => res.sendStatus(200)
+  )
+
   .get('/getPosts',
     (_, res, next) => {
       res.locals.getAll = false;
@@ -57,6 +67,7 @@ export const apiRouter = express.Router()
   )
 
   .get('/getAllPosts',
+    auth.verifyMemberSession,
     (_, res, next) => {
       res.locals.getAll = true;
       return next();

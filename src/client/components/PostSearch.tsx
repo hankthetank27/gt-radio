@@ -13,7 +13,12 @@ interface posts {
   queryPages: number
 };
 
-export function PostSearch(): JSX.Element{
+interface postSearchProps{
+  fullArchive: boolean
+}
+export function PostSearch({
+  fullArchive
+}: postSearchProps): JSX.Element{
 
   const { register, handleSubmit } = useForm();
   const [ postsData, setPostsData ] = useState<posts>({posts: [], queryPages: 0});
@@ -59,7 +64,10 @@ export function PostSearch(): JSX.Element{
     };
 
     try{
-      const res = await fetch(`api/getPosts?${query}`);
+      const endpoint = fullArchive
+        ? `api/getAllPosts?${query}`
+        : `api/getPosts?${query}`
+      const res = await fetch(endpoint);
       setLoadingPosts(false);
       if (!res.ok) return;
       const data = await res.json();

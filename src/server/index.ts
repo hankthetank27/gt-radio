@@ -16,8 +16,7 @@ import { apiRouter } from "./routes/api";
 import { initDB } from "./db/initDB";
 import { registerWebsocketEvents } from "./routes/websockets";
 import rateLimit from 'express-rate-limit';
-import { broadcast } from './@types';
-import { clientEmiters } from '../socketEvents';
+
 
 dotenv.config();
 
@@ -93,7 +92,6 @@ async function main(): Promise<void>{
       methods: ['GET', 'POST']
     }
   });
-
 
   const broadcast:{
     id: string | null

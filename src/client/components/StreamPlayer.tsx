@@ -1,5 +1,5 @@
 import Hls from "hls.js";
-import { useEffect, useState, createRef, RefObject, ChangeEvent } from "react";
+import { useEffect, useState, createRef, RefObject } from "react";
 import { v4 as uuid } from 'uuid'
 import { CurrentSongDisplay } from "./CurrentSongDisplay";
 import styles from '@/styles/StreamPlayer.module.css';
@@ -11,7 +11,7 @@ interface streamPlayerProps{
 
 export function StreamPlayer({
   src
-}: streamPlayerProps){
+}: streamPlayerProps): JSX.Element{
 
   const audioElement = createRef<HTMLAudioElement>();
   const [ hlsAudio, setHlsAudio ] = useState<Hls | null>(null);
@@ -78,11 +78,11 @@ export function StreamPlayer({
       <div className={styles.playerContainer}>
         {Hls.isSupported()
           ? <AudioPlayer
-              audioEl={audioElement}
+              audioElement={audioElement}
               hlsAudio={hlsAudio}
             />
           : <AudioPlayer
-              audioEl={audioElement}
+              audioElement={audioElement}
               src={src}
             />
         }
@@ -98,13 +98,13 @@ export function StreamPlayer({
 
 
 interface audioPlayerProps{
-  audioEl: RefObject<HTMLAudioElement>
+  audioElement: RefObject<HTMLAudioElement>
   hlsAudio?: Hls | null
   src?: string
 };
 
 function AudioPlayer({
-  audioEl,
+  audioElement,
   hlsAudio,
   src
 }: audioPlayerProps): JSX.Element{
@@ -120,20 +120,20 @@ function AudioPlayer({
     };
   };
 
-  if (audioEl.current){
+  if (audioElement.current){
     isPlaying
-      ? audioEl.current.play()
-      : audioEl.current.pause()
-    audioEl.current.volume = Math.pow((Number(volume) / 100), 3);
+      ? audioElement.current.play()
+      : audioElement.current.pause()
+    audioElement.current.volume = Math.pow((Number(volume) / 100), 2);
   };
 
   return (
     <div>
       <audio
-        ref={audioEl} 
+        ref={audioElement} 
         src={src || undefined}
         onPlay={hlsAudio 
-          ? () => setAudioPlaybackPosition(audioEl) 
+          ? () => setAudioPlaybackPosition(audioElement) 
           : undefined
         }
       />

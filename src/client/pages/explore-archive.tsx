@@ -1,10 +1,12 @@
 import { PostSearch } from "@/components/PostSearch";
 import { PageWrapper } from "@/components/PageWrapper";
 
-export default function ExploreArchive(): JSX.Element{
+export default function ExplorePlayedArchive(): JSX.Element{
   return (
     <PageWrapper>
-      <PostSearch/>
+      <PostSearch
+        fullArchive={false}
+      />
     </PageWrapper>
   );
 };
