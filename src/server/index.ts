@@ -17,6 +17,7 @@ import { initDB } from "./db/initDB";
 import { registerWebsocketEvents } from "./routes/websockets";
 import rateLimit from 'express-rate-limit';
 
+
 dotenv.config();
 
 const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
@@ -92,15 +93,26 @@ async function main(): Promise<void>{
     }
   });
 
-  const broadcast = {
+  const broadcast:{
+    id: string | null
+    main: AudioStream
+  } = {
+    id: null,
     main: new AudioStream('main', gtArchiveDB)
   };
 
   const nms = new NodeMediaServer(configNms(ffmpegPath));
 
-  // reboot stream on interrupt
-  nms.on('donePublish', (_, StreamPath) => {
+  // reboot stream on interrupt/ping timeout
+  nms.on('postPlay', (id, StreamPath) => {
     if (StreamPath === '/live/main'){
+      broadcast.id = id
+    };
+  });
+
+  nms.on('doneConnect', (id) => {
+    console.log(id)
+    if (id === broadcast.id){
       broadcast.main
         .initiateStreamTeardown();
       broadcast.main = new AudioStream('main', gtArchiveDB)

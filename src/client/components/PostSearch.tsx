@@ -13,7 +13,13 @@ interface posts {
   queryPages: number
 };
 
-export function PostSearch(): JSX.Element{
+interface postSearchProps{
+  fullArchive: boolean
+};
+
+export function PostSearch({
+  fullArchive
+}: postSearchProps): JSX.Element{
 
   const { register, handleSubmit } = useForm();
   const [ postsData, setPostsData ] = useState<posts>({posts: [], queryPages: 0});
@@ -25,7 +31,7 @@ export function PostSearch(): JSX.Element{
     getUsers();
     setSearchData({
       page: 0,
-      link_source: 'youtube'
+      sort_by: fullArchive ? 'date_posted' : 'date_aired',
     })
   }, []);
 
@@ -59,7 +65,10 @@ export function PostSearch(): JSX.Element{
     };
 
     try{
-      const res = await fetch(`api/getPosts?${query}`);
+      const endpoint = fullArchive
+        ? `api/getAllPosts?${query}`
+        : `api/getPosts?${query}`
+      const res = await fetch(endpoint);
       setLoadingPosts(false);
       if (!res.ok) return;
       const data = await res.json();
@@ -93,25 +102,33 @@ export function PostSearch(): JSX.Element{
         })}
       >
         <div className={styles.formSearch}>
-          <input type='text' list='userlist' autoComplete="off" placeholder="Posted by..." {...register('user_name')}/>
+          <input 
+            type='text' 
+            list='userlist' 
+            autoComplete="off" 
+            placeholder="Posted by..." 
+            {...register('user_name')}
+          />
           <datalist id='userlist'>
             { userList.map(user => <option key={uuid()} value={user._id}/>) }
           </datalist>
-          <input type='text' autoComplete="off" placeholder="Track title..." {...register('track_title')}/>
-          <input type='text' autoComplete="off" placeholder="Post text..." {...register('text')}/>
-          <input type='text' autoComplete="off" placeholder="Contains anywhere..." {...register('entry_contains_text')}/> 
-          <select form='searchform' {...register('link_source')}>
-            <option value=''>Media source...</option>
-            <option value=''>Any</option>
-            <option value='youtube'>Youtube</option>
-            <option value='bandcamp'>Bandcamp</option>
-            <option value='soundcloud'>Soundcloud</option>
-            <option value='other'>All Others</option>
-          </select>
+          <input 
+            type='text' 
+            autoComplete="off" 
+            placeholder="Track title..." 
+            {...register('track_title')}
+          />
+          <input 
+            type='text' 
+            autoComplete="off" 
+            placeholder="Post text..." 
+            {...register('entry_contains_text')}
+          /> 
         </div>
         <div className={styles.formSort}>
           <select form='searchform' {...register('sort_by')}>
             <option value='date_posted'>Sort By...</option>
+            <option value='date_aired'>Date aired</option>
             <option value='date_posted'>Date posted</option>
             <option value='reacts'>Likes</option>
             <option value='user_name'>User name</option>

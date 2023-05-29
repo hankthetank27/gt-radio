@@ -147,5 +147,41 @@ export const auth = {
     } catch (err) {
       return res.sendStatus(401);
     };
-  }
+  },
+
+
+  verifyMemberLogin: (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try{
+      if (req.body.member_key === process.env.ARCHIVE_KEY){
+        res.cookie('gt_member_offical', process.env.ARCHIVE_KEY);
+        return next();
+      } else {
+        res.status(401).send('Invalid key');
+      }
+    } catch(err){
+      return next('Error verifying member login');
+    }
+  },
+  
+
+  verifyMemberSession: (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try{
+      //TODO: set cookie expires
+      if (req.cookies.gt_member_offical === process.env.ARCHIVE_KEY){
+        return next();
+      } else {
+        res.status(401).send('User not authorized');
+      }
+    } catch(err){
+      return next('Error verifying member session');
+    }
+  },
 };

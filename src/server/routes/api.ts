@@ -1,8 +1,7 @@
-import express, {Request, Response} from "express";
+import express from "express";
 import { auth } from "../controllers/auth";
 import { chat } from "../db/chat";
 import { queryArchive } from "../controllers/queryArchive";
-import apicache from 'apicache';
 
 export const apiRouter = express.Router()
 
@@ -40,20 +39,38 @@ export const apiRouter = express.Router()
 
   .get('/listArchiveUsers',
     queryArchive.showUsers,
-    apicache.middleware(
-      '1 day',
-      (_: Request, res: Response) => res.statusCode === 200
-    ),
     (_, res) => res.json({
       users: res.locals.users
     })
   )
 
+  .post('/memberLogin',
+    auth.verifyMemberLogin,
+    (_, res) => res.sendStatus(200)
+  )
+  
+  .get('/verifyMemberSession',
+    auth.verifyMemberSession,
+    (_, res) => res.sendStatus(200)
+  )
+
   .get('/getPosts',
-    apicache.middleware(
-      '1 day', 
-      (_: Request, res: Response) => res.statusCode === 200
-    ),
+    (_, res, next) => {
+      res.locals.getAll = false;
+      return next();
+    },
+    queryArchive.search,
+    (_, res) => res.json({
+      posts: res.locals.selectedPosts
+    })
+  )
+
+  .get('/getAllPosts',
+    auth.verifyMemberSession,
+    (_, res, next) => {
+      res.locals.getAll = true;
+      return next();
+    },
     queryArchive.search,
     (_, res) => res.json({
       posts: res.locals.selectedPosts

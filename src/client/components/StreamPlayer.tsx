@@ -5,13 +5,13 @@ import { CurrentSongDisplay } from "./CurrentSongDisplay";
 import styles from '@/styles/StreamPlayer.module.css';
 
 
-interface props{
+interface streamPlayerProps{
   src: string
 };
 
 export function StreamPlayer({
   src
-}: props){
+}: streamPlayerProps): JSX.Element{
 
   const audioElement = createRef<HTMLAudioElement>();
   const [ hlsAudio, setHlsAudio ] = useState<Hls | null>(null);
@@ -73,6 +73,45 @@ export function StreamPlayer({
   };
 
 
+  return(
+    <div className={styles.streamContainer}>
+      <div className={styles.playerContainer}>
+        {Hls.isSupported()
+          ? <AudioPlayer
+              audioElement={audioElement}
+              hlsAudio={hlsAudio}
+            />
+          : <AudioPlayer
+              audioElement={audioElement}
+              src={src}
+            />
+        }
+      </div>
+      <CurrentSongDisplay 
+        key={uuid()} 
+        hlsAudio={hlsAudio}
+      />
+    </div>
+  );
+};
+
+
+
+interface audioPlayerProps{
+  audioElement: RefObject<HTMLAudioElement>
+  hlsAudio?: Hls | null
+  src?: string
+};
+
+function AudioPlayer({
+  audioElement,
+  hlsAudio,
+  src
+}: audioPlayerProps): JSX.Element{
+
+  const [ isPlaying, setIsPlaying ] = useState<boolean>(false);
+  const [ volume, setVolume ] = useState<string>("100");
+
   function setAudioPlaybackPosition(
     audioElement: RefObject<HTMLAudioElement>
   ): void{
@@ -81,39 +120,34 @@ export function StreamPlayer({
     };
   };
 
-
-  function renderAudioElement(): JSX.Element{
-    if (Hls.isSupported()){
-      return (
-        <audio
-          className={styles.player}
-          ref={audioElement} 
-          onPlay={() => setAudioPlaybackPosition(audioElement)} 
-          controls
-        />
-      );
-    } else {
-      return (
-        <audio 
-          className={styles.player} 
-          ref={audioElement} 
-          src={src} 
-          controls
-        />
-      );
-    };
+  if (audioElement.current){
+    isPlaying
+      ? audioElement.current.play()
+      : audioElement.current.pause()
+    audioElement.current.volume = Math.pow((Number(volume) / 100), 2);
   };
 
-
-  return(
-    <div className={styles.streamContainer}>
-      <div className={styles.playerContainer}>
-        {renderAudioElement()}
-      </div>
-      <CurrentSongDisplay 
-        key={uuid()} 
-        hlsAudio={hlsAudio}
+  return (
+    <div>
+      <audio
+        ref={audioElement} 
+        src={src || undefined}
+        onPlay={hlsAudio 
+          ? () => setAudioPlaybackPosition(audioElement) 
+          : undefined
+        }
+      />
+      <button
+        onClick={() => setIsPlaying(p => !p)}
+      >
+        play/pause
+      </button>
+      <input 
+        type="range"
+        max="100"
+        value={volume}
+        onChange={(e) => setVolume(e.target.value)}
       />
     </div>
-  );
+  ); 
 };

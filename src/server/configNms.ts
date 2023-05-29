@@ -1,17 +1,20 @@
 export function configNms(ffmpegPath: string){
+  //if (!process.env.NMS_KEY){
+  //  throw new Error('NMS config requies key in process.env.NMS_KEY');
+  //}
   const config = {
     logType: 2,
     rtmp: {
-        port: 1935,
-        chunk_size: 60000,
-        gop_cache: false,
-        ping: 30,
-        ping_timeout: 60
+      port: 1935,
+      chunk_size: 60000,
+      gop_cache: false,
+      ping: 60,
+      ping_timeout: 120
     },
     http: {
-        port: 8000,
-        mediaroot: './media',
-        allow_origin: '*'
+      port: 8000,
+      mediaroot: './media',
+      allow_origin: '*'
     },
     trans: {
       ffmpeg: ffmpegPath,
@@ -32,7 +35,11 @@ export function configNms(ffmpegPath: string){
     },
     mediaServer: {
       idleTimeout: 30
-    }
+    },
+    //auth: {
+    //  publish: true,
+    //  secret: process.env.NNS_KEY
+    //}
   };
   return config;
 };

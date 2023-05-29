@@ -4,7 +4,7 @@ import ytdl from "ytdl-core";
 import ffmpeg from 'fluent-ffmpeg';
 import { PassThrough } from "node:stream";
 import { songInfo, streamProcessTracker } from '../../@types';
-import { Db, Document } from 'mongodb';
+import { Db, Document, ObjectId } from 'mongodb';
 import { EventEmitter } from 'stream';
 import { serverEmiters } from '../../socketEvents';
 // @ts-ignore
@@ -97,9 +97,10 @@ export class AudioStream extends EventEmitter{
         const songInfo = await this._getSongInfo(song);
   
         if (!songInfo || songInfo.length > 400000000) continue;
+        if (!songInfo.hasBeenPlayed) this._flagAsPlayed(songInfo);
 
         await this._pushSong(songInfo);
-  
+
       } catch (err){
         console.error(`Error queuing audio: ${err}`);
       };
@@ -253,8 +254,9 @@ export class AudioStream extends EventEmitter{
       filter: 'audioonly',
       quality: 'highestaudio'
     });
-  
+
     return {
+      post_id: src._id,
       title: videoDetails.title,
       memberPosted: src?.user_name,
       datePosted: src?.date_posted,
@@ -263,7 +265,8 @@ export class AudioStream extends EventEmitter{
       duration: videoDetails.lengthSeconds,
       channel: videoDetails.ownerProfileUrl,
       itag: format.itag,
-      length: Number(format.contentLength)
+      length: Number(format.contentLength),
+      hasBeenPlayed: src?.hasBeenPlayed
     };
   };
 
@@ -279,7 +282,26 @@ export class AudioStream extends EventEmitter{
     if (!post?.[0]){
       return null;
     };
+
     return post[0];
+  };
+
+
+  private _flagAsPlayed(
+    songInfo: songInfo
+  ): void{
+    const posts = this.db.collection('gt_posts');
+    posts.findOneAndUpdate(
+      {
+        _id: new ObjectId(songInfo.post_id), 
+      },
+      {
+        $set: {
+          has_been_played: true,
+          date_aired: new Date()
+        }
+      }
+    );
   };
 
 

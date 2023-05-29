@@ -6,6 +6,7 @@ import { Chat }  from "./../components/Chat"
 import { serverEmiters } from "../../socketEvents";
 import { PageWrapper } from '@/components/PageWrapper';
 import { BeatLoader } from "react-spinners";
+import styles from '@/styles/Home.module.css'
 
 const NMS_PORT = 8000;
 const streamsListAPI = `${process.env.NEXT_PUBLIC_HOST}:${NMS_PORT}/api/streams`;
@@ -83,17 +84,19 @@ export default function Home(): JSX.Element{
   return (
     <PageWrapper>
       <SocketContext.Provider value={{ socket, isConnected }}>
-        {streamLoaded
-          ? displayMainStream()
-          : <BeatLoader 
-              size={13}
-              color="#000000"
-              cssOverride={{
-                  margin: "200px"
-              }}
-            />
-        }
-        <Chat/>
+        <div className={styles.radioContainer}>
+          {streamLoaded
+            ? displayMainStream()
+            : <BeatLoader 
+                size={13}
+                color="#000000"
+                cssOverride={{
+                    margin: "200px"
+                }}
+              />
+          }
+          <Chat/>
+        </div>
       </SocketContext.Provider>
     </PageWrapper>
   );

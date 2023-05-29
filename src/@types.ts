@@ -1,13 +1,15 @@
 export interface songInfo{
+  post_id: string;
   title: string;
-  memberPosted: string | undefined;
-  postText: string | undefined;
-  datePosted: Date | undefined;
+  memberPosted?: string;
+  postText?: string;
+  datePosted?: Date;
   src: string;
   duration: string;
   channel: string;
   itag: number;
   length: number;
+  hasBeenPlayed?: boolean;
 };
 
 export interface streamProcessTracker {
@@ -38,7 +40,7 @@ export interface dbQueryFilters {
   text?: string;
   link_source?: 'youtube' | 'bandcamp' | 'soundcloud' | 'other';
   entry_contains_text?: string;
-  sort_by?: 'date_posted' | 'reacts' | 'user_name'; 
+  sort_by?: 'date_posted' | 'reacts' | 'user_name' | 'date_aired';
   sort_dir?: -1 | 1; 
   page: number;
 };
@@ -51,4 +53,5 @@ export interface post{
   link_source?: string;
   date_posted: string;
   reacts?: string;
+  has_been_played?: boolean;
 };

@@ -12,3 +12,12 @@
     -moz-osx-font-smoothing: grayscale;
     -webkit-text-size-adjust: 100%;
 }
+
+a{
+  color: red;
+  text-decoration: none;
+}
+
+a:hover{
+  color: #464a4c;
+}

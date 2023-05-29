@@ -60,33 +60,48 @@ export const queryArchive = {
           },
         },
       };
+      
+      const matchGetAll = {
+        $match: {
+          $and: res.locals.getAll
+            ? [{
+                link_source: {
+                  $exists: true
+                }
+              }
+            ]
+            : [{
+                link_source: {
+                  $exists: true
+                }
+              },
+              {
+                has_been_played: true
+              }
+            ]
+        }
+      };
 
-      const sortBy = 
-        query.sort_by === 'reacts' || query.sort_by === 'user_name' 
-          ? query.sort_by
-          : 'date_posted';
+      const sortMap = new Map();
+      const sortDir = Number(query.sort_dir) === 1
+        ? 1
+        : -1;
 
-      const sortDir = 
-        Number(query.sort_dir) === 1
-          ? 1
-          : -1;
+      if (
+        query.sort_by === 'reacts' || 
+        query.sort_by === 'user_name' || 
+        query.sort_by === 'date_aired'
+      ) sortMap.set(query.sort_by, sortDir);
+
+      sortMap.set('date_posted', sortDir);
 
       const postsPerPage = 15;
       const currPage = (query.page || 0) * postsPerPage;
 
-      const aggSearch = [
-        baseSearch,
+      const aggSearch: Array<Record<string, any>> = [
+        matchGetAll,
         {
-          $match: {
-            link_source: {
-              $exists: true
-            }
-          }
-        },
-        {
-          $sort: {
-            [ sortBy ]: sortDir
-          }
+          $sort: sortMap
         },
         { $facet: {
           paginatedResults: [
@@ -102,6 +117,8 @@ export const queryArchive = {
           ]
         }}
       ];
+      
+      if (searchArr.length) aggSearch.unshift(baseSearch);
 
       const posts = GtDb.collection('gt_posts');
       const selectedPosts = await posts
@@ -166,6 +183,7 @@ export const queryArchive = {
         .toArray();
 
       res.locals.users = users;
+      
       return next(); 
 
     } catch(err) {
