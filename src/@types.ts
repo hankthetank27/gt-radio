@@ -40,7 +40,7 @@ export interface dbQueryFilters {
   text?: string;
   link_source?: 'youtube' | 'bandcamp' | 'soundcloud' | 'other';
   entry_contains_text?: string;
-  sort_by?: 'date_posted' | 'reacts' | 'user_name'; 
+  sort_by?: 'date_posted' | 'reacts' | 'user_name' | 'date_aired';
   sort_dir?: -1 | 1; 
   page: number;
 };

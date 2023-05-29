@@ -12,7 +12,7 @@ interface props{
 export function Login({
   setUserId,
   setUserColor
-}: props){
+}: props): JSX.Element{
 
   const [ isFetching, setIsFetching ] = useState<boolean>(false);
   const [ loginError, setLoginError ] = useState<string>('');
@@ -21,7 +21,7 @@ export function Login({
   const [ handlePwChange, setHandlePwChange ] = useState<string>('');
 
 
-  async function submitCredentials(){
+  async function submitCredentials(): Promise<void>{
 
     if (!hanldleUnChange || !handlePwChange){
       return;
@@ -53,7 +53,7 @@ export function Login({
   };
 
   
-  async function sendRequest(){
+  async function sendRequest(): Promise<any>{
 
     setIsFetching(true);
 
@@ -95,7 +95,7 @@ export function Login({
   };
 
 
-  function handleSwapModes(){
+  function handleSwapModes(): void{
     const swap = loginOrCreateOpts('create', 'login');
     setHanldleUnChange('');
     setHandlePwChange('');
@@ -171,5 +171,5 @@ export function Login({
         }
       </span>
     </div>
-  )
-}
+  );
+};

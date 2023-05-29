@@ -156,7 +156,7 @@ export const auth = {
     next: NextFunction
   ) => {
     try{
-      if (req.body.member_key = process.env.ARCHIVE_KEY){
+      if (req.body.member_key === process.env.ARCHIVE_KEY){
         res.cookie('gt_member_offical', process.env.ARCHIVE_KEY);
         return next();
       } else {

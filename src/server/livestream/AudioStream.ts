@@ -297,7 +297,8 @@ export class AudioStream extends EventEmitter{
       },
       {
         $set: {
-          has_been_played: true
+          has_been_played: true,
+          date_aired: new Date()
         }
       }
     );

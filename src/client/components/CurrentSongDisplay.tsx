@@ -97,11 +97,16 @@ function DisplaySongInfo({
           </div>
         </li>
         <li className={ styles.listItem }>
-          <span>Posted by {memberPosted}</span>
-        </li>
-        <li className={ styles.listItem }>
+          {memberPosted}
           {datePosted
-            ? <span>{new Date(datePosted).toDateString()}</span>
+            ? <span>
+              {", " + new Date(datePosted)
+                .toDateString()
+                .split(' ')
+                .slice(1)
+                .join(' ')
+              }
+            </span>
             : null
           }
         </li>

@@ -1,5 +1,5 @@
 import { Header } from '@/components/Header'
-import styles from '@/styles/Home.module.css'
+import styles from '@/styles/PageWrapper.module.css'
 import Head from 'next/head'
 
 interface props {

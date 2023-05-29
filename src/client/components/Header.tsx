@@ -1,4 +1,4 @@
-import styles from '@/styles/Home.module.css';
+import styles from '@/styles/PageWrapper.module.css';
 import Link from 'next/link';
 
 export function Header(): JSX.Element{
