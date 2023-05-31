@@ -27,4 +27,4 @@ jobs:
         with:
           file: Dockerfile-aws
           push: true
-          tags: hjackson277/app:latest
+          tags: hjackson277/gt-radio:latest

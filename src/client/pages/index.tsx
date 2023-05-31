@@ -16,6 +16,7 @@ export default function Home(): JSX.Element{
   const [ liveStreams, setLiveStreams ] = useState<string[][]>([]);
   const [ isConnected, setIsConnected ] = useState(socket.connected);
   const [ streamLoaded, setStreamLoaded ] = useState<boolean>(false);
+  const [ streamError, setStreamError ] = useState<boolean>(false);
 
   useEffect(() => {
     socket.on(serverEmiters.CONNECT, () => {
@@ -24,9 +25,11 @@ export default function Home(): JSX.Element{
     socket.on(serverEmiters.DISCONNECT, () => {
       setIsConnected(false);
     });
+    socket.on(serverEmiters.STREAM_REBOOT, hanldeStreamError)
     return () => {
       socket.off(serverEmiters.CONNECT);
       socket.off(serverEmiters.DISCONNECT);
+      socket.off(serverEmiters.STREAM_REBOOT);
     };
   }, []);
 
@@ -50,10 +53,18 @@ export default function Home(): JSX.Element{
         setStreamLoaded(true);
       };
     } catch (err) {
+      hanldeStreamError();
       console.error(
         `ERROR: could not get streams list from ${streamsListAPI}:  ${err}`
       );
     };
+  };
+
+
+  function hanldeStreamError(): void{
+    setStreamLoaded(true);
+    setLiveStreams([]);
+    setStreamError(true);
   };
 
 
@@ -66,7 +77,7 @@ export default function Home(): JSX.Element{
 
 
   function displayMainStream(): JSX.Element[]{
-    return liveStreams.reduce((acc: JSX.Element[], streamInfo) => {
+    const streams = liveStreams.reduce((acc: JSX.Element[], streamInfo) => {
       const [ NMS_PORT, stream ] = streamInfo;
       if (isConnected && stream === 'main'){
         acc.push(
@@ -78,6 +89,8 @@ export default function Home(): JSX.Element{
       };
       return acc;
     }, [])
+    if (!streams.length) hanldeStreamError();
+    return streams;
   };
 
   
@@ -85,7 +98,9 @@ export default function Home(): JSX.Element{
     <PageWrapper>
       <SocketContext.Provider value={{ socket, isConnected }}>
         <div className={styles.radioContainer}>
-          {streamLoaded
+          {streamError
+            ? <div>Error loading stream :( Please refresh page.</div>
+            : streamLoaded
             ? displayMainStream()
             : <BeatLoader 
                 size={13}

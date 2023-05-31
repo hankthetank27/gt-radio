@@ -1,28 +1,28 @@
 .currentlyPlayingContainer{
-    max-width: 450px;
+  max-width: 450px;
 }
 
 .currentlyPlayingList {
-    list-style-type: none;
+  list-style-type: none;
 }
 
 .songTitle{
-    margin-top: 12px;
-    margin-bottom: 12px;
-    font-style: italic;
+  margin-top: 12px;
+  margin-bottom: 12px;
+  font-style: italic;
 }
 
 .titleLineBreak{
-    margin-bottom: 12px;
+  margin-bottom: 12px;
 }
 
 .listItem{
-    margin: 5px;
+  margin: 5px;
 }
 
 @media only screen and (max-width: 900px) {
-    .currentlyPlayingContainer{
-        margin-left: 20px;
-        max-width: 350px;
-    }
+  .currentlyPlayingContainer{
+    margin-left: 20px;
+    max-width: 350px;
+  }
 }

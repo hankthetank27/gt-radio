@@ -1,14 +1,16 @@
 import { chat } from "../db/chat";
 import { Server } from "socket.io";
-import { chatMessage, songInfo } from "../../@types";
+import { chatMessage } from "../../@types";
 import { broadcast } from "../@types";
 import { serverEmiters, clientEmiters } from "../../socketEvents";
 import jwt from 'jsonwebtoken';
+import NodeMediaServer from 'node-media-server';
 
 
 export function registerWebsocketEvents(
   io: Server,
   broadcast: broadcast,
+  nms: NodeMediaServer
 ): void{
 
   function emitChatError(recipient: string, errorMsg: string){
@@ -17,10 +19,6 @@ export function registerWebsocketEvents(
       messages: chat.messages
     });
   };
-
-  broadcast.main.on(serverEmiters.CURRENTLY_PLAYING, (songData: songInfo) => {
-    io.emit(serverEmiters.CURRENTLY_PLAYING, songData);
-  });
 
   io.on('connection', (socket) => {
     
@@ -37,6 +35,13 @@ export function registerWebsocketEvents(
     });
     
     socket.on(clientEmiters.CHAT_MESSAGE, (message: chatMessage, token: string) => {
+
+      if(broadcast.id){
+        const session = nms.getSession(broadcast.id)
+        //@ts-ignore
+        session.stop()
+      }
+
       try {
         if (message.message.length > 800) {
           return emitChatError(

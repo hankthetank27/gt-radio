@@ -26,7 +26,7 @@ export function StreamPlayer({
         hlsAudio.destroy();
       };
     };
-  }, [src]);
+  }, [src]);// CHECK ON PUBLISH EVENT???
 
 
   function _initPlayer(
@@ -138,7 +138,12 @@ function AudioPlayer({
         }
       />
       <button
-        onClick={() => setIsPlaying(p => !p)}
+        onClick={() => {
+          const audioReadyState = audioElement?.current?.readyState;
+          if ((audioReadyState && audioReadyState >= 2) || isPlaying){
+            setIsPlaying(p => !p);
+          };
+        }}
       >
         play/pause
       </button>

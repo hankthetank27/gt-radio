@@ -1,10 +1,10 @@
 import { useState, Dispatch, SetStateAction } from 'react';
-import styles from '@/styles/Login.module.css'
+import styles from '@/styles/LoginLogout.module.css'
 import { BeatLoader } from 'react-spinners';
 import makeColor from '../../utils/makeColor'
 
 
-interface props{
+interface loginProps{
   setUserId: Dispatch<SetStateAction<string>>
   setUserColor: Dispatch<SetStateAction<string>>
 };
@@ -12,7 +12,7 @@ interface props{
 export function Login({
   setUserId,
   setUserColor
-}: props): JSX.Element{
+}: loginProps): JSX.Element{
 
   const [ isFetching, setIsFetching ] = useState<boolean>(false);
   const [ loginError, setLoginError ] = useState<string>('');
@@ -170,6 +170,33 @@ export function Login({
           : null
         }
       </span>
+    </div>
+  );
+};
+
+
+interface logoutProps{
+  userId: string
+  setUserId: Dispatch<SetStateAction<string>>
+};
+
+export function Logout({
+  userId,
+  setUserId
+}: logoutProps): JSX.Element{
+  return (
+    <div className={styles.logoutContainer}>
+      <span className={styles.loggedInAs}>Logged in as {userId}</span>
+      <button 
+        className={styles.logoutButton} 
+        onClick={(e) => {
+          e.preventDefault();
+          window.localStorage.removeItem('sessionJwt');
+          setUserId('');
+        }}
+      >
+        Log out
+      </button>
     </div>
   );
 };

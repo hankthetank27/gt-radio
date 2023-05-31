@@ -38,3 +38,8 @@
     font-size: 12px;
     color: rgb(176, 11, 11);
 }
+
+.loggedInAs{
+    font-style: italic;
+    font-size: 12px;
+}
