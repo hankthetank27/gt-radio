@@ -4,6 +4,7 @@ export const serverEmiters = {
   CURRENTLY_PLAYING: 'currentlyPlaying',
   RECEIVE_CHAT_MESSAGE: 'receive-chat-message',
   CHAT_MESSAGE_ERROR: 'chat-message-error',
+  STREAM_DISCONNECT: 'stream-disconnect',
   STREAM_REBOOT: 'stream-reboot'
 };
 

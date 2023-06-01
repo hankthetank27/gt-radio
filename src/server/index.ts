@@ -112,7 +112,7 @@ async function main(): Promise<void>{
   nms.on('doneConnect', (id) => {
     console.log(id)
     if (id === broadcast.id){
-      io.emit(serverEmiters.STREAM_REBOOT);
+      io.emit(serverEmiters.STREAM_DISCONNECT);
       broadcast.main
         .initiateStreamTeardown();
       broadcast.main = new AudioStream('main', gtArchiveDB, io)

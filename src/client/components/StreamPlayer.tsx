@@ -1,6 +1,6 @@
 import Hls from "hls.js";
 import { useEffect, useState, createRef, RefObject } from "react";
-import { v4 as uuid } from 'uuid'
+import { v4 as uuid } from 'uuid';
 import { CurrentSongDisplay } from "./CurrentSongDisplay";
 import styles from '@/styles/StreamPlayer.module.css';
 
@@ -26,7 +26,7 @@ export function StreamPlayer({
         hlsAudio.destroy();
       };
     };
-  }, [src]);// CHECK ON PUBLISH EVENT???
+  }, [src]);
 
 
   function _initPlayer(
@@ -141,11 +141,16 @@ function AudioPlayer({
         onClick={() => {
           const audioReadyState = audioElement?.current?.readyState;
           if ((audioReadyState && audioReadyState >= 2) || isPlaying){
-            setIsPlaying(p => !p);
+            setIsPlaying(p => {
+              return !p
+            });
           };
         }}
       >
-        play/pause
+        {isPlaying
+          ? '||' 
+          : '->'
+        }
       </button>
       <input 
         type="range"

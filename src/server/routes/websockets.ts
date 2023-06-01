@@ -29,19 +29,18 @@ export function registerWebsocketEvents(
       );
     });
 
+    nms.on('postPublish', (_, streamPath) => {
+      if (streamPath === '/live2/main'){
+        io.emit(serverEmiters.STREAM_REBOOT)
+      };
+    });
+
     // chat events ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     socket.on(clientEmiters.SET_SOCKET_ID, (setUserId: (userId: string) => void) => {
       setUserId(socket.id);
     });
     
     socket.on(clientEmiters.CHAT_MESSAGE, (message: chatMessage, token: string) => {
-
-      if(broadcast.id){
-        const session = nms.getSession(broadcast.id)
-        //@ts-ignore
-        session.stop()
-      }
-
       try {
         if (message.message.length > 800) {
           return emitChatError(
