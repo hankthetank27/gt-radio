@@ -1,6 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
-import ytdl from "ytdl-core";
+import ytdl from "@distube/ytdl-core";
 import ffmpeg from 'fluent-ffmpeg';
 import { PassThrough } from "node:stream";
 import { songInfo, streamProcessTracker } from '../../@types';
@@ -9,6 +9,7 @@ import { EventEmitter } from 'stream';
 import { serverEmiters } from '../../socketEvents';
 // @ts-ignore
 import { Parser as m3u8Parser } from 'm3u8-parser';
+import { Server } from "socket.io";
 
 
 const TEARDOWN_STREAM = 'teardownStream';
@@ -25,6 +26,7 @@ export class AudioStream extends EventEmitter{
   constructor(
     streamName: string,
     db: Db,
+    io: Server
   ){
     super();
     // size of mp3 chunk
@@ -36,6 +38,10 @@ export class AudioStream extends EventEmitter{
     this.hlsMediaPath = path.resolve(
       __dirname, `../../../media/live/${streamName}/`
     );
+
+    this.on(serverEmiters.CURRENTLY_PLAYING, (songData: songInfo) => {
+      io.emit(serverEmiters.CURRENTLY_PLAYING, songData);
+    });
   };
       
       

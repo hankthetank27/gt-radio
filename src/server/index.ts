@@ -16,6 +16,8 @@ import { apiRouter } from "./routes/api";
 import { initDB } from "./db/initDB";
 import { registerWebsocketEvents } from "./routes/websockets";
 import rateLimit from 'express-rate-limit';
+import { broadcast } from './@types';
+import { serverEmiters } from '../socketEvents';
 
 
 dotenv.config();
@@ -93,16 +95,13 @@ async function main(): Promise<void>{
     }
   });
 
-  const broadcast:{
-    id: string | null
-    main: AudioStream
-  } = {
+  const broadcast: broadcast = {
     id: null,
-    main: new AudioStream('main', gtArchiveDB)
+    main: new AudioStream('main', gtArchiveDB, io)
   };
 
   const nms = new NodeMediaServer(configNms(ffmpegPath));
-
+  
   // reboot stream on interrupt/ping timeout
   nms.on('postPlay', (id, StreamPath) => {
     if (StreamPath === '/live/main'){
@@ -113,9 +112,10 @@ async function main(): Promise<void>{
   nms.on('doneConnect', (id) => {
     console.log(id)
     if (id === broadcast.id){
+      io.emit(serverEmiters.STREAM_DISCONNECT);
       broadcast.main
         .initiateStreamTeardown();
-      broadcast.main = new AudioStream('main', gtArchiveDB)
+      broadcast.main = new AudioStream('main', gtArchiveDB, io)
         .startStream();
     };
   });
@@ -125,7 +125,7 @@ async function main(): Promise<void>{
   broadcast.main
     .startStream();
 
-  registerWebsocketEvents(io, broadcast);
+  registerWebsocketEvents(io, broadcast, nms);
 
   server.listen(PORT, () => {
     console.log(`Server listening on port: ${PORT}.`)

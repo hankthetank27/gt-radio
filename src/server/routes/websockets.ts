@@ -1,14 +1,16 @@
 import { chat } from "../db/chat";
 import { Server } from "socket.io";
-import { chatMessage, songInfo } from "../../@types";
+import { chatMessage } from "../../@types";
 import { broadcast } from "../@types";
 import { serverEmiters, clientEmiters } from "../../socketEvents";
 import jwt from 'jsonwebtoken';
+import NodeMediaServer from 'node-media-server';
 
 
 export function registerWebsocketEvents(
   io: Server,
   broadcast: broadcast,
+  nms: NodeMediaServer
 ): void{
 
   function emitChatError(recipient: string, errorMsg: string){
@@ -18,10 +20,6 @@ export function registerWebsocketEvents(
     });
   };
 
-  broadcast.main.on(serverEmiters.CURRENTLY_PLAYING, (songData: songInfo) => {
-    io.emit(serverEmiters.CURRENTLY_PLAYING, songData);
-  });
-
   io.on('connection', (socket) => {
     
     // stream events ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -29,6 +27,12 @@ export function registerWebsocketEvents(
       socket.emit(
         serverEmiters.CURRENTLY_PLAYING, broadcast.main.getCurrentlyPlaying()
       );
+    });
+
+    nms.on('postPublish', (_, streamPath) => {
+      if (streamPath === '/live2/main'){
+        io.emit(serverEmiters.STREAM_REBOOT)
+      };
     });
 
     // chat events ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

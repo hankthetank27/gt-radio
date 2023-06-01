@@ -10,11 +10,11 @@ import { SocketContext } from "../context/socket";
 import styles from '@/styles/Chat.module.css'
 import { serverEmiters, clientEmiters } from "../../socketEvents";
 import { chatMessage, chatError } from "../../@types";
-import { Login } from "./Login";
+import { Login, Logout } from "./Login";
 import { v4 as uuid } from "uuid";
 
 
-export const Chat = () => {
+export function Chat(): JSX.Element{
 
   const chatContentsEl = useRef<HTMLDivElement>(null);
 
@@ -212,33 +212,6 @@ function ChatMessageForm({
         Send
       </button>
     </form>
-  );
-};
-
-
-interface logoutProps{
-  userId: string
-  setUserId: Dispatch<SetStateAction<string>>
-};
-
-function Logout({
-  userId,
-  setUserId
-}: logoutProps): JSX.Element{
-  return (
-    <div className={styles.logoutContainer}>
-      <span className={styles.loggedInAs}>Logged in as {userId}</span>
-      <button 
-        className={styles.logoutButton} 
-        onClick={(e) => {
-          e.preventDefault();
-          window.localStorage.removeItem('sessionJwt');
-          setUserId('');
-        }}
-      >
-        Log out
-      </button>
-    </div>
   );
 };
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { v4 as uuid } from 'uuid'
+import { v4 as uuid } from 'uuid';
 import { socket, SocketContext } from "../context/socket";
 import { StreamPlayer } from "./../components/StreamPlayer";
 import { Chat }  from "./../components/Chat"
@@ -16,6 +16,7 @@ export default function Home(): JSX.Element{
   const [ liveStreams, setLiveStreams ] = useState<string[][]>([]);
   const [ isConnected, setIsConnected ] = useState(socket.connected);
   const [ streamLoaded, setStreamLoaded ] = useState<boolean>(false);
+  const [ streamError, setStreamError ] = useState<boolean>(false);
 
   useEffect(() => {
     socket.on(serverEmiters.CONNECT, () => {
@@ -24,21 +25,36 @@ export default function Home(): JSX.Element{
     socket.on(serverEmiters.DISCONNECT, () => {
       setIsConnected(false);
     });
+    socket.on(serverEmiters.STREAM_DISCONNECT, hanldeStreamError);
+    socket.on(serverEmiters.STREAM_REBOOT, handleStreamReboot);
     return () => {
       socket.off(serverEmiters.CONNECT);
       socket.off(serverEmiters.DISCONNECT);
+      socket.off(serverEmiters.STREAM_REBOOT);
+      socket.off(serverEmiters.STREAM_DISCONNECT);
     };
   }, []);
 
-
   useEffect(() => {
     if (isConnected){
-      getLiveStreams();
+      getLiveStream();
     };
   }, [ isConnected ]);
 
 
-  async function getLiveStreams(): Promise<void>{
+  function hanldeStreamError(): void{
+    setStreamLoaded(true);
+    setStreamError(true);
+  };
+
+
+  function handleStreamReboot():void{
+    setStreamError(false);
+    getLiveStream();
+  };
+
+
+  async function getLiveStream(): Promise<void>{
     try {
       const res = await fetch(streamsListAPI);
       if (!res.ok) return;
@@ -50,6 +66,7 @@ export default function Home(): JSX.Element{
         setStreamLoaded(true);
       };
     } catch (err) {
+      hanldeStreamError();
       console.error(
         `ERROR: could not get streams list from ${streamsListAPI}:  ${err}`
       );
@@ -66,7 +83,7 @@ export default function Home(): JSX.Element{
 
 
   function displayMainStream(): JSX.Element[]{
-    return liveStreams.reduce((acc: JSX.Element[], streamInfo) => {
+    const streams = liveStreams.reduce((acc: JSX.Element[], streamInfo) => {
       const [ NMS_PORT, stream ] = streamInfo;
       if (isConnected && stream === 'main'){
         acc.push(
@@ -78,6 +95,8 @@ export default function Home(): JSX.Element{
       };
       return acc;
     }, [])
+    if (!streams.length) hanldeStreamError();
+    return streams;
   };
 
   
@@ -85,16 +104,23 @@ export default function Home(): JSX.Element{
     <PageWrapper>
       <SocketContext.Provider value={{ socket, isConnected }}>
         <div className={styles.radioContainer}>
-          {streamLoaded
-            ? displayMainStream()
-            : <BeatLoader 
-                size={13}
-                color="#000000"
-                cssOverride={{
-                    margin: "200px"
-                }}
-              />
-          }
+          <div className={styles.radio}>
+            {streamError
+              ? <div>
+                  <p>Error connecting to stream :(</p>
+                  <p>Please wait to reconnect or try reloading page.</p>
+                </div>
+              : streamLoaded
+              ? displayMainStream()
+              : <BeatLoader 
+                  size={13}
+                  color="#000000"
+                  cssOverride={{
+                      margin: "200px"
+                  }}
+                />
+            }
+          </div>
           <Chat/>
         </div>
       </SocketContext.Provider>
