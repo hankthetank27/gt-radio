@@ -69,7 +69,7 @@
   position: absolute;
   display: none;
   background: black;
-  border-radius: 5px;
+  border-radius: 2px;
   height: 5px;
   width: 100px;
 }

@@ -1,13 +1,17 @@
 .loginWindow{
+  position: absolute;
+  top: 25%;
   margin: 8px;
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  --border: 1px solid black;
+  background-color: var(--background-color);
+  border: 1px solid var(--hover-color-light);
+  box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
   width: 250px;
   height: 250px;
-  border-radius: 2px;
+  z-index: 99;
 }
 
 .submitLogin{
@@ -43,19 +47,33 @@
   border: none;
   font: var(--main-font);
   font-style: italic;
+  font-size: 14px;
 }
 
 .createOrAlreadyHaveAccBtn:hover{
   color: #464a4c;
 }
 
-.submitButton{
-  background-color: var(--background-color);
-  font: var(--main-font);
-  font-size: 14px;
-  border: 1px solid black;
+#submitButton{
+  margin-top: 4px;
 }
 
-.submitButton:hover{
-  background-color: var(--hover-color);
+.closeWindowButton{
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  border: none;
+  background: none;
+  justify-content: center;
+  align-items: center;
+  display: inline-flex;
+}
+
+.closeWindowButton > svg{
+  width: 20px;
+  height: 20px;
+}
+
+.closeWindowButton:hover{
+  color: var(--hover-color);
 }

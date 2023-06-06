@@ -140,7 +140,10 @@ export function PostSearch({
             <option value={1}>Dec</option>
           </select>
         </div>
-        <input className={styles.formSubmit} type='submit'/>
+        <input 
+          className="defaultButton" 
+          type='submit'
+        />
       </form>
       <div className={styles.searchResults}>
         {loadingPosts

@@ -10,6 +10,7 @@
     color: rgba(7, 0, 0, 0.87);
     --background-color:#f8f8f8;
     --hover-color:#464a4c;
+    --hover-color-light: #eeefed;
     background-color: var(--background-color);
   
     font-synthesis: none;
@@ -33,3 +34,13 @@ button{
   transition: all 0.15s ease-in-out 0ms;
 }
 
+.defaultButton{
+  background-color: var(--background-color);
+  font: var(--main-font);
+  font-size: 14px;
+  border: 1px solid black;
+}
+
+.defaultButton:hover{
+  background-color: var(--hover-color-light);
+}
