@@ -138,7 +138,8 @@ export function Login({
           value={handlePwChange} 
           onChange={e => setHandlePwChange(e.target.value)}
         />
-        <button 
+        <button  
+          className={styles.submitButton}
           onSubmit={(e) => {
             e.preventDefault();
             submitCredentials();

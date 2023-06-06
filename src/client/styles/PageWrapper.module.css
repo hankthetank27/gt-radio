@@ -9,9 +9,16 @@
 .mainContentContainer{
   display: flex;
   position: absolute;
-  max-width: 1500px;
+  justify-content: center;
+  width: 100%;
+  max-width: 1300px;
   top: var(--header-hight); 
   padding-top: 20px;
+}
+
+.radioConainter{
+  display: flex;
+  justify-content: space-between;
 }
 
 .navbar{
@@ -26,7 +33,7 @@
 
 .headerContainer{
   display: flex;
-  justify-content: space-between;
+  justify-content: right;
   position: fixed;
   top: 0;
   width: 100vw;
@@ -59,3 +66,8 @@
   padding-bottom: 5px;
 }
 
+@media only screen and (max-width: 450px) {
+  .headerContainer{
+    justify-content: center;
+  }
+}

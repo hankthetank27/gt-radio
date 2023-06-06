@@ -9,6 +9,7 @@
     --header-font:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
     color: rgba(7, 0, 0, 0.87);
     --background-color:#f8f8f8;
+    --hover-color:#464a4c;
     background-color: var(--background-color);
   
     font-synthesis: none;
@@ -21,9 +22,14 @@
 a{
   color: black;
   text-decoration: none;
+  transition: all 0.2s ease-in-out 0ms;
 }
 
 a:hover{
-  color: #464a4c;
+  color: var(--hover-color);
+}
+
+button{
+  transition: all 0.15s ease-in-out 0ms;
 }
 

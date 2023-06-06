@@ -1,6 +1,6 @@
 
 .chatContainer {
---chat-bg-color: #f5f6f5;
+  --chat-bg-color: #f5f6f5;
   border: 1px solid rgb(225, 232, 225);
   border-radius: 3px;
   display: flex;
@@ -10,11 +10,10 @@
   width: 450px;
   height: 100%;
   background-color: var(--chat-bg-color);
-  /* overflow: hidden; */
 }
 
 .outerChatContainer{
-  margin-left: 200px;
+  padding-right: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -124,11 +123,23 @@
 @media only screen and (max-width: 900px) {
   .chatContainer {
     width: 320px;
+    max-height: 800px;
   }
   .chatContents{
     width: 320px;
   }
   .outerChatContainer{
+    padding-right: 0px;
     margin-left: 0px;
+    max-height: 850px;
+  }
+}
+
+@media only screen and (max-width: 450px) {
+  .chatContainer {
+    max-height: 420px;
+  }
+  .outerChatContainer{
+    max-height: 450px;
   }
 }

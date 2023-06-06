@@ -17,11 +17,6 @@
   flex-direction: column;
 }
 
-.loginWindow button{
-  margin: 8px;
-  background: none;
-}
-
 .logoutContainer{
   margin: 10px;
   display: flex;
@@ -44,6 +39,7 @@
 }
 
 .createOrAlreadyHaveAccBtn{
+  background: none;
   border: none;
   font: var(--main-font);
   font-style: italic;
@@ -53,4 +49,13 @@
   color: #464a4c;
 }
 
+.submitButton{
+  background-color: var(--background-color);
+  font: var(--main-font);
+  font-size: 14px;
+  border: 1px solid black;
+}
 
+.submitButton:hover{
+  background-color: var(--hover-color);
+}

@@ -23,19 +23,30 @@
 }
 
 .playStopButton{
-    margin-left: 5px;
+  margin-left: 5px;
   border: none;
   background: var(--background-color);
   padding: 2px;
-  display: inline-block;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
   height: 20px;
   width: 20px;
+  flex-shrink: 0;
 }
 
+.playStopButton:hover *{
+  color: var(--hover-color);
+}
 
 .player{
   margin: 5px;
   width: 420px;
+}
+
+.playStopButton svg {
+  width: 22px;
+  height: 22px;
 }
 
 .songTitle{
@@ -50,35 +61,85 @@
 }
 
 .volumeControl{
+  -webkit-appearance: none;
+  appearance: none;
+  outline: none; 
+  transform: translateX(-39px) translateY(70px) rotate(-90deg); 
+  animation: volumeGrow .1s;
   position: absolute;
   display: none;
-  border: 1px solid #aaa;
-  background: #dedede;
-  height: 40px;
+  background: black;
+  border-radius: 5px;
+  height: 5px;
   width: 100px;
-  transform: translateX(-40px) translateY(50px) rotate(-90deg); 
+}
+
+.volumeControl::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 12px;
+  width: 12px;
+  background: var(--background-color);
+  border-radius: 50%;
+  border: 1px solid black;
+}
+
+.volumeControl::-moz-range-thumb {
+  height: 12px;
+  width: 12px;
+  background: var(--background-color);
+  border-radius: 50%;
+  border: 1px solid black;
+}
+
+.volumeControl::-moz-range-thumb:hover{
+  border: 1px solid var(--hover-color);
+}
+
+.volumeControl::-webkit-slider-thumb{
+  border: 1px solid var(--hover-color);
 }
 
 .volumeHover{
-    margin-left: 5px;
-    margin-right: 5px;
-  color: #dedede;
+  margin-left: 5px;
+  margin-right: 5px;
   padding: 2px;
   display: inline-block;
   height: 20px;
   width: 20px;
 }
 
+.volumeHover:hover *{
+  color: var(--hover-color);
+}
+
 .volumeHover:hover + .volumeControl {
   display: block;
 }
 
+.volumeControl:hover + .volumeHover {
+  background-color: var(--hover-color);
+}
+
 .volumeControl:hover {
   display: block;
+  background-color: var(--hover-color);
+}
+
+@keyframes volumeGrow {
+  from {
+    transform: translateX(-39px) translateY(70px) rotate(-90deg) scale(0); 
+  }
+  to {
+    transform: translateX(-39px) translateY(70px) rotate(-90deg) scale(1); 
+  }
 }
 
 @media only screen and (max-width: 900px) {
-  .player{
-    width: 300px;
+  .playerContainer{
+    width: 350px;
   }
 }
+
+
+
