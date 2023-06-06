@@ -1,5 +1,7 @@
+
 .chatContainer {
-  --border: 1px solid rgb(97, 67, 4);
+--chat-bg-color: #f5f6f5;
+  border: 1px solid rgb(225, 232, 225);
   border-radius: 3px;
   display: flex;
   justify-content: space-between;
@@ -7,6 +9,7 @@
   flex-direction: column;
   width: 450px;
   height: 100%;
+  background-color: var(--chat-bg-color);
   /* overflow: hidden; */
 }
 
@@ -41,8 +44,7 @@
 }
 
 .chatContents{
-  background-color: #F5F6F5;
-  --border: 1px solid rgb(97, 67, 4);
+  background-color: var(--chat-bg-color);
   border-radius: 3px;
   width: 450px;
   height: 100%;

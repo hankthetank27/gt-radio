@@ -1,6 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
-import ytdl from "@distube/ytdl-core";
+import ytdl from "ytdl-core";
 import ffmpeg from 'fluent-ffmpeg';
 import { PassThrough } from "node:stream";
 import { songInfo, streamProcessTracker } from '../../@types';

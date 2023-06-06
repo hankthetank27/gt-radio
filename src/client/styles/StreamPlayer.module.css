@@ -23,20 +23,15 @@
 }
 
 .playStopButton{
+    margin-left: 5px;
   border: none;
   background: var(--background-color);
   padding: 2px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 18px;
-  width: 18px;
+  display: inline-block;
+  height: 20px;
+  width: 20px;
 }
 
-.playStopButton svg{
-  width: 20px;
-  height: 20px;
-}
 
 .player{
   margin: 5px;
@@ -61,17 +56,17 @@
   background: #dedede;
   height: 40px;
   width: 100px;
-  transform: translateX(-40px) translateY(52px) rotate(-90deg); 
+  transform: translateX(-40px) translateY(50px) rotate(-90deg); 
 }
 
 .volumeHover{
+    margin-left: 5px;
+    margin-right: 5px;
   color: #dedede;
   padding: 2px;
   display: inline-block;
-  height: 18px;
-  width: 18px;
-  left: 8px;
-  top: 8px;
+  height: 20px;
+  width: 20px;
 }
 
 .volumeHover:hover + .volumeControl {
