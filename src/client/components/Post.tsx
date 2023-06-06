@@ -1,6 +1,6 @@
 import { post } from '../../@types';
 import styles from '@/styles/PostSearch.module.css';
-import ytdl from 'ytdl-core';
+import ytdl from '@distube/ytdl-core';
 import { Dispatch, SetStateAction, useState } from 'react';
 
 

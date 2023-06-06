@@ -7,9 +7,9 @@ import { songInfo, streamProcessTracker } from '../../@types';
 import { Db, Document, ObjectId } from 'mongodb';
 import { EventEmitter } from 'stream';
 import { serverEmiters } from '../../socketEvents';
+import { Server } from "socket.io";
 // @ts-ignore
 import { Parser as m3u8Parser } from 'm3u8-parser';
-import { Server } from "socket.io";
 
 
 const TEARDOWN_STREAM = 'teardownStream';
@@ -103,9 +103,10 @@ export class AudioStream extends EventEmitter{
         const songInfo = await this._getSongInfo(song);
   
         if (!songInfo || songInfo.length > 400000000) continue;
-        if (!songInfo.hasBeenPlayed) this._flagAsPlayed(songInfo);
 
         await this._pushSong(songInfo);
+
+        if (!songInfo.hasBeenPlayed) this._flagAsPlayed(songInfo);
 
       } catch (err){
         console.error(`Error queuing audio: ${err}`);

@@ -32,6 +32,7 @@ export function PostSearch({
     setSearchData({
       page: 0,
       sort_by: fullArchive ? 'date_posted' : 'date_aired',
+      sort_dir: fullArchive ? 1 : -1
     })
   }, []);
 

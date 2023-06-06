@@ -1,10 +1,15 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&family=Rubik+Puddles&display=swap');
+
 :root {
     line-height: 1.35;
     font-weight: 400;
   
     font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    --main-font:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    --header-font:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
     color: rgba(7, 0, 0, 0.87);
-    background-color: #f8f8f8;
+    --background-color:#f8f8f8;
+    background-color: var(--background-color);
   
     font-synthesis: none;
     text-rendering: optimizeLegibility;
@@ -21,3 +26,4 @@ a{
 a:hover{
   color: #464a4c;
 }
+

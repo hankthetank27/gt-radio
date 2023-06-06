@@ -148,6 +148,7 @@ export function Login({
         </button>
       </form>
       <button 
+        className={styles.createOrAlreadyHaveAccBtn}
         onClick={(e) =>{
           e.preventDefault();
           handleSwapModes();

@@ -1,6 +1,8 @@
 .radioContainer{
+    width: 100%;
     display: flex;
     flex-direction: row;
+    justify-content: space-between;
 }
 @media only screen and (max-width: 900px) {
   .radioContainer{

@@ -38,8 +38,7 @@
     "socket.io-client": "^4.6.1",
     "ts-node": "^10.9.1",
     "typescript": "5.0.2",
-    "uuid": "^9.0.0",
-    "ytdl-core": "^4.9.1"
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@types/apicache": "^1.6.1",
