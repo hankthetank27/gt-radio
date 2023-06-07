@@ -73,10 +73,14 @@ export default function ExploreFullArchive(): JSX.Element{
             <p>Enter Password</p>  
             <div>
               <input 
+                className="defaultTextInput"
                 type='password' 
                 autoComplete="off" {...register('key')}
               />
-              <input type='submit'/>
+              <input 
+                className='defaultButton' 
+                type='submit'
+              />
             </div>
           </form>
       }

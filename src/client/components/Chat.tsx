@@ -4,7 +4,9 @@ import {
   useState, 
   useContext, 
   Dispatch, 
-  SetStateAction 
+  SetStateAction, 
+  FormEvent,
+  KeyboardEventHandler
 } from "react";
 import { SocketContext } from "../context/socket";
 import styles from '@/styles/Chat.module.css'
@@ -12,6 +14,7 @@ import { serverEmiters, clientEmiters } from "../../socketEvents";
 import { chatMessage, chatError } from "../../@types";
 import { Login, Logout } from "./Login";
 import { v4 as uuid } from "uuid";
+import TextareaAutosize from '@mui/base/TextareaAutosize';
 
 
 export function Chat(): JSX.Element{
@@ -92,16 +95,16 @@ export function Chat(): JSX.Element{
 
   return(
     <div className={styles.outerChatContainer}>
-      {displayLoginWindow && !userId
-        ? <Login 
-          setDisplayLoginWindow={setDisplayLoginWindow}
-          key={uuid()} 
-          setUserId={setUserId}
-          setUserColor={setUserColor}
-        />
-        : null
-      }
       <div className={styles.chatContainer}>
+        {displayLoginWindow && !userId
+          ? <Login 
+            setDisplayLoginWindow={setDisplayLoginWindow}
+            key={uuid()} 
+            setUserId={setUserId}
+            setUserColor={setUserColor}
+          />
+          : null
+        }
         <div className={styles.chatContents} ref={chatContentsEl}>
           {chatHistory.map(m => 
             <Message
@@ -131,9 +134,12 @@ export function Chat(): JSX.Element{
               </button>
             </div>
         }
-        <div className={styles.chatError}>
-          <span className={styles.chatErrorMsg}>{chatError}</span>
-        </div>
+        {chatError
+          ? <div className={styles.chatError}>
+            <span className={styles.chatErrorMsg}>{chatError}</span>
+          </div>
+          : null
+        }
       </div>
       {userId
         ? <Logout
@@ -204,11 +210,17 @@ function ChatMessageForm({
         handleNewMessage();
       }}
     >
-      <input
+      <TextareaAutosize
         autoFocus
         className={styles.msgFormInput}
-        type="text" 
         value={handleChange} 
+        maxRows={4}
+        onKeyDown={e => {
+          if (e.key === "Enter" && e.shiftKey === false){
+            e.preventDefault();
+            handleNewMessage();
+          };
+        }}
         onChange={e => {
           setHandleChange(e.target.value)
         }}

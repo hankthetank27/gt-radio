@@ -103,41 +103,54 @@ export function PostSearch({
         })}
       >
         <div className={styles.formSearch}>
-          <input 
-            type='text' 
-            list='userlist' 
-            autoComplete="off" 
-            placeholder="Posted by..." 
-            {...register('user_name')}
-          />
-          <datalist id='userlist'>
-            { userList.map(user => <option key={uuid()} value={user._id}/>) }
-          </datalist>
-          <input 
-            type='text' 
-            autoComplete="off" 
-            placeholder="Track title..." 
-            {...register('track_title')}
-          />
-          <input 
-            type='text' 
-            autoComplete="off" 
-            placeholder="Post text..." 
-            {...register('entry_contains_text')}
-          /> 
-          <div className={styles.formSort}>
-            <select form='searchform' {...register('sort_by')}>
-              <option value='date_posted'>Sort By...</option>
-              <option value='date_aired'>Date aired</option>
-              <option value='date_posted'>Date posted</option>
-              <option value='reacts'>Likes</option>
-              <option value='user_name'>User name</option>
-            </select>
-            <select form='searchform' {...register('sort_dir')}>
-              <option value={-1}>Order...</option>
-              <option value={-1}>Asc</option>
-              <option value={1}>Dec</option>
-            </select>
+          <div className={styles.formSubcontainer}>
+            <input 
+              className={`defaultTextInput ${styles.searchTextInput}`}
+              type='text' 
+              list='userlist' 
+              autoComplete="off" 
+              placeholder="Posted by..." 
+              {...register('user_name')}
+            />
+            <datalist id='userlist'>
+              { userList.map(user => <option key={uuid()} value={user._id}/>) }
+            </datalist>
+            <input 
+              className={`defaultTextInput ${styles.searchTextInput}`}
+              type='text' 
+              autoComplete="off" 
+              placeholder="Track title..." 
+              {...register('track_title')}
+            />
+          </div>
+          <div className={styles.formSubcontainer}>
+            <input 
+              className={`defaultTextInput ${styles.searchTextInput}`}
+              type='text' 
+              autoComplete="off" 
+              placeholder="Post text..." 
+              {...register('entry_contains_text')}
+            /> 
+            <div className={styles.formSort}>
+              <select 
+                className='defaultSelect'
+                form='searchform' {...register('sort_by')}
+              >
+                <option value='date_aired'>Sort...</option>
+                <option value='date_aired'>Date aired</option>
+                <option value='date_posted'>Date posted</option>
+                <option value='reacts'>Likes</option>
+                <option value='user_name'>User name</option>
+              </select>
+              <select 
+                className={`defaultSelect ${styles.searchSelect}`}
+                form='searchform' {...register('sort_dir')}
+              >
+                <option value={-1}>Order...</option>
+                <option value={-1}>Asc</option>
+                <option value={1}>Dec</option>
+              </select>
+            </div>
           </div>
           <input 
             id={styles.searchButton}
@@ -156,7 +169,7 @@ export function PostSearch({
                 margin: "200px"
               }}
             /> 
-          : postsData.posts.map((post: post) => <Post post={post}/>)
+          : postsData.posts.map((post: post) => <Post key={uuid()}post={post}/>)
         }
       </div>
       <PaginatePosts

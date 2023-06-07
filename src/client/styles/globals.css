@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&family=Rubik+Puddles&display=swap');
-
 :root {
     line-height: 1.35;
     font-weight: 400;
@@ -43,4 +41,61 @@ button{
 
 .defaultButton:hover{
   background-color: var(--hover-color-light);
+}
+
+.defaultTextInput{
+  font: var(--main-font);
+  font-size: 14px;
+  writing-mode: horizontal-tb !important;
+  text-rendering: auto;
+  color: fieldtext;
+  letter-spacing: normal;
+  word-spacing: normal;
+  line-height: normal;
+  text-transform: none;
+  text-indent: 0px;
+  text-shadow: none;
+  display: inline-block;
+  text-align: start;
+  appearance: auto;
+  -webkit-rtl-ordering: logical;
+  resize: auto;
+  cursor: text;
+  overflow-wrap: break-word;
+  background-color: var(--background-color);
+  column-count: initial !important;
+  border: 1px solid black;
+  padding: 2px;
+  margin: 2px;
+}
+
+.defaultSelect{
+  font: var(--main-font);
+  font-size: 14px;
+  writing-mode: horizontal-tb !important;
+  text-rendering: auto;
+  color: fieldtext;
+  letter-spacing: normal;
+  word-spacing: normal;
+  line-height: normal;
+  text-transform: none;
+  text-indent: 0px;
+  text-shadow: none;
+  display: inline-block;
+  text-align: start;
+  appearance: auto;
+  -webkit-rtl-ordering: logical;
+  resize: auto;
+  cursor: text;
+  overflow-wrap: break-word;
+  background-color: var(--background-color);
+  column-count: initial !important;
+  border: 1px solid black;
+  padding: 2px;
+  margin: 2px;
+  border-radius: 1px;
+}
+
+input:focus {
+  outline:1.3px solid black;
 }

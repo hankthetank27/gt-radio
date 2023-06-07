@@ -116,7 +116,10 @@ export default function Home(): JSX.Element{
                   size={13}
                   color="#000000"
                   cssOverride={{
-                      margin: "200px"
+                    marginLeft: "200px",
+                    marginRight: "200px",
+                    marginTop: "55px",
+                    marginBottom: "55px"
                   }}
                 />
             }

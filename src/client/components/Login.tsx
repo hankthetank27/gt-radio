@@ -131,7 +131,11 @@ export function Login({
           <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
         </svg>
       </button>
-      <h4>{loginOrCreateOpts('Log in', 'Sign Up')}</h4>
+      <h4 
+        className={styles.loginHeader}
+      >
+        {loginOrCreateOpts('Log in', 'Sign Up')}
+      </h4>
       <form 
         className={styles.submitLogin} 
         onSubmit={(e) => {
@@ -140,14 +144,17 @@ export function Login({
         }}
       >
         <input
-          className={styles.usernameFormInput}
+          autoFocus={true}
+          id={styles.usernameFormInput}
+          className='defaultTextInput'
           type="text"
           placeholder='Username'
           value={hanldleUnChange} 
           onChange={(e) => setHanldleUnChange(e.target.value)}
         />
         <input
-          className={styles.passwordFormInput}
+          id={styles.passwordFormInput}
+          className='defaultTextInput'
           type="password"
           placeholder='Password'
           value={handlePwChange} 

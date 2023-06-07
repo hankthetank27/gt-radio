@@ -1,6 +1,8 @@
 .loginWindow{
   position: absolute;
-  top: 25%;
+  top: 50%; 
+  left: 50%; 
+  transform: translate(-50%, -50%);
   margin: 8px;
   display: flex;
   justify-content: center;
@@ -10,7 +12,7 @@
   border: 1px solid var(--hover-color-light);
   box-shadow: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
   width: 250px;
-  height: 250px;
+  height: 200px;
   z-index: 99;
 }
 
@@ -28,6 +30,10 @@
   align-items: center;
 }
 
+.loginHeader{
+  margin: 10px;
+}
+
 .loading {
   font-size: 12px;
 }
@@ -43,6 +49,7 @@
 }
 
 .createOrAlreadyHaveAccBtn{
+  padding-top: 8px;
   background: none;
   border: none;
   font: var(--main-font);
