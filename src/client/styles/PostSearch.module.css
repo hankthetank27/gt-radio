@@ -15,11 +15,24 @@
   text-decoration-line: underline;
 }
 
+.formSubcontainer{
+  display: flex;
+}
+
 .searchResults{
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+}
+
+.formSearch{
+  display: flex;
+  justify-content: center;
+}
+
+#searchButton{
+  margin-left: 5px;
 }
 
 .post{
@@ -28,6 +41,7 @@
 
 .postList{
   list-style-type: none;
+  padding: 0;
 }
 
 .postTitle{
@@ -95,4 +109,29 @@
   background: url("https://i.ibb.co/j3jcJKv/yt.png") no-repeat;
   cursor: pointer;
   border: none;
+}
+
+@media only screen and (max-width: 700px) {
+  .formSubcontainer{
+    flex-direction: column;
+  }
+
+  .post{
+    width: 350px;
+  }
+
+  .pageNav *{
+    margin-left: 3px;
+    margin-right: 3px;
+  }
+
+  #searchButton{
+    margin-left: 2px;
+  }
+}
+
+@media only screen and (max-width: 360px) {
+  #searchButton{
+    width: 50px;
+  }
 }

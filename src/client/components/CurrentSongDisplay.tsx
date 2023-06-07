@@ -1,5 +1,5 @@
 import Hls from "hls.js";
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, Dispatch, SetStateAction } from "react";
 import { SocketContext } from "../context/socket";
 import { v4 as uuid } from 'uuid'
 import { songInfo } from "../../@types";
@@ -9,16 +9,18 @@ import { serverEmiters, clientEmiters } from "../../socketEvents";
 
 interface currentSongDisplayProps{
   hlsAudio: Hls | null
+  currentlyPlaying: songInfo | null
+  setCurrentlyPlaying: Dispatch<SetStateAction<songInfo | null>>
 };
 
 export function CurrentSongDisplay({
-  hlsAudio
+  hlsAudio,
+  currentlyPlaying,
+  setCurrentlyPlaying
 }: currentSongDisplayProps): JSX.Element{
 
   const { socket, isConnected } = useContext(SocketContext);
-  const [ currentlyPlaying, setCurrentlyPlaying ] = useState<songInfo | null>(null);
   const [ avrgHlsLatency, setAvrgHlsLatency ] = useState<number>(6); // estimation based on average
-
 
   useEffect(() => {
     socket.on(serverEmiters.CURRENTLY_PLAYING, (songData) => {
@@ -69,33 +71,18 @@ interface displaySongInfoProps{
 };
 
 function DisplaySongInfo({
-  currentlyPlaying
+  currentlyPlaying,
 }: displaySongInfoProps): JSX.Element{
 
   const {
-    title,
     memberPosted,
     datePosted,
     postText,
-    src
   } = currentlyPlaying
 
   return (
     <div className={styles.currentlyPlaying}>
       <ul key={uuid()} className={ styles.currentlyPlayingList }>
-        <li className={ styles.listItem }>
-          <div>
-            <h4 className={styles.songTitle}>
-              <a
-                target="_blank"
-                href={src}
-              >
-                {title}
-              </a>
-            </h4>
-            <hr className={styles.titleLineBreak}/>
-          </div>
-        </li>
         <li className={ styles.listItem }>
           {memberPosted}
           {datePosted

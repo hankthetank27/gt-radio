@@ -1,15 +1,15 @@
 import fs from 'fs/promises';
 import path from 'path';
-import ytdl from "@distube/ytdl-core";
+import ytdl from 'ytdl-core';
 import ffmpeg from 'fluent-ffmpeg';
 import { PassThrough } from "node:stream";
 import { songInfo, streamProcessTracker } from '../../@types';
 import { Db, Document, ObjectId } from 'mongodb';
 import { EventEmitter } from 'stream';
 import { serverEmiters } from '../../socketEvents';
+import { Server } from 'socket.io';
 // @ts-ignore
 import { Parser as m3u8Parser } from 'm3u8-parser';
-import { Server } from "socket.io";
 
 
 const TEARDOWN_STREAM = 'teardownStream';
@@ -46,12 +46,12 @@ export class AudioStream extends EventEmitter{
       
       
   startStream(): AudioStream{
-       
+
     if (this.#isLive) return this;
 
     this.#isLive = true;
     this._queueAudio();
-    
+
     this.#ffmpegCmd = ffmpeg(this.#stream)
       .inputOptions([
         '-re'
@@ -98,14 +98,14 @@ export class AudioStream extends EventEmitter{
 
     while (this.#isLive){
       try {
-
         const song = await this._selectRandomSong();
         const songInfo = await this._getSongInfo(song);
-  
+
         if (!songInfo || songInfo.length > 400000000) continue;
-        if (!songInfo.hasBeenPlayed) this._flagAsPlayed(songInfo);
 
         await this._pushSong(songInfo);
+
+        if (!songInfo.hasBeenPlayed) this._flagAsPlayed(songInfo);
 
       } catch (err){
         console.error(`Error queuing audio: ${err}`);
@@ -120,7 +120,7 @@ export class AudioStream extends EventEmitter{
   private _pushSong(
     songInfo: songInfo
   ): Promise<void>{
-      
+
     return new Promise<void>(async (resolve, reject) => {
 
       this.on(TEARDOWN_STREAM, 

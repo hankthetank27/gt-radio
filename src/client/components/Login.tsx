@@ -5,13 +5,15 @@ import makeColor from '../../utils/makeColor'
 
 
 interface loginProps{
+  setDisplayLoginWindow: Dispatch<SetStateAction<boolean>>
   setUserId: Dispatch<SetStateAction<string>>
   setUserColor: Dispatch<SetStateAction<string>>
 };
 
 export function Login({
   setUserId,
-  setUserColor
+  setUserColor,
+  setDisplayLoginWindow
 }: loginProps): JSX.Element{
 
   const [ isFetching, setIsFetching ] = useState<boolean>(false);
@@ -48,6 +50,7 @@ export function Login({
 
     setUserId(res.username);
     setUserColor(res.chatColor || makeColor());
+    setDisplayLoginWindow(false);
 
     localStorage.setItem('sessionJwt', res.jwt);
   };
@@ -116,7 +119,23 @@ export function Login({
 
   return (
     <div className={styles.loginWindow}>
-      <h4>{loginOrCreateOpts('Log in', 'Sign Up')}</h4>
+      <button 
+        onClick={() => setDisplayLoginWindow(false)}
+        className={styles.closeWindowButton}
+      >
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          fill="currentColor"  
+          viewBox="0 0 15 15"
+        > 
+          <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+        </svg>
+      </button>
+      <h4 
+        className={styles.loginHeader}
+      >
+        {loginOrCreateOpts('Log in', 'Sign Up')}
+      </h4>
       <form 
         className={styles.submitLogin} 
         onSubmit={(e) => {
@@ -125,20 +144,25 @@ export function Login({
         }}
       >
         <input
-          className={styles.usernameFormInput}
+          autoFocus={true}
+          id={styles.usernameFormInput}
+          className='defaultTextInput'
           type="text"
           placeholder='Username'
           value={hanldleUnChange} 
           onChange={(e) => setHanldleUnChange(e.target.value)}
         />
         <input
-          className={styles.passwordFormInput}
+          id={styles.passwordFormInput}
+          className='defaultTextInput'
           type="password"
           placeholder='Password'
           value={handlePwChange} 
           onChange={e => setHandlePwChange(e.target.value)}
         />
-        <button 
+        <button  
+          id={styles.submitButton}
+          className="defaultButton"
           onSubmit={(e) => {
             e.preventDefault();
             submitCredentials();
@@ -148,6 +172,7 @@ export function Login({
         </button>
       </form>
       <button 
+        className={styles.createOrAlreadyHaveAccBtn}
         onClick={(e) =>{
           e.preventDefault();
           handleSwapModes();
@@ -178,21 +203,24 @@ export function Login({
 interface logoutProps{
   userId: string
   setUserId: Dispatch<SetStateAction<string>>
+  setDisplayLoginWindow: Dispatch<SetStateAction<boolean>>
 };
 
 export function Logout({
   userId,
-  setUserId
+  setUserId,
+  setDisplayLoginWindow
 }: logoutProps): JSX.Element{
   return (
     <div className={styles.logoutContainer}>
-      <span className={styles.loggedInAs}>Logged in as {userId}</span>
+      <span className={styles.loggedInAs}>Welcome, {userId}</span>
       <button 
-        className={styles.logoutButton} 
+        className="defaultButton" 
         onClick={(e) => {
           e.preventDefault();
           window.localStorage.removeItem('sessionJwt');
           setUserId('');
+          setDisplayLoginWindow(false);
         }}
       >
         Log out

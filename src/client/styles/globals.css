@@ -3,8 +3,13 @@
     font-weight: 400;
   
     font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    --main-font:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    --header-font:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
     color: rgba(7, 0, 0, 0.87);
-    background-color: #f8f8f8;
+    --background-color:#f8f8f8;
+    --hover-color:#464a4c;
+    --hover-color-light: #eeefed;
+    background-color: var(--background-color);
   
     font-synthesis: none;
     text-rendering: optimizeLegibility;
@@ -16,8 +21,81 @@
 a{
   color: black;
   text-decoration: none;
+  transition: all 0.2s ease-in-out 0ms;
 }
 
 a:hover{
-  color: #464a4c;
+  color: var(--hover-color);
+}
+
+button{
+  transition: all 0.15s ease-in-out 0ms;
+}
+
+.defaultButton{
+  background-color: var(--background-color);
+  font: var(--main-font);
+  font-size: 14px;
+  border: 1px solid black;
+}
+
+.defaultButton:hover{
+  background-color: var(--hover-color-light);
+}
+
+.defaultTextInput{
+  font: var(--main-font);
+  font-size: 14px;
+  writing-mode: horizontal-tb !important;
+  text-rendering: auto;
+  color: fieldtext;
+  letter-spacing: normal;
+  word-spacing: normal;
+  line-height: normal;
+  text-transform: none;
+  text-indent: 0px;
+  text-shadow: none;
+  display: inline-block;
+  text-align: start;
+  appearance: auto;
+  -webkit-rtl-ordering: logical;
+  resize: auto;
+  cursor: text;
+  overflow-wrap: break-word;
+  background-color: var(--background-color);
+  column-count: initial !important;
+  border: 1px solid black;
+  padding: 2px;
+  margin: 2px;
+}
+
+.defaultSelect{
+  font: var(--main-font);
+  font-size: 14px;
+  writing-mode: horizontal-tb !important;
+  text-rendering: auto;
+  color: fieldtext;
+  letter-spacing: normal;
+  word-spacing: normal;
+  line-height: normal;
+  text-transform: none;
+  text-indent: 0px;
+  text-shadow: none;
+  display: inline-block;
+  text-align: start;
+  appearance: auto;
+  -webkit-rtl-ordering: logical;
+  resize: auto;
+  cursor: text;
+  overflow-wrap: break-word;
+  background-color: var(--background-color);
+  column-count: initial !important;
+  border: 1px solid black;
+  padding: 2px;
+  margin: 2px;
+  border-radius: 1px;
+}
+
+input:focus {
+  outline:1.3px solid black;
 }

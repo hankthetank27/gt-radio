@@ -4,7 +4,9 @@ import {
   useState, 
   useContext, 
   Dispatch, 
-  SetStateAction 
+  SetStateAction, 
+  FormEvent,
+  KeyboardEventHandler
 } from "react";
 import { SocketContext } from "../context/socket";
 import styles from '@/styles/Chat.module.css'
@@ -12,6 +14,7 @@ import { serverEmiters, clientEmiters } from "../../socketEvents";
 import { chatMessage, chatError } from "../../@types";
 import { Login, Logout } from "./Login";
 import { v4 as uuid } from "uuid";
+import TextareaAutosize from '@mui/base/TextareaAutosize';
 
 
 export function Chat(): JSX.Element{
@@ -22,7 +25,8 @@ export function Chat(): JSX.Element{
   const [ userId, setUserId ] = useState<string>('');
   const [ userColor, setUserColor ] = useState<string>("#4955af")
   const [ chatHistory, setChatHistory ] = useState<chatMessage[]>([]);
-  const [ chatError, setChatError ] = useState<string>('');
+  const [ chatError, setChatError ] = useState<string | null>(null);
+  const [ displayLoginWindow, setDisplayLoginWindow ] = useState<boolean>(false);
 
 
   useEffect(() => {
@@ -82,7 +86,7 @@ export function Chat(): JSX.Element{
       const { username, chatColor } = await res.json();
       setUserId(username);
       setUserColor(chatColor);
-
+      setDisplayLoginWindow(false);
     } catch (err){
       console.error(`Error: could not verify session data ${err}`);
     };
@@ -92,13 +96,14 @@ export function Chat(): JSX.Element{
   return(
     <div className={styles.outerChatContainer}>
       <div className={styles.chatContainer}>
-        {userId
-          ? null
-          : <Login 
-              key={uuid()} 
-              setUserId={setUserId}
-              setUserColor={setUserColor}
+        {displayLoginWindow && !userId
+          ? <Login 
+            setDisplayLoginWindow={setDisplayLoginWindow}
+            key={uuid()} 
+            setUserId={setUserId}
+            setUserColor={setUserColor}
           />
+          : null
         }
         <div className={styles.chatContents} ref={chatContentsEl}>
           {chatHistory.map(m => 
@@ -120,14 +125,25 @@ export function Chat(): JSX.Element{
               setChatError={setChatError}
               setChatHistory={setChatHistory}
             />
-          : <div>Login to join chat.</div>
+          : <div>
+              <button
+                className="defaultButton"
+                onClick={() => setDisplayLoginWindow(true)}
+              >
+                Join Chat
+              </button>
+            </div>
         }
-        <div className={styles.chatError}>
-          <span className={styles.chatErrorMsg}>{chatError}</span>
-        </div>
+        {chatError
+          ? <div className={styles.chatError}>
+            <span className={styles.chatErrorMsg}>{chatError}</span>
+          </div>
+          : null
+        }
       </div>
       {userId
         ? <Logout
+            setDisplayLoginWindow={setDisplayLoginWindow}
             userId={userId}
             setUserId={setUserId}
           />
@@ -142,7 +158,7 @@ interface chatFormProps {
   userId: string
   userColor: string
   chatHistory: chatMessage[]
-  setChatError: Dispatch<SetStateAction<string>>
+  setChatError: Dispatch<SetStateAction<string | null>>
   setChatHistory: Dispatch<SetStateAction<chatMessage[]>>
 };
 
@@ -171,7 +187,7 @@ function ChatMessageForm({
       setChatError('You are not logged in.')
     };
 
-    setChatError('');
+    setChatError(null);
 
     const newMessage = {
       userId: userId,
@@ -194,16 +210,24 @@ function ChatMessageForm({
         handleNewMessage();
       }}
     >
-      <input
+      <TextareaAutosize
         autoFocus
         className={styles.msgFormInput}
-        type="text" 
         value={handleChange} 
+        maxRows={4}
+        onKeyDown={e => {
+          if (e.key === "Enter" && e.shiftKey === false){
+            e.preventDefault();
+            handleNewMessage();
+          };
+        }}
         onChange={e => {
           setHandleChange(e.target.value)
         }}
       />
       <button 
+        id={styles.sendButton}
+        className="defaultButton"
         onSubmit={e => {
           e.preventDefault();
           handleNewMessage();

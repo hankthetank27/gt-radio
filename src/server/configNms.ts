@@ -1,7 +1,4 @@
 export function configNms(ffmpegPath: string){
-  //if (!process.env.NMS_KEY){
-  //  throw new Error('NMS config requies key in process.env.NMS_KEY');
-  //}
   const config = {
     logType: 2,
     rtmp: {
@@ -24,7 +21,7 @@ export function configNms(ffmpegPath: string){
           vc: "copy",
           vcParam: [],
           ac: "aac",
-          acParam: ['-ab', '64k', '-ac', '1', '-ar', '44100'],
+          acParam: ['-ab', '128k', '-ac', '2', '-ar', '44100'],
           rtmp:true,
           rtmpApp:'live2',
           hls: true,
@@ -36,10 +33,6 @@ export function configNms(ffmpegPath: string){
     mediaServer: {
       idleTimeout: 30
     },
-    //auth: {
-    //  publish: true,
-    //  secret: process.env.NNS_KEY
-    //}
   };
   return config;
 };

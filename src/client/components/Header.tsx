@@ -5,9 +5,9 @@ export function Header(): JSX.Element{
   return (
     <div className={styles.headerContainer}>
       <div className={styles.navbar}>
-        <Link href='/'>Radio</Link>
-        <Link href='/explore-archive'>Explore Archive</Link>
-        <Link href='/about'>About</Link>
+        <Link className={styles.pagelink} href='/'>Radio</Link>
+        <Link className={styles.pagelink} href='/archive'>Archive</Link>
+        <Link className={styles.pagelink} href='/about'>About</Link>
       </div>
     </div>
   );

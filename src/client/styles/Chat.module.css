@@ -1,117 +1,167 @@
 .chatContainer {
-    border: 1px solid rgb(97, 67, 4);
-    border-radius: 3px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-direction: column;
-    width: 400px;
-    height: 80%;
-    /* overflow: hidden; */
-    padding: 5px;    
+  --chat-bg-color: #f5f6f5;
+  --chat-width: 400px;
+  border: 1px solid rgb(225, 232, 225);
+  box-shadow: 0px 0px 17px -4px var(--background-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: column;
+  width: var(--chat-width);
+  height: 100%;
+  border-radius: 2px;
+  background-color: #eaefea;
+  resize: vertical;
+  min-height: 450px;
+  height: 450px;
+  max-height: fit-content;
+  max-width: fit-content;
+  overflow: auto;
+  position: relative;
+  padding-bottom: 8px;
 }
 
 .outerChatContainer{
-    margin-left: 30px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  height: 800px;
+  padding-right: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 75vh;
+  min-height: 400px;
+  margin-top: 15px;
 }
 
 .loggedInAs{
-    font-style: italic;
-    font-size: 12px;
+  font-style: italic;
+  font-size: 12px;
 }
 
 .msgForm{
-    margin-top: 15px;
-    display: flex;
-    align-items: center;
-    padding-bottom: 0px;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  padding-bottom: 0px;
 }
 
 .msgForm button{
-    background: none;
+  background: none;
 }
 
 .msgFormInput{
-    border: 1px solid black;
-    margin: 5px;
-    line-height: 18px;
-    width: 180px;
+  font: var(--main-font);
+  font-size: 15px;
+  max-height: 80px;
+  min-height: 18px;
+  border: 1px solid black;
+  line-height: 18px;
+  width: 240px;
+  max-width: 240px;
+  min-width: 240px;
+  resize: none;
 }
 
 .chatContents{
-    background-color: rgba(0, 255, 255, 0.071);
-    border: 1px solid rgb(97, 67, 4);
-    border-radius: 3px;
-    width: 400px;
-    height: 100%;
-    max-height: 800px;
-    /* need to change min height when not logged in */
-    min-height: 320px; 
-    overflow-y: scroll;
+  background-color: var(--chat-bg-color);
+  width: var(--chat-width);
+  height: 100%;
+  max-height: 1000px;
+  min-height: 320px; 
+  overflow-y: scroll;
+  scrollbar-width: thin;
+  box-shadow: 0 0 10px 10px var(--chat-bg-color);
+  margin-bottom: 10px;
+  z-index: 2;
 }
 
 .chatItem {
-    padding-top: 10px;
-    padding-bottom: 10px;
-    font-size: 15px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  font-size: 15px;
 }
 
 .sender {
-    font-size: 11px;
-    font-style: italic;
+  font-size: 11px;
+  font-style: italic;
 }
 
 .messageContents{
-    overflow-wrap: break-word;
-    max-width: 200px;
+  overflow-wrap: break-word;
+  max-width: 200px;
 }
 
 .myMessage {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    padding-right: 5px;
-    padding-left: 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding-right: 5px;
+  padding-left: 15px;
 }
-
 
 .opMessage{
-    padding-right: 15px;
-    padding-left: 5px;
+  padding-right: 15px;
+  padding-left: 5px;
 }
 
-
 .chatError{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 18px;
 }
 
 .chatErrorMsg{
-    font-size: 12px;
-    color: rgb(176, 11, 11) 
+  font-size: 12px;
+  color: rgb(176, 11, 11) 
 }
 
 .logoutButton{
-    margin: 5px;
-    background: none;
-    font-size: 12px;
+  position: absolute;
+  margin: 5px;
+  background: none;
+  font-size: 12px;
 }
 
+#sendButton{
+  background-color: var(--chat-bg-color);
+  margin-left: 5px;
+}
+
+.chatContents::-webkit-scrollbar {
+  width: 4px;
+}
+
+.chatContents::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.chatContents::-webkit-scrollbar-thumb {
+  background: #999;
+  border-radius: 10px;
+}
+.chatContents::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
 
 @media only screen and (max-width: 900px) {
-    .chatContainer {
-        width: 320px;
-    }
-    .chatContents{
-        width: 320px;
-    }
-    .outerChatContainer{
-        margin-left: 0px;
-    }
+  .chatContainer {
+    width: 320px;
+    max-height: 800px;
+  }
+  .chatContents{
+    width: 320px;
+  }
+  .outerChatContainer{
+    padding-right: 0px;
+    margin-left: 0px;
+    max-height: 850px;
+  }
+}
+
+@media only screen and (max-width: 450px) {
+  .chatContainer {
+    max-height: 420px;
+  }
+  .outerChatContainer{
+    max-height: 450px;
+  }
 }
