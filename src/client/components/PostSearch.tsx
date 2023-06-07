@@ -125,25 +125,27 @@ export function PostSearch({
             placeholder="Post text..." 
             {...register('entry_contains_text')}
           /> 
+          <div className={styles.formSort}>
+            <select form='searchform' {...register('sort_by')}>
+              <option value='date_posted'>Sort By...</option>
+              <option value='date_aired'>Date aired</option>
+              <option value='date_posted'>Date posted</option>
+              <option value='reacts'>Likes</option>
+              <option value='user_name'>User name</option>
+            </select>
+            <select form='searchform' {...register('sort_dir')}>
+              <option value={-1}>Order...</option>
+              <option value={-1}>Asc</option>
+              <option value={1}>Dec</option>
+            </select>
+          </div>
+          <input 
+            id={styles.searchButton}
+            className="defaultButton" 
+            type='submit'
+            value="Search"
+          />
         </div>
-        <div className={styles.formSort}>
-          <select form='searchform' {...register('sort_by')}>
-            <option value='date_posted'>Sort By...</option>
-            <option value='date_aired'>Date aired</option>
-            <option value='date_posted'>Date posted</option>
-            <option value='reacts'>Likes</option>
-            <option value='user_name'>User name</option>
-          </select>
-          <select form='searchform' {...register('sort_dir')}>
-            <option value={-1}>Order...</option>
-            <option value={-1}>Asc</option>
-            <option value={1}>Dec</option>
-          </select>
-        </div>
-        <input 
-          className="defaultButton" 
-          type='submit'
-        />
       </form>
       <div className={styles.searchResults}>
         {loadingPosts
@@ -193,10 +195,10 @@ function PaginatePosts({
   return (<>  
     {postsData.posts.length 
       ? <ReactPaginate
-          nextLabel="next"
-          previousLabel="prev"
+          nextLabel="Next"
+          previousLabel="Prev"
           onPageChange={handlePageClick}
-          pageRangeDisplayed={5}
+          pageRangeDisplayed={3}
           pageCount={postsData.queryPages}
           renderOnZeroPageCount={null}
           className={styles.pageNav}

@@ -25,7 +25,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 300px;
+  width: 280px;
   height: 100%;
   padding-left: 10px;
   padding-right: 10px;
@@ -55,7 +55,7 @@
 .pagelink{
   padding-left: 10px;
   padding-right: 10px;
-  font-size: 20px;
+  font-size: 18px;
   font-family: var(--header-font);
 }
 
@@ -64,6 +64,15 @@
   padding-left: 15px;
   padding-top: 5px;
   padding-bottom: 5px;
+}
+
+.backgroundImg{
+  position: fixed;
+  top: 85px;
+  opacity: 15%;
+  height: 85%;
+  min-height: 400px;
+  max-height: 1200px;
 }
 
 @media only screen and (max-width: 450px) {

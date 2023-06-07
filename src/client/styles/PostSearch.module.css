@@ -22,12 +22,21 @@
   justify-content: center;
 }
 
+.formSearch{
+  display: flex;
+}
+
+#searchButton{
+  margin-left: 10px;
+}
+
 .post{
   width: 600px;
 }
 
 .postList{
   list-style-type: none;
+  padding: 0;
 }
 
 .postTitle{
@@ -96,3 +105,15 @@
   cursor: pointer;
   border: none;
 }
+
+@media only screen and (max-width: 550px) {
+  .post{
+    width: 350px;
+  }
+
+  .pageNav *{
+    margin-left: 3px;
+    margin-right: 3px;
+  }
+}
+

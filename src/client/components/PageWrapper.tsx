@@ -18,6 +18,10 @@ export function PageWrapper({
       <main id={styles.root}>
         <div className={styles.App}>
           <Header/>
+          <img 
+            className={styles.backgroundImg}
+            src='/gt-logo-clear-blur.png'
+          />
           <div className={styles.mainContentContainer}>
             { children }
           </div>

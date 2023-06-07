@@ -206,7 +206,7 @@ export function Logout({
 }: logoutProps): JSX.Element{
   return (
     <div className={styles.logoutContainer}>
-      <span className={styles.loggedInAs}>Logged in as {userId}</span>
+      <span className={styles.loggedInAs}>Welcome, {userId}</span>
       <button 
         className="defaultButton" 
         onClick={(e) => {
