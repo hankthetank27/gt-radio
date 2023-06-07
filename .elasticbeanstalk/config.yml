@@ -1,9 +1,12 @@
 branch-defaults:
+  dev:
+    environment: greattunes-app-dev
+    group_suffix: null
   main:
     environment: greattunes-app-dev
 global:
   application_name: greattunes-app
-  branch: null
+  branch: main
   default_ec2_keyname: null
   default_platform: Docker running on 64bit Amazon Linux 2
   default_region: us-east-1
