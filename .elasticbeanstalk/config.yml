@@ -1,8 +1,8 @@
 branch-defaults:
   main:
-    environment: GT-Radio-dev
+    environment: greattunes-app-dev
 global:
-  application_name: GT-Radio
+  application_name: greattunes-app
   branch: null
   default_ec2_keyname: null
   default_platform: Docker running on 64bit Amazon Linux 2
