@@ -21,6 +21,8 @@ export function StreamPlayer({
   useEffect(() => {
     if (Hls.isSupported()) {
       setHlsAudio(_initPlayer(hlsAudio));
+    } else {
+      audioElement.current?.load();
     };
     
     return () => {
@@ -162,9 +164,7 @@ function AudioPlayer({
         onClick={() => {
           const audioReadyState = audioElement?.current?.readyState;
           if ((audioReadyState && audioReadyState >= 2) || isPlaying){
-            setIsPlaying(p => {
-              return !p
-            });
+            setIsPlaying(p => !p);
           };
         }}
       >
