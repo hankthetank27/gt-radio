@@ -18,6 +18,7 @@ import { registerWebsocketEvents } from "./routes/websockets";
 import rateLimit from 'express-rate-limit';
 import { broadcast } from './@types';
 import { serverEmiters } from '../socketEvents';
+import { chat } from './db/chat';
 
 
 dotenv.config();
@@ -33,7 +34,7 @@ const nextApp = next({
 const handle = nextApp.getRequestHandler();
 
 const apiLimiter = rateLimit({
-	windowMs: 15 * 60 * 1000,
+	windowMs: 2 * 60 * 1000,
 	max: 100, 
 	standardHeaders: true,
 	legacyHeaders: false, 
@@ -59,6 +60,8 @@ async function main(): Promise<void>{
   } else {
     throw new Error('Could not connect to mongoDb: gt_data');
   };
+
+  chat.populateHistory(gtArchiveDB);
 
   app.locals.gtdb = gtArchiveDB;
 
@@ -125,7 +128,12 @@ async function main(): Promise<void>{
   broadcast.main
     .startStream();
 
-  registerWebsocketEvents(io, broadcast, nms);
+  registerWebsocketEvents(
+    io, 
+    broadcast, 
+    nms,
+    gtArchiveDB
+  );
 
   server.listen(PORT, () => {
     console.log(`Server listening on port: ${PORT}.`)

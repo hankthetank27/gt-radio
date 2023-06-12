@@ -5,8 +5,6 @@ import {
   useContext, 
   Dispatch, 
   SetStateAction, 
-  FormEvent,
-  KeyboardEventHandler
 } from "react";
 import { SocketContext } from "../context/socket";
 import styles from '@/styles/Chat.module.css'
@@ -15,6 +13,7 @@ import { chatMessage, chatError } from "../../@types";
 import { Login, Logout } from "./Login";
 import { v4 as uuid } from "uuid";
 import TextareaAutosize from '@mui/base/TextareaAutosize';
+import { BeatLoader } from "react-spinners";
 
 
 export function Chat(): JSX.Element{
@@ -27,12 +26,16 @@ export function Chat(): JSX.Element{
   const [ chatHistory, setChatHistory ] = useState<chatMessage[]>([]);
   const [ chatError, setChatError ] = useState<string | null>(null);
   const [ displayLoginWindow, setDisplayLoginWindow ] = useState<boolean>(false);
+  const [ chatLoading, setChatLoading ] = useState<boolean>(false);
 
 
   useEffect(() => {
+    setChatLoading(true);
     getChatHistory()
       .then(verifySession)
-    
+      .then(() => setChatLoading(false))
+      .catch(() => setChatLoading(false))
+
     socket.on(serverEmiters.CHAT_MESSAGE_ERROR, (error: chatError) => {
       console.log(error)
       setChatHistory(error.messages)
@@ -54,7 +57,7 @@ export function Chat(): JSX.Element{
     if (chatContentsEl.current){
       chatContentsEl.current.scrollTop = chatContentsEl.current.scrollHeight;
     };
-  }, [ chatHistory ]);
+  }, [ chatHistory, chatLoading ]);
 
 
   async function getChatHistory(): Promise<void>{
@@ -65,6 +68,7 @@ export function Chat(): JSX.Element{
       setChatHistory(data);
 
     } catch (err) {
+      setChatError('Could not connect to server :(');
       console.error(`Error fetching chat history: ${err}`)
     };
   };
@@ -106,15 +110,23 @@ export function Chat(): JSX.Element{
           : null
         }
         <div className={styles.chatContents} ref={chatContentsEl}>
-          {chatHistory.map(m => 
-            <Message
-              key={uuid()}
-              message={m.message}
-              senderId={m.userId}
-              color={m.color}
-              userId={userId}
-            />
-          )}
+          {chatLoading
+            ? <div className={styles.beatLoaderContainer}>
+                <BeatLoader
+                  size={13}
+                  color="#000000"
+                />
+              </div>
+            : chatHistory.map(m => 
+                <Message
+                  key={uuid()}
+                  message={m.message}
+                  senderId={m.userId}
+                  color={m.color}
+                  userId={userId}
+                />
+              )
+          }
         </div>
         {userId
           ? <ChatMessageForm

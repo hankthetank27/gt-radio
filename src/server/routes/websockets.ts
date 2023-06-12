@@ -5,12 +5,13 @@ import { broadcast } from "../@types";
 import { serverEmiters, clientEmiters } from "../../socketEvents";
 import jwt from 'jsonwebtoken';
 import NodeMediaServer from 'node-media-server';
-
+import { Db } from 'mongodb';
 
 export function registerWebsocketEvents(
   io: Server,
   broadcast: broadcast,
-  nms: NodeMediaServer
+  nms: NodeMediaServer,
+  db: Db
 ): void{
 
   function emitChatError(recipient: string, errorMsg: string){
@@ -74,7 +75,7 @@ export function registerWebsocketEvents(
           };
 
           socket.broadcast.emit(
-            serverEmiters.RECEIVE_CHAT_MESSAGE, chat.addMessage(message)
+            serverEmiters.RECEIVE_CHAT_MESSAGE, chat.addMessage(message, db)
           );
 
         } catch (err) {

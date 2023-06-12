@@ -1,21 +1,20 @@
+@import url('https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@900&family=Roboto:ital,wght@0,500;1,500&display=swap');
+
 :root {
-    line-height: 1.35;
-    font-weight: 400;
-  
-    font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-    --main-font:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-    --header-font:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-    color: rgba(7, 0, 0, 0.87);
-    --background-color:#f8f8f8;
-    --hover-color:#464a4c;
-    --hover-color-light: #eeefed;
-    background-color: var(--background-color);
-  
-    font-synthesis: none;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    -webkit-text-size-adjust: 100%;
+  --main-font:'Roboto','Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  --header-font:'Roboto','Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  --background-color:#f8f8f8;
+  --hover-color:#464a4c;
+  --hover-color-light: #eeefed;
+  font-family: var(--main-font);
+  color: rgba(7, 0, 0, 0.87);
+  background-color: var(--background-color);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
 }
 
 a{
@@ -98,4 +97,12 @@ button{
 
 input:focus {
   outline:1.3px solid black;
+}
+
+@media screen and (max-width: 700px) { 
+  select,
+  textarea,
+  input {
+    font-size: 16px !important;
+  }
 }
