@@ -53,13 +53,6 @@ export function Chat(): JSX.Element{
   }, [ isConnected ]);
 
 
-  useEffect(() => {
-    if (chatContentsEl.current){
-      chatContentsEl.current.scrollTop = chatContentsEl.current.scrollHeight;
-    };
-  }, [ chatHistory, chatLoading ]);
-
-
   async function getChatHistory(): Promise<void>{
     try {
       const res = await fetch('/api/chatHistory');
@@ -117,15 +110,17 @@ export function Chat(): JSX.Element{
                   color="#000000"
                 />
               </div>
-            : chatHistory.map(m => 
-                <Message
-                  key={uuid()}
-                  message={m.message}
-                  senderId={m.userId}
-                  color={m.color}
-                  userId={userId}
-                />
-              )
+            : <div>
+                {chatHistory.map(m => 
+                  <Message
+                    key={uuid()}
+                    message={m.message}
+                    senderId={m.userId}
+                    color={m.color}
+                    userId={userId}
+                  />
+                )}
+              </div>
           }
         </div>
         {userId

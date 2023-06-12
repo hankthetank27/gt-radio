@@ -47,7 +47,10 @@ export class AudioStream extends EventEmitter{
       
   startStream(): AudioStream{
 
-    if (this.#isLive) return this;
+    if (this.#isLive){
+      console.error('Streaming in progress, cannot start stream in this state');
+      return this;
+    };
 
     this.#isLive = true;
     this._queueAudio();
@@ -58,7 +61,7 @@ export class AudioStream extends EventEmitter{
       ])
       .outputOption([
         '-c:a aac',
-        '-ar 48000',
+        '-ar 44100',
       ])
       .on('error', (err) => {
         this.initiateStreamTeardown();
@@ -77,6 +80,11 @@ export class AudioStream extends EventEmitter{
     if (this.#ffmpegCmd) {
       this.#ffmpegCmd.kill('SIGKILL');
     };
+  };
+
+
+  isLive(): boolean {
+    return this.#isLive;
   };
 
 

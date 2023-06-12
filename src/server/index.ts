@@ -108,16 +108,21 @@ async function main(): Promise<void>{
   // reboot stream on interrupt/ping timeout
   nms.on('postPlay', (id, StreamPath) => {
     if (StreamPath === '/live/main'){
-      broadcast.id = id
+      broadcast.id = id;
+      console.log(`/live/main stream broadcasting @ id ${id}`);
     };
   });
 
   nms.on('doneConnect', (id) => {
-    console.log(id)
+    console.log(`Stream @ id ${id} disconnected`);
+
     if (id === broadcast.id){
+      console.log(`...attempting to reboot stream disconnected @ id ${id}`);
       io.emit(serverEmiters.STREAM_DISCONNECT);
+
       broadcast.main
         .initiateStreamTeardown();
+
       broadcast.main = new AudioStream('main', gtArchiveDB, io)
         .startStream();
     };
