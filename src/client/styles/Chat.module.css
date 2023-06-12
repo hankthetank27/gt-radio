@@ -61,11 +61,12 @@
 }
 
 .chatContents{
+  display: flex;
+  flex-direction: column-reverse;
   background-color: var(--chat-bg-color);
   width: var(--chat-width);
   height: 100%;
   max-height: 1000px;
-  min-height: 320px; 
   overflow-y: scroll;
   scrollbar-width: thin;
   box-shadow: 0 0 10px 10px var(--chat-bg-color);
@@ -156,20 +157,26 @@
     max-height: 800px;
   }
   .chatContents{
-    width: 320px;
+    width: 310px;
   }
   .outerChatContainer{
     padding-right: 0px;
+    margin-top: 0px;
     margin-left: 0px;
     max-height: 850px;
   }
 }
 
 @media only screen and (max-width: 450px) {
-  .chatContainer {
-    max-height: 420px;
-  }
   .outerChatContainer{
-    max-height: 450px;
+    height: 400px;
+  }
+  .chatContainer {
+    min-height: 350px;
+    max-height: 350px;
+  }
+  .msgFormInput{
+    min-width: 0px;
+    width: 200px;
   }
 }
