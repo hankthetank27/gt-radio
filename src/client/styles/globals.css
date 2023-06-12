@@ -1,11 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@900&family=Roboto:wght@500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@900&family=Roboto:ital,wght@0,500;1,500&display=swap');
 
 :root {
-  line-height: 1.35;
-  font-weight: 400;
-
   --main-font:'Roboto','Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-  --header-font:'Libre Franklin','Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  --header-font:'Roboto','Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
   --background-color:#f8f8f8;
   --hover-color:#464a4c;
   --hover-color-light: #eeefed;
@@ -100,4 +97,12 @@ button{
 
 input:focus {
   outline:1.3px solid black;
+}
+
+@media screen and (max-width: 700px) { 
+  select,
+  textarea,
+  input {
+    font-size: 16px !important;
+  }
 }

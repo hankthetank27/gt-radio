@@ -34,7 +34,7 @@ const nextApp = next({
 const handle = nextApp.getRequestHandler();
 
 const apiLimiter = rateLimit({
-	windowMs: 15 * 60 * 1000,
+	windowMs: 2 * 60 * 1000,
 	max: 100, 
 	standardHeaders: true,
 	legacyHeaders: false, 

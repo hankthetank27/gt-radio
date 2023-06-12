@@ -30,9 +30,12 @@ export function Chat(): JSX.Element{
 
 
   useEffect(() => {
+    setChatLoading(true);
     getChatHistory()
       .then(verifySession)
-    
+      .then(() => setChatLoading(false))
+      .catch(() => setChatLoading(false))
+
     socket.on(serverEmiters.CHAT_MESSAGE_ERROR, (error: chatError) => {
       console.log(error)
       setChatHistory(error.messages)
@@ -54,20 +57,17 @@ export function Chat(): JSX.Element{
     if (chatContentsEl.current){
       chatContentsEl.current.scrollTop = chatContentsEl.current.scrollHeight;
     };
-  }, [ chatHistory ]);
+  }, [ chatHistory, chatLoading ]);
 
 
   async function getChatHistory(): Promise<void>{
     try {
-      setChatLoading(true);
       const res = await fetch('/api/chatHistory');
       if (!res.ok) return;
       const data = await res.json();
-      setChatLoading(false);
       setChatHistory(data);
 
     } catch (err) {
-      setChatLoading(false);
       setChatError('Could not connect to server :(');
       console.error(`Error fetching chat history: ${err}`)
     };

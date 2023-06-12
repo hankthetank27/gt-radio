@@ -29,6 +29,12 @@
 .formSearch{
   display: flex;
   justify-content: center;
+  align-items: center;
+}
+
+#searchform{
+  display: flex;
+  justify-content: center;
 }
 
 #searchButton{
@@ -111,10 +117,11 @@
   border: none;
 }
 
-@media only screen and (max-width: 700px) {
-  .formSubcontainer{
+@media only screen and (max-width: 800px) {
+  .formSearch{
     flex-direction: column;
   }
+
 
   .post{
     width: 350px;
@@ -130,8 +137,8 @@
   }
 }
 
-@media only screen and (max-width: 360px) {
-  #searchButton{
-    width: 50px;
+@media only screen and (max-width: 450px){
+  .formSubcontainer{
+    flex-direction: column;
   }
 }
