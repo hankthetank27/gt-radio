@@ -31,7 +31,7 @@
     "m3u8-parser": "^6.0.0",
     "mongodb": "^5.1.0",
     "next": "13.2.4",
-    "node-media-server": "^2.4.9",
+    "node-media-server": "^2.6.2",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-hook-form": "^7.43.9",

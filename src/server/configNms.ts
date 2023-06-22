@@ -1,6 +1,6 @@
 export function configNms(ffmpegPath: string){
   const config = {
-    logType: 2,
+    logType: 3,
     rtmp: {
       port: 1935,
       chunk_size: 60000,
