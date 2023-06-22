@@ -1,6 +1,6 @@
 # Great Tunes Radio
 
-Great Tunes Radio is an archival project, broadcasting music posted in the seminal Great Tunes Facebook group between 2012 - 2023. The broadcast livestreams songs at random from the archive. After playing a song which has not previously been aired, the audio link and additional information about the original post will be available to view and listen back to, incrementally rolling out the archive to the public as the radio plays new music. Users can also join a live chat that accompanies the stream. For more information about the project and to see/listen to it in action, visit [greattunes.net](https://greattunes.net).
+Great Tunes Radio is an archival project, broadcasting music posted in the seminal Great Tunes Facebook group between 2012 - 2023. The broadcast livestreams songs at random from the archive. After playing a song which has not previously been aired, the audio link and additional information about the original post will be available to view and listen back to on the archive page, incrementally rolling out each song and post to the public as the radio plays new music. Users can also join a live chat that accompanies the stream. For more information about the project and to see/listen to it in action, visit [greattunes.net](https://greattunes.net).
 
 ## Requirements
 
