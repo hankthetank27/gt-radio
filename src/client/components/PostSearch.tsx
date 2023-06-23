@@ -1,11 +1,11 @@
-import styles from '@/styles/PostSearch.module.css' 
-import { dbQueryFilters, post } from "@/../@types"
-import { useEffect, useState, Dispatch, SetStateAction } from "react"
-import { useForm } from "react-hook-form"
+import styles from '@/styles/PostSearch.module.css';
+import { dbQueryFilters, post } from "@/../@types";
+import { useEffect, useState, Dispatch, SetStateAction } from "react";
+import { useForm } from "react-hook-form";
 import { v4 as uuid } from "uuid";
 import ReactPaginate from 'react-paginate';
 import { BeatLoader } from 'react-spinners';
-import { Post } from '../components/Post'
+import { Post } from '../components/Post';
 
 
 interface posts {

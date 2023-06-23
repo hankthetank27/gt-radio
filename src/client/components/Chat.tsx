@@ -3,8 +3,8 @@ import {
   useRef, 
   useState, 
   useContext, 
-  Dispatch, 
-  SetStateAction, 
+  memo,
+  useCallback, 
 } from "react";
 import { SocketContext } from "../context/socket";
 import styles from '@/styles/Chat.module.css'
@@ -28,6 +28,13 @@ export function Chat(): JSX.Element{
   const [ displayLoginWindow, setDisplayLoginWindow ] = useState<boolean>(false);
   const [ chatLoading, setChatLoading ] = useState<boolean>(false);
 
+  const handleUpdateChatHistory = useCallback((message: chatMessage) => {
+    setChatHistory(hist => [...hist, message])
+  }, []);
+
+  const handleUpdateChatError = useCallback((err: string | null) => {
+    setChatError(err);
+  }, []);
 
   useEffect(() => {
     setChatLoading(true);
@@ -125,12 +132,10 @@ export function Chat(): JSX.Element{
         </div>
         {userId
           ? <ChatMessageForm
-              key={uuid()}
               userId={userId}
               userColor={userColor}
-              chatHistory={chatHistory}
-              setChatError={setChatError}
-              setChatHistory={setChatHistory}
+              setChatError={handleUpdateChatError}
+              setChatHistory={handleUpdateChatHistory}
             />
           : <div>
               <button
@@ -164,26 +169,24 @@ export function Chat(): JSX.Element{
 interface chatFormProps {
   userId: string
   userColor: string
-  chatHistory: chatMessage[]
-  setChatError: Dispatch<SetStateAction<string | null>>
-  setChatHistory: Dispatch<SetStateAction<chatMessage[]>>
+  setChatError: (err: string | null) => void
+  setChatHistory: (mesage: chatMessage) => void
 };
 
-function ChatMessageForm({
+const ChatMessageForm = memo(({
   userId,
   userColor,
-  chatHistory,
   setChatError,
-  setChatHistory
-}: chatFormProps): JSX.Element{
+  setChatHistory,
+}: chatFormProps): JSX.Element => {
 
   const { socket } = useContext(SocketContext);
-  const [ handleChange, setHandleChange ] = useState<string>('');
+  const [ handleNewMessageChange, setHandleNewMessageChange ] = useState<string>('');
 
-  function handleNewMessage(): void{
+  function submitMessage(): void{
 
-    if (!handleChange) return;
-    if (handleChange.length > 800){
+    if (!handleNewMessageChange) return;
+    if (handleNewMessageChange.length > 800){
       setChatError('Message cannot exceed 800 charaters.');
       return;
     };
@@ -198,15 +201,15 @@ function ChatMessageForm({
 
     const newMessage = {
       userId: userId,
-      message: handleChange,
+      message: handleNewMessageChange,
       timeStamp: new Date(),
       color: userColor
     };
     
-    setChatHistory([...chatHistory, newMessage]);
+    setChatHistory(newMessage);
     socket.emit(clientEmiters.CHAT_MESSAGE, newMessage, sessionJwt);
 
-    setHandleChange('');
+    setHandleNewMessageChange('');
   };
 
   return (
@@ -214,22 +217,22 @@ function ChatMessageForm({
       className={styles.msgForm} 
       onSubmit={e => {
         e.preventDefault();
-        handleNewMessage();
+        submitMessage();
       }}
     >
       <TextareaAutosize
         autoFocus
         className={styles.msgFormInput}
-        value={handleChange} 
+        value={handleNewMessageChange} 
         maxRows={4}
         onKeyDown={e => {
           if (e.key === "Enter" && e.shiftKey === false){
             e.preventDefault();
-            handleNewMessage();
+            submitMessage();
           };
         }}
         onChange={e => {
-          setHandleChange(e.target.value)
+          setHandleNewMessageChange(e.target.value)
         }}
       />
       <button 
@@ -237,14 +240,14 @@ function ChatMessageForm({
         className="defaultButton"
         onSubmit={e => {
           e.preventDefault();
-          handleNewMessage();
+          submitMessage();
         }}
       >
         Send
       </button>
     </form>
   );
-};
+});
 
 
 interface messageProps{

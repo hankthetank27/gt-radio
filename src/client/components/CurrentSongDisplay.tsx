@@ -87,7 +87,7 @@ function DisplaySongInfo({
           {memberPosted}
           {datePosted
             ? <span>
-              {", " + new Date(datePosted)
+              {(memberPosted ? ", " : "") + new Date(datePosted)
                 .toDateString()
                 .split(' ')
                 .slice(1)
