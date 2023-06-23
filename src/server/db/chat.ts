@@ -17,7 +17,7 @@ export const chat: chat = {
       const chatHistory = await db
         .collection('chat_history')
         .find()
-        .sort({ timeStamp: 1 })
+        .sort({ timeStamp: -1 })
         .limit(100)
         .toArray();
 
@@ -29,7 +29,8 @@ export const chat: chat = {
             timeStamp: m.timeStamp,
             color: m.color
           }
-        });
+        })
+        .reverse();
       };
     } catch(err){
       console.error(`Could not retrive chat history: ${err}`);
