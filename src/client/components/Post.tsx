@@ -29,7 +29,7 @@ export function Post({
           {post.user_name}
           {post.date_posted
             ? <span>
-              {", " + new Date(post.date_posted)
+              {(post.user_name ? ", " : "") + new Date(post.date_posted)
                 .toDateString()
                 .split(' ')
                 .slice(1)
