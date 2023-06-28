@@ -22,15 +22,16 @@ export const chat: chat = {
         .toArray();
 
       if (chatHistory.length){
-        chat.messages = chatHistory.map(m => {
-          return {
-            userId: m.userId,
-            message: m.message,
-            timeStamp: m.timeStamp,
-            color: m.color
-          }
-        })
-        .reverse();
+        chat.messages = chatHistory
+          .map(m => {
+            return {
+              userId: m.userId,
+              message: m.message,
+              timeStamp: m.timeStamp,
+              color: m.color
+            }
+          })
+          .reverse();
       };
     } catch(err){
       console.error(`Could not retrive chat history: ${err}`);

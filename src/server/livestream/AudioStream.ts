@@ -362,7 +362,12 @@ export class AudioStream extends EventEmitter{
       const fileStr = await fs.readFile(m3u8FilePath, {
         encoding: 'utf-8'
       });
-      const segments = this._parseM3u8(fileStr).segments;
+
+      const { segments, targetDuration } = this._parseM3u8(fileStr);
+
+      if (targetDuration > 3){
+        console.log(`index.m3u8 target duration exceeded nms config at: ${targetDuration}s`);
+      };
 
       if (!segments){
         return [];
@@ -379,8 +384,9 @@ export class AudioStream extends EventEmitter{
 
   private _parseM3u8(file: string){
     const parser = new m3u8Parser();
-    parser.push(file);
-    parser.end();
+    parser
+      .push(file)
+      .end();
     return parser.manifest;
   };
 };
