@@ -3,7 +3,7 @@ export function configNms(ffmpegPath: string){
     logType: 3,
     rtmp: {
       port: 1935,
-      chunk_size: 60000,
+      chunk_size: 30,
       gop_cache: false,
       ping: 60,
       ping_timeout: 120
@@ -18,8 +18,6 @@ export function configNms(ffmpegPath: string){
       tasks: [
         {
           app: 'live',
-          vc: "copy",
-          vcParam: [],
           ac: "aac",
           acParam: ['-ab', '128k', '-ac', '2', '-ar', '44100'],
           rtmp:true,
