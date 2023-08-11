@@ -106,11 +106,26 @@ async function main(): Promise<void>{
   const nms = new NodeMediaServer(configNms(ffmpegPath));
   
   // reboot stream on interrupt/ping timeout
-  nms.on('postPlay', (id, StreamPath) => {
-    if (StreamPath === '/live/main'){
+  nms.on('postPlay', (id, streamPath) => {
+    if (streamPath === '/live/main'){
       broadcast.id = id;
       console.log(`/live/main stream broadcasting @ id ${id}`);
     };
+
+    if (streamPath === '/live/main'){
+      setTimeout(() => {
+        io.emit(serverEmiters.STREAM_REBOOT);
+      }, 12000);
+    };
+
+    /*
+     * Display transSessions debug and ffmpeg args
+     *
+      //@ts-ignore
+      nms.nts.transSessions.forEach((s) => {
+        console.log(s);
+      })
+    */
   });
 
   nms.on('doneConnect', (id) => {
@@ -136,7 +151,6 @@ async function main(): Promise<void>{
   registerWebsocketEvents(
     io, 
     broadcast, 
-    nms,
     gtArchiveDB
   );
 
