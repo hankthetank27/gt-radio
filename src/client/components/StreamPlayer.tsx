@@ -51,6 +51,7 @@ export function StreamPlayer({
 
     if (audioElement.current){
       newHls.attachMedia(audioElement.current);
+      console.log(audioElement.current);
     };
 
     newHls.on(Hls.Events.MEDIA_ATTACHED, () => {
@@ -162,6 +163,7 @@ function AudioPlayer({
       <button
         className={styles.playStopButton}
         onClick={() => {
+          console.log(audioElement.current);
           const audioReadyState = audioElement?.current?.readyState;
           if ((audioReadyState && audioReadyState >= 2) || isPlaying){
             setIsPlaying(p => !p);

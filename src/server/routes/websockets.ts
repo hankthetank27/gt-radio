@@ -4,28 +4,24 @@ import { chatMessage } from "../../@types";
 import { broadcast } from "../@types";
 import { serverEmiters, clientEmiters } from "../../socketEvents";
 import jwt from 'jsonwebtoken';
-import NodeMediaServer from 'node-media-server';
 import { Db } from 'mongodb';
+
 
 export function registerWebsocketEvents(
   io: Server,
   broadcast: broadcast,
-  nms: NodeMediaServer,
   db: Db
 ): void{
 
-  function emitChatError(recipient: string, errorMsg: string){
+  function emitChatError(
+    recipient: string,
+    errorMsg: string
+  ): void{
     io.to(recipient).emit(serverEmiters.CHAT_MESSAGE_ERROR, {
       errorMsg: errorMsg,
       messages: chat.messages
     });
   };
-
-  nms.on('postPublish', (_, streamPath) => {
-    if (streamPath === '/live2/main'){
-      io.emit(serverEmiters.STREAM_REBOOT)
-    };
-  });
 
   io.on('connection', (socket) => {
     
@@ -47,6 +43,7 @@ export function registerWebsocketEvents(
     socket.on(
       clientEmiters.CHAT_MESSAGE, 
       (message: chatMessage, token: string) => {
+
         try {
           if (message.message.length > 800) {
             return emitChatError(

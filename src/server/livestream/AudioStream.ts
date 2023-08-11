@@ -356,7 +356,7 @@ export class AudioStream extends EventEmitter{
 
   private async _getM3u8Segments(
     mediaPath: string
-  ): Promise<string[] | null>{
+  ): Promise<string[] | void>{
     try {
       const m3u8FilePath = `${mediaPath}/index.m3u8`;
       const fileStr = await fs.readFile(m3u8FilePath, {
@@ -366,7 +366,13 @@ export class AudioStream extends EventEmitter{
       const { segments, targetDuration } = this._parseM3u8(fileStr);
 
       if (targetDuration > 3){
-        console.log(`index.m3u8 target duration exceeded nms config at: ${targetDuration}s`);
+        console.warn(
+          `\nindex.m3u8 target duration exceeded nms config at: ${targetDuration}s\n`
+        )
+
+        if (targetDuration > 20){
+          this.initiateStreamTeardown();
+        }
       };
 
       if (!segments){
@@ -377,16 +383,16 @@ export class AudioStream extends EventEmitter{
         (s: Record<string, number | string>) => s.uri
       );
     } catch (err) {
-      return null; 
+      console.warn(`Error getting m3u8 segments: ${err}`);
+      return; 
     };
   };
 
 
   private _parseM3u8(file: string){
     const parser = new m3u8Parser();
-    parser
-      .push(file)
-      .end();
+    parser.push(file)
+    parser.end();
     return parser.manifest;
   };
 };

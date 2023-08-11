@@ -26,7 +26,7 @@ export default function Home(): JSX.Element{
       setIsConnected(false);
     });
     socket.on(serverEmiters.STREAM_DISCONNECT, hanldeStreamError);
-    socket.on(serverEmiters.STREAM_REBOOT, handleStreamReboot);
+    socket.on(serverEmiters.STREAM_REBOOT, getLiveStream);
     return () => {
       socket.off(serverEmiters.CONNECT);
       socket.off(serverEmiters.DISCONNECT);
@@ -48,12 +48,6 @@ export default function Home(): JSX.Element{
   };
 
 
-  function handleStreamReboot():void{
-    setStreamError(false);
-    getLiveStream();
-  };
-
-
   async function getLiveStream(): Promise<void>{
     try {
       const res = await fetch(streamsListAPI);
@@ -64,6 +58,7 @@ export default function Home(): JSX.Element{
           .map(stream => [String(NMS_PORT), stream]);
         setLiveStreams(hlsAPIs);
         setStreamLoaded(true);
+        setStreamError(false);
       };
     } catch (err) {
       hanldeStreamError();
