@@ -1,6 +1,7 @@
 import { Header } from '@/components/Header'
 import styles from '@/styles/PageWrapper.module.css'
 import Head from 'next/head'
+//import Image from 'next/image'
 
 interface props {
   children: JSX.Element | JSX.Element[];
@@ -21,6 +22,7 @@ export function PageWrapper({
           <img 
             className={styles.backgroundImg}
             src='/gt-logo-clear-blur.png'
+            alt='Background logo'
           />
           <div className={styles.mainContentContainer}>
             { children }
