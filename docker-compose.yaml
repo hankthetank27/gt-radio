@@ -15,5 +15,6 @@ services:
       - "443:443"
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
+      - /etc/pki/tls/certs:/etc/pki/tls/certs
     depends_on:
       - app
