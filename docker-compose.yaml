@@ -1,9 +1,19 @@
 version: '3.8'
+
 services:
   app:
     image: hjackson277/gt-radio
     ports:
       - "3000:3000"
       - "8000:8000"
-      - "1935:1935"
     env_file: .env
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - app
