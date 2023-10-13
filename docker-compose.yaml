@@ -3,9 +3,6 @@ version: '3.8'
 services:
   app:
     image: hjackson277/gt-radio
-    ports:
-      - "3000:3000"
-      - "8000:8000"
     env_file: .env
 
   nginx:
@@ -13,6 +10,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
+      - "8000:8000"
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
       - /etc/pki/tls/certs:/etc/pki/tls/certs
