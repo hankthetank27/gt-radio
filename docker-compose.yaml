@@ -13,6 +13,6 @@ services:
       - "8000:8000"
     volumes:
       - ./nginx/conf.d:/etc/nginx/conf.d
-      - /etc/pki/tls/certs:/etc/pki/tls/certs
+      - /etc/letsencrypt/live/ebcert/fullchain:/etc/letsencrypt/live/ebcert/fullchain
     depends_on:
       - app
