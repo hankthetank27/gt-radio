@@ -4,15 +4,36 @@ services:
   app:
     image: hjackson277/gt-radio
     env_file: .env
+  #
+  # app:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile-aws
+  #   image: nodejs
+  #   container_name: app
 
   nginx:
     image: nginx:latest
+    restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
       - "8000:8000"
     volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
-      - /etc/letsencrypt/live/ebcert/fullchain:/etc/letsencrypt/live/ebcert/fullchain
+      - ./nginx/conf.d/:/etc/nginx/conf.d/:ro
+      - /etc/letsencrypt/:/etc/letsencrypt/
     depends_on:
       - app
+
+  # certbot:
+  #   container_name: certbot
+  #   image: certbot/certbot:latest
+  #   depends_on:
+  #     - nginx
+  #   command: >-
+  #            certonly --reinstall --webroot --webroot-path=/var/www/certbot
+  #            --email ${EMAIL} --agree-tos --no-eff-email
+  #            -d ${DOMAIN_LINK}
+  #   volumes:
+  #     - ./etc/letsencrypt:/etc/letsencrypt
+  #     - ./certbot/data:/var/www/certbot
