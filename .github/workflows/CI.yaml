@@ -25,6 +25,6 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v4
         with:
-          file: Dockerfile-aws
+          file: Dockerfile
           push: true
           tags: hjackson277/gt-radio:latest

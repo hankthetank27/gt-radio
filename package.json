@@ -11,7 +11,7 @@
     "heap-prof": "node --stack-trace-limit=50 --heap-prof --trace-warnings -r ts-node/register ./src/server/index.ts"
   },
   "dependencies": {
-    "@distube/ytdl-core": "^4.11.10",
+    "@distube/ytdl-core": "^4.13.5",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
@@ -41,8 +41,7 @@
     "socket.io-client": "^4.6.1",
     "ts-node": "^10.9.1",
     "typescript": "5.0.2",
-    "uuid": "^9.0.0",
-    "ytdl-core": "^4.11.5"
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@flydotio/dockerfile": "^0.5.7",
