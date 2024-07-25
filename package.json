@@ -41,7 +41,8 @@
     "socket.io-client": "^4.6.1",
     "ts-node": "^10.9.1",
     "typescript": "5.0.2",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "ytdl-core": "^4.11.5"
   },
   "devDependencies": {
     "@flydotio/dockerfile": "^0.5.7",
