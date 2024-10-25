@@ -11,7 +11,7 @@
     "heap-prof": "node --stack-trace-limit=50 --heap-prof --trace-warnings -r ts-node/register ./src/server/index.ts"
   },
   "dependencies": {
-    "@distube/ytdl-core": "^4.14.3",
+    "@distube/ytdl-core": "^4.14.4",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
