@@ -1,24 +1,25 @@
 import fs from 'fs/promises';
 import path from 'path';
-import ytdl from '@distube/ytdl-core';
 import ffmpeg from 'fluent-ffmpeg';
-import { PassThrough } from "node:stream";
-import { songInfo, streamProcessTracker } from '../../@types';
-import { Db, Document, ObjectId } from 'mongodb';
+import { PassThrough, Readable } from "node:stream";
+import { streamProcessTracker } from '../../@types';
+import { Db, ObjectId } from 'mongodb';
 import { EventEmitter } from 'stream';
 import { serverEmiters } from '../../socketEvents';
 import { Server } from 'socket.io';
+import { SongDocument } from '../../@types';
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 // @ts-ignore
 import { Parser as m3u8Parser } from 'm3u8-parser';
-
 
 const TEARDOWN_STREAM = 'teardownStream';
 
 export class AudioStream extends EventEmitter{
   #stream: PassThrough
   #isLive: boolean
-  #currentlyPlaying: songInfo | null;
+  #currentlyPlaying: SongDocument | null;
   #ffmpegCmd?: ffmpeg.FfmpegCommand;
+  s3Client: S3Client;
   readonly db: Db
   readonly streamName: string;
   readonly hlsMediaPath: string;
@@ -35,11 +36,12 @@ export class AudioStream extends EventEmitter{
     this.#currentlyPlaying = null;
     this.db = db;
     this.streamName = streamName;
+    this.s3Client = new S3Client({ region: "us-east-1", });
     this.hlsMediaPath = path.resolve(
       __dirname, `../../../media/live/${streamName}/`
     );
 
-    this.on(serverEmiters.CURRENTLY_PLAYING, (songData: songInfo) => {
+    this.on(serverEmiters.CURRENTLY_PLAYING, (songData: SongDocument) => {
       io.emit(serverEmiters.CURRENTLY_PLAYING, songData);
     });
   };
@@ -88,7 +90,7 @@ export class AudioStream extends EventEmitter{
   };
 
 
-  getCurrentlyPlaying(): songInfo | null{
+  getCurrentlyPlaying(): SongDocument | null{
     return this.#currentlyPlaying;
   };
 
@@ -107,13 +109,12 @@ export class AudioStream extends EventEmitter{
     while (this.#isLive){
       try {
         const song = await this._selectRandomSong();
-        const songInfo = await this._getSongInfo(song);
 
-        if (!songInfo || songInfo.length > 400000000) continue;
+        if (!song) continue;
 
-        await this._pushSong(songInfo);
+        await this._pushSong(song);
 
-        if (!songInfo.hasBeenPlayed) this._flagAsPlayed(songInfo);
+        if (!song.has_been_played) this._flagAsPlayed(song);
 
       } catch (err){
         console.error(`Error queuing audio: ${err}`);
@@ -126,10 +127,14 @@ export class AudioStream extends EventEmitter{
 
 
   private _pushSong(
-    songInfo: songInfo
+    songInfo: SongDocument
   ): Promise<void>{
 
     return new Promise<void>(async (resolve, reject) => {
+
+      if (!songInfo.s3_file_data) {
+        return reject('Song contains no audio data');
+      }
 
       this.on(TEARDOWN_STREAM, 
         () => rejectQueue('Stream teardown initiated')
@@ -137,15 +142,18 @@ export class AudioStream extends EventEmitter{
 
       // use extra passthorough to manually destroy stream, preventing 
       // memory leak caused by end option in call to pipe.
-      const passToDestination = this._createStream(songInfo.length);
+      const passToDestination = this._createStream(songInfo.s3_file_data.length);
+
+      const command = new GetObjectCommand({
+        Bucket: songInfo.s3_file_data.bucket,
+        Key: songInfo.s3_file_data.key,
+      });
 
       const tracker: streamProcessTracker = {
         startTime: Date.now(),
         downloaded: 0,
         processed: 0,
         passThroughFlowing: false,
-        ytdlDone: false,
-        transcodeAudioDone: false,
         passToDestinationDone: false
       };
       
@@ -153,8 +161,6 @@ export class AudioStream extends EventEmitter{
         this.removeAllListeners(TEARDOWN_STREAM);
         passToDestination.unpipe();
         passToDestination.destroy();
-        ytAudio.destroy();
-        transcodeAudio.kill('SIGKILL');
       };
 
 
@@ -177,48 +183,13 @@ export class AudioStream extends EventEmitter{
         reject(err);
       };
 
+      console.log(`Download started... ${songInfo.track_title}`);
 
-      function checkProcessingComplete(
-        tracker: streamProcessTracker
-      ): boolean{
-
-        const { 
-          ytdlDone, 
-          transcodeAudioDone, 
-          passToDestinationDone
-        } = tracker;
-
-        return (
-          ytdlDone &&
-          transcodeAudioDone &&
-          passToDestinationDone
-        );
-      };
-
-      console.log(`Download started... ${songInfo.title}`);
+      const song = await this.s3Client.send(command);
+      if (!song.Body) {
+        return rejectQueue("File has no body");
+      }
       
-      const ytAudio = ytdl(songInfo.src, {
-          filter: format => format.itag === songInfo.itag
-        })
-        .on('end', () => {
-          tracker.ytdlDone = true;
-          console.log('Downloading complete...')
-        })
-        .on('error', (err) => {
-          rejectQueue(`Error in queueSong -> ytAudio: ${err}`);
-        });
-
-      const transcodeAudio = ffmpeg(ytAudio)
-        .audioBitrate(128)
-        .format('mp3')
-        .on('end', () => {
-          tracker.transcodeAudioDone = true;
-          console.log('Transcoding complete...')
-        })
-        .on('error', (err) => {
-          rejectQueue(`Error in queueSong -> transcodeAudio: ${err}`);
-        });
-
       passToDestination
         .on('data', async () => {
           if (!tracker.passThroughFlowing){
@@ -227,20 +198,15 @@ export class AudioStream extends EventEmitter{
           };
         })
         .on('end', () => {
-          tracker.passToDestinationDone = true;
-          if (checkProcessingComplete(tracker)){
             resolveQueue(tracker);
-          } else {
-            rejectQueue(
-              `Error in queueSong: passToDestination completed before audio transcoding finsished.`
-            );
-          };
         })
         .on('error', (err) => {
           rejectQueue(`Error in queueSong -> passToDestination: ${err}`);
         });
 
-      transcodeAudio
+      const webStream = song.Body.transformToWebStream();
+      const songStream = Readable.fromWeb(webStream as import("stream/web").ReadableStream<any>);
+      songStream
         .pipe(passToDestination)
         .pipe(this.#stream, {
           end: false
@@ -249,46 +215,10 @@ export class AudioStream extends EventEmitter{
   };
 
 
-  private async _getSongInfo(
-    src: Document | null
-  ): Promise<songInfo | null>{
-  
-    if ( 
-      !src ||
-      !src.link ||
-      ytdl.validateID(src.link)
-    ) return null;
-  
-    const {
-      videoDetails, 
-      formats 
-    } = await ytdl.getInfo(src.link);
-        
-    const format = ytdl.chooseFormat(formats, {
-      filter: 'audioonly',
-      quality: 'highestaudio'
-    });
-
-    return {
-      post_id: src._id,
-      title: videoDetails.title,
-      memberPosted: src?.user_name,
-      datePosted: src?.date_posted,
-      postText: src?.text,
-      src: videoDetails.video_url || src.link,
-      duration: videoDetails.lengthSeconds,
-      channel: videoDetails.ownerProfileUrl,
-      itag: format.itag,
-      length: Number(format.contentLength),
-      hasBeenPlayed: src?.hasBeenPlayed
-    };
-  };
-
-
-  private async _selectRandomSong(): Promise<Document | null>{
+  private async _selectRandomSong(): Promise<SongDocument | null>{
     const posts = this.db.collection('gt_posts');
     const post = await posts.aggregate([
-        { $match: { link_source: 'youtube'}},
+        { $match: { s3_file_data: { $exists: true } }},
         { $sample: { size: 1 }}
       ])
       .toArray();
@@ -297,17 +227,17 @@ export class AudioStream extends EventEmitter{
       return null;
     };
 
-    return post[0];
+    return post[0] as SongDocument;
   };
 
 
   private _flagAsPlayed(
-    songInfo: songInfo
+    songInfo: SongDocument
   ): void{
     const posts = this.db.collection('gt_posts');
     posts.findOneAndUpdate(
       {
-        _id: new ObjectId(songInfo.post_id), 
+        _id: new ObjectId(songInfo._id), 
       },
       {
         $set: {
@@ -320,7 +250,7 @@ export class AudioStream extends EventEmitter{
 
 
   private async _queueDisplaySong(
-    songInfo: songInfo
+    songInfo: SongDocument
   ): Promise<void>{
     
     const segments = await this._getM3u8Segments(this.hlsMediaPath);

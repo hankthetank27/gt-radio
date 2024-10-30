@@ -2,15 +2,15 @@ import Hls from "hls.js";
 import { useState, useEffect, useContext, Dispatch, SetStateAction } from "react";
 import { SocketContext } from "../context/socket";
 import { v4 as uuid } from 'uuid'
-import { songInfo } from "../../@types";
+import { SongDocument } from "../../@types";
 import styles from '@/styles/CurrentSongDisplay.module.css'
 import { serverEmiters, clientEmiters } from "../../socketEvents";
 
 
 interface currentSongDisplayProps{
   hlsAudio: Hls | null
-  currentlyPlaying: songInfo | null
-  setCurrentlyPlaying: Dispatch<SetStateAction<songInfo | null>>
+  currentlyPlaying: SongDocument | null
+  setCurrentlyPlaying: Dispatch<SetStateAction<SongDocument | null>>
 };
 
 export function CurrentSongDisplay({
@@ -67,7 +67,7 @@ export function CurrentSongDisplay({
 
 
 interface displaySongInfoProps{
-  currentlyPlaying: songInfo
+  currentlyPlaying: SongDocument
 };
 
 function DisplaySongInfo({
@@ -75,19 +75,19 @@ function DisplaySongInfo({
 }: displaySongInfoProps): JSX.Element{
 
   const {
-    memberPosted,
-    datePosted,
-    postText,
+    user_name,
+    date_posted,
+    text,
   } = currentlyPlaying
 
   return (
     <div className={styles.currentlyPlaying}>
       <ul key={uuid()} className={ styles.currentlyPlayingList }>
         <li className={ styles.listItem }>
-          {memberPosted}
-          {datePosted
+          {user_name}
+          {date_posted
             ? <span>
-              {(memberPosted ? ", " : "") + new Date(datePosted)
+              {(user_name ? ", " : "") + new Date(date_posted)
                 .toDateString()
                 .split(' ')
                 .slice(1)
@@ -98,8 +98,8 @@ function DisplaySongInfo({
           }
         </li>
         <li className={ styles.listItem }>
-          {postText
-            ? <span>"{postText}"</span>
+          {text
+            ? <span>"{text}"</span>
             : null
           }
         </li>

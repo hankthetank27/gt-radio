@@ -1,4 +1,3 @@
-
 export interface songInfo{
   post_id: string;
   title: string;
@@ -18,8 +17,6 @@ export interface streamProcessTracker {
   downloaded: number;
   processed: number;
   passThroughFlowing: boolean;
-  ytdlDone: boolean;
-  transcodeAudioDone: boolean;
   passToDestinationDone: boolean;
 };
 
@@ -48,11 +45,26 @@ export interface dbQueryFilters {
 
 export interface post{
   user_name?: string; 
-  track_title?: string;
+  track_title?: string; // We need to update this on DB documents with s3_file_data from ytdl 'getSongInfo'
   text?: string;
   link?: string;
   link_source?: string;
-  date_posted: string;
+  date_posted: Date;
   reacts?: string;
   has_been_played?: boolean;
+  date_aired?: Date;
+};
+
+export interface SongDocument extends post {
+  _id: any;
+  s3_file_data?: {
+    bucket: string;
+    key: string;
+    etag: string;
+    location: string;
+    duration: string;
+    channel: string;
+    itag: number;
+    length: number;
+  }
 };

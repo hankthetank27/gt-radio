@@ -8,10 +8,14 @@
     "start": "NODE_ENV=production ts-node ./src/server/index.ts",
     "test-start": "ts-node ./src/server/index.ts",
     "trace-dev": "NODE_OPTIONS='--trace-warnings --stack-trace-limit=50' nodemon src/server/index.ts -w src/server",
-    "heap-prof": "node --stack-trace-limit=50 --heap-prof --trace-warnings -r ts-node/register ./src/server/index.ts"
+    "heap-prof": "node --stack-trace-limit=50 --heap-prof --trace-warnings -r ts-node/register ./src/server/index.ts",
+    "download-audio": "NODE_ENV=production npx ts-node ./src/server/livestream/DownLoadScripts.ts",
+    "revalidate": "NODE_ENV=production npx ts-node ./src/server/livestream/RevalidateTags.ts"
   },
   "dependencies": {
-    "@distube/ytdl-core": "^4.14.3",
+    "@aws-sdk/client-s3": "^3.682.0",
+    "@aws-sdk/lib-storage": "^3.679.0",
+    "@distube/ytdl-core": "^4.15.1",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
