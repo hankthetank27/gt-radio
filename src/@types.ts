@@ -17,8 +17,6 @@ export interface streamProcessTracker {
   downloaded: number;
   processed: number;
   passThroughFlowing: boolean;
-  ytdlDone: boolean;
-  transcodeAudioDone: boolean;
   passToDestinationDone: boolean;
 };
 

@@ -154,8 +154,6 @@ export class AudioStream extends EventEmitter{
         downloaded: 0,
         processed: 0,
         passThroughFlowing: false,
-        ytdlDone: false,
-        transcodeAudioDone: false,
         passToDestinationDone: false
       };
       
@@ -185,24 +183,6 @@ export class AudioStream extends EventEmitter{
         reject(err);
       };
 
-
-      function checkProcessingComplete(
-        tracker: streamProcessTracker
-      ): boolean{
-
-        const { 
-          ytdlDone, 
-          transcodeAudioDone, 
-          passToDestinationDone
-        } = tracker;
-
-        return (
-          ytdlDone &&
-          transcodeAudioDone &&
-          passToDestinationDone
-        );
-      };
-
       console.log(`Download started... ${songInfo.track_title}`);
 
       const song = await this.s3Client.send(command);
@@ -218,14 +198,7 @@ export class AudioStream extends EventEmitter{
           };
         })
         .on('end', () => {
-          tracker.passToDestinationDone = true;
-          if (checkProcessingComplete(tracker)){
             resolveQueue(tracker);
-          } else {
-            rejectQueue(
-              `Error in queueSong: passToDestination completed before audio transcoding finsished.`
-            );
-          };
         })
         .on('error', (err) => {
           rejectQueue(`Error in queueSong -> passToDestination: ${err}`);

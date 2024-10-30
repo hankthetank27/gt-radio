@@ -2,7 +2,7 @@ import Hls from "hls.js";
 import { useEffect, useState, createRef, RefObject } from "react";
 import { v4 as uuid } from 'uuid'
 import { CurrentSongDisplay } from "./CurrentSongDisplay";
-import { songInfo } from "../../@types";
+import { SongDocument } from "../../@types";
 import styles from '@/styles/StreamPlayer.module.css';
 
 
@@ -16,7 +16,7 @@ export function StreamPlayer({
 
   const audioElement = createRef<HTMLAudioElement>();
   const [ hlsAudio, setHlsAudio ] = useState<Hls | null>(null);
-  const [ currentlyPlaying, setCurrentlyPlaying ] = useState<songInfo | null>(null);
+  const [ currentlyPlaying, setCurrentlyPlaying ] = useState<SongDocument | null>(null);
 
   useEffect(() => {
     if (Hls.isSupported()) {
@@ -104,9 +104,9 @@ export function StreamPlayer({
         <h4 className={styles.songTitle}>
           <a
             target="_blank"
-            href={currentlyPlaying?.src}
+            href={currentlyPlaying?.link}
           >
-            {currentlyPlaying?.title}
+            {currentlyPlaying?.track_title}
           </a>
         </h4>
       </div>

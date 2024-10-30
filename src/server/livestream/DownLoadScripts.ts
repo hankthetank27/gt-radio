@@ -31,7 +31,6 @@ async function downloadSongs(): Promise<"throttled" | "incomplete" | "done"> {
     const cursor = posts.find({
         link_source: "youtube"
       });
-      // .addCursorFlag('noCursorTimeout',true);
 
     let count = 0;
     let hasPropertyCount = 0;
