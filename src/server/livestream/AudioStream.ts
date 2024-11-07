@@ -12,7 +12,7 @@ import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 // @ts-ignore
 import { Parser as m3u8Parser } from 'm3u8-parser';
 
-const TEARDOWN_STREAM = 'teardownStream';
+export const TEARDOWN_STREAM = 'teardownStream';
 
 export class AudioStream extends EventEmitter{
   #stream: PassThrough
@@ -28,7 +28,7 @@ export class AudioStream extends EventEmitter{
     streamName: string,
     db: Db,
     io: Server
-  ){
+  ) {
     super();
     // size of mp3 chunk
     this.#stream = this._createStream(400);
@@ -48,7 +48,6 @@ export class AudioStream extends EventEmitter{
       
       
   startStream(): AudioStream{
-
     if (this.#isLive){
       console.error('Streaming in progress, cannot start stream in this state');
       return this;
@@ -57,19 +56,32 @@ export class AudioStream extends EventEmitter{
     this.#isLive = true;
     this._queueAudio();
 
-    this.#ffmpegCmd = ffmpeg(this.#stream)
+    ffmpeg(this.#stream)
       .inputOptions([
         '-re'
       ])
-      .outputOption([
+      .addOptions([
         '-c:a aac',
+        '-b:a 128k',
         '-ar 44100',
+        '-map 0:a',
+        '-f hls',
+        '-hls_time 3',
+        '-hls_list_size 4',
+        '-hls_flags delete_segments',
       ])
-      .on('error', (err) => {
+      .output(path.join(this.hlsMediaPath, "index.m3u8"))
+      .on('error', (err, stdout, stderr) => {
+        console.log('Error: ' + err.message);
+        console.log('ffmpeg output:\n' + stdout);
+        console.log('ffmpeg stderr:\n' + stderr);
         this.initiateStreamTeardown();
-        console.error(`Error transcoding stream audio: ${err.message}`);
       })
-      .save(`rtmp://${process.env.DOCKER_HOST || 'localhost'}/live/${this.streamName}.flv`);
+      .on('end', () => {
+        console.log("Streaming complete");
+        this.initiateStreamTeardown();
+      })
+      .run();
 
     return this;
   };
@@ -77,11 +89,11 @@ export class AudioStream extends EventEmitter{
 
   initiateStreamTeardown(): void{
     this.#isLive = false;
-    this.emit(TEARDOWN_STREAM);
     this.#stream.destroy();
     if (this.#ffmpegCmd) {
       this.#ffmpegCmd.kill('SIGKILL');
     };
+    this.emit(TEARDOWN_STREAM);
   };
 
 
