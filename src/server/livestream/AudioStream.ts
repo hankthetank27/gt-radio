@@ -105,7 +105,6 @@ export class AudioStream extends EventEmitter{
 
 
   private async _queueAudio(): Promise<void>{
-
     while (this.#isLive){
       try {
         const song = await this._selectRandomSong();
@@ -120,7 +119,6 @@ export class AudioStream extends EventEmitter{
         console.error(`Error queuing audio: ${err}`);
       };
     };
-
     this.#currentlyPlaying = null;
     this.emit(serverEmiters.CURRENTLY_PLAYING, null);
   };
@@ -198,14 +196,17 @@ export class AudioStream extends EventEmitter{
           };
         })
         .on('end', () => {
-            resolveQueue(tracker);
+          resolveQueue(tracker);
         })
         .on('error', (err) => {
           rejectQueue(`Error in queueSong -> passToDestination: ${err}`);
         });
 
       const webStream = song.Body.transformToWebStream();
-      const songStream = Readable.fromWeb(webStream as import("stream/web").ReadableStream<any>);
+      const songStream = Readable.fromWeb(
+        webStream as import("stream/web").ReadableStream<any>
+      );
+
       songStream
         .pipe(passToDestination)
         .pipe(this.#stream, {
@@ -248,7 +249,6 @@ export class AudioStream extends EventEmitter{
     );
   };
 
-
   private async _queueDisplaySong(
     songInfo: SongDocument
   ): Promise<void>{
@@ -265,11 +265,9 @@ export class AudioStream extends EventEmitter{
     const hlsWatcher = fs.watch(this.hlsMediaPath);
 
     for await (const { eventType, filename } of hlsWatcher){
-
-      if (eventType === 'change' && filename.split('.')[1] === 'ts'){
-
+      const filenameArr = filename.split('.');
+      if (eventType === 'change' && filenameArr[filenameArr.length - 1] === 'ts'){
         const m3u8Manifest = await this._getM3u8Segments(this.hlsMediaPath);
-
         if (
           !m3u8Manifest ||
           m3u8Manifest[0] === leastRecentSegment ||

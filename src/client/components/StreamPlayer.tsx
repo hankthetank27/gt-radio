@@ -163,10 +163,16 @@ function AudioPlayer({
       <button
         className={styles.playStopButton}
         onClick={() => {
-          console.log(audioElement.current);
           const audioReadyState = audioElement?.current?.readyState;
           if ((audioReadyState && audioReadyState >= 2) || isPlaying){
             setIsPlaying(p => !p);
+          } else {
+            console.error("Could not playback audio!");
+            console.error("isPlaying: ", isPlaying);
+            console.error("audioElement: ", audioElement);
+            console.error("audioElement.current: ", audioElement.current);
+            console.error("audioReadyState: ", audioReadyState);
+            console.error("hlsAudio: ", hlsAudio);
           };
         }}
       >

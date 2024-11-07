@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { initDB } from "../db/initDB";
+import { initDB } from "../src/server/db/initDB";
 
 dotenv.config();
 

@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
-import { initDB } from "../db/initDB";
+import { initDB } from "../src/server/db/initDB";
 import ytdl from '@distube/ytdl-core';
-import { songInfo } from '../../@types';
+import { songInfo } from '../src/@types';
 import { Document } from 'mongodb';
 import { PassThrough } from "stream";
 import ffmpeg from 'fluent-ffmpeg';
