@@ -42,7 +42,6 @@ export function registerWebsocketEvents(
     socket.on(
       clientEmiters.CHAT_MESSAGE, 
       (message: chatMessage, token: string) => {
-
         try {
           if (message.message.length > 800) {
             return emitChatError(

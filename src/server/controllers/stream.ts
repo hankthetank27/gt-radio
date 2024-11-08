@@ -43,6 +43,7 @@ export const stream = {
     if (!fs.existsSync(segmentPath)) {
       return res.status(404).send('Segment not found');
     }
-    res.sendFile(segmentPath);}
+    res.sendFile(segmentPath);
+  }
 }
 

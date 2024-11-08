@@ -15,13 +15,13 @@ export class Broadcast {
     this.main = new AudioStream('main', db, io);
   };
 
-  init() {
-    this.main.on(TEARDOWN_STREAM, () => {
+  async init() {
+    await this.main.startStream();
+    this.main.on(TEARDOWN_STREAM, async () => {
       console.error('Main audio stream failed. Attempting to reinitialize...');
       this.main = new AudioStream('main', this.db, this.io);
-      this.init();
-    })
-    this.main.startStream();
+      await this.init();
+    });
     return this;
   }
 }

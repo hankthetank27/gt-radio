@@ -47,7 +47,6 @@ async function main(): Promise<void>{
   }));
 
   const server = createServer(app);
-
   const gtArchiveDB = await initDB();
 
   if (gtArchiveDB){
@@ -94,7 +93,8 @@ async function main(): Promise<void>{
     }
   });
 
-  const broadcast = new Broadcast(gtArchiveDB, io).init();
+  const broadcast = new Broadcast(gtArchiveDB, io);
+  await broadcast.init();
 
   registerWebsocketEvents(
     io, 
