@@ -72,13 +72,13 @@ export class AudioStream extends EventEmitter{
       ])
       .output(path.join(this.hlsMediaPath, "index.m3u8"))
       .on('error', (err, stdout, stderr) => {
-        console.log('Error: ' + err.message);
+        console.log('Error transcoding stream to HLS: ' + err.message);
         console.log('ffmpeg output:\n' + stdout);
         console.log('ffmpeg stderr:\n' + stderr);
         this.initiateStreamTeardown();
       })
       .on('end', () => {
-        console.log("Streaming complete");
+        console.error("Streaming unexpectedly complete...");
         this.initiateStreamTeardown();
       })
       .run();
@@ -193,7 +193,7 @@ export class AudioStream extends EventEmitter{
         reject(err);
       };
 
-      console.log(`Download started... ${songInfo.track_title}`);
+      console.log(`Download started... ${songInfo.track_title || "untitled tune..."}`);
 
       const song = await this.s3Client.send(command);
       if (!song.Body) {
@@ -305,12 +305,13 @@ export class AudioStream extends EventEmitter{
 
       const { segments, targetDuration } = this._parseM3u8(fileStr);
 
-      if (targetDuration > 3){
+      if (targetDuration > 3 || targetDuration < 2){
         console.warn(
-          `\nindex.m3u8 target duration exceeded nms config at: ${targetDuration}s\n`
+          `\nindex.m3u8 target duration expected to be 3 but is ${targetDuration}s\n`
         )
 
         if (targetDuration > 20){
+          console.error('index.m3u8 target duration too high. Tearing down stream...');
           this.initiateStreamTeardown();
         }
       };

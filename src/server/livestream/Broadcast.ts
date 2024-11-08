@@ -17,6 +17,7 @@ export class Broadcast {
 
   init() {
     this.main.on(TEARDOWN_STREAM, () => {
+      console.error('Main audio stream failed. Attempting to reinitialize...');
       this.main = new AudioStream('main', this.db, this.io);
       this.init();
     })
