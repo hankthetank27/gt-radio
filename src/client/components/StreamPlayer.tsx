@@ -5,9 +5,6 @@ import { CurrentSongDisplay } from "./CurrentSongDisplay";
 import { SongDocument } from "../../@types";
 import styles from '@/styles/StreamPlayer.module.css';
 
-console.log(Hls)
-const HLS_SUPPORTED = true//Hls.isSupported();
-
 interface streamPlayerProps{
   src: string
 };
@@ -83,14 +80,13 @@ export function StreamPlayer({
   return(
     <div className={styles.streamContainer}>
       <div className={styles.playerContainer}>
-        {HLS_SUPPORTED
+        {Hls.isSupported()
           ? <AudioPlayer
               audioElement={audioElement}
               hlsAudio={hlsAudio}
             />
           : <AudioPlayer
               audioElement={audioElement}
-              src={src}
             />
         }
         <div className={styles.volumeControlContainer}>

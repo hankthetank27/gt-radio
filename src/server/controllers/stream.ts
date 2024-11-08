@@ -27,7 +27,9 @@ export const stream = {
     res: Response,
   ) => {
     const { streamId } = req.params;
-    const playlistPath = path.join(__dirname, '../../../media/live/', streamId, 'index.m3u8');
+    const playlistPath = path.join(
+      __dirname, '../../../media/live/', streamId, 'index.m3u8'
+    );
     if (!fs.existsSync(playlistPath)) {
       return res.status(404).send('Stream not found');
     }
@@ -39,7 +41,9 @@ export const stream = {
     res: Response,
   ) => {
     const { streamId, segment } = req.params;
-    const segmentPath = path.join(__dirname, '../../../media/live/', streamId, segment);
+    const segmentPath = path.join(
+      __dirname, '../../../media/live/', streamId, segment
+    );
     if (!fs.existsSync(segmentPath)) {
       return res.status(404).send('Segment not found');
     }

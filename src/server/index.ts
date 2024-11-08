@@ -5,6 +5,7 @@ import express, {
 } from 'express';
 import next from 'next';
 import { createServer } from 'http';
+import ffmpegPath  from 'ffmpeg-static';
 import ffmpeg from 'fluent-ffmpeg';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
@@ -18,8 +19,6 @@ import { Broadcast } from './livestream/Broadcast';
 
 dotenv.config();
 
-const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
-ffmpeg.setFfmpegPath(ffmpegPath);
 
 const PORT = process.env.PORT || 3000;
 const nextApp = next({ 
@@ -36,6 +35,12 @@ const apiLimiter = rateLimit({
 });
 
 async function main(): Promise<void>{
+  if (!ffmpegPath) {
+    console.error("ffmpeg not installed!");
+    return;
+  }
+
+  ffmpeg.setFfmpegPath(ffmpegPath);
 
   await nextApp.prepare();
 

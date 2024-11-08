@@ -61,7 +61,7 @@ export class AudioStream extends EventEmitter{
 
     ffmpeg(this.#stream)
       .inputOptions([
-        '-re'
+        '-re',
       ])
       .addOptions([
         '-c:a aac',
@@ -98,7 +98,6 @@ export class AudioStream extends EventEmitter{
     };
     await this._clearHlsSegments();
     this.emit(TEARDOWN_STREAM);
-    this.removeAllListeners(TEARDOWN_STREAM);
   };
 
 
@@ -158,9 +157,13 @@ export class AudioStream extends EventEmitter{
         return reject('Song contains no audio data');
       }
 
-      this.on(TEARDOWN_STREAM, 
-        () => rejectQueue('Stream teardown initiated')
-      );
+      const rejectCallback = () => rejectQueue('Stream teardown initiated');
+      this.on(TEARDOWN_STREAM, rejectCallback);
+      const cleanup = () => {
+        this.removeListener(TEARDOWN_STREAM, rejectCallback);
+        passToDestination.unpipe();
+        passToDestination.destroy();
+      };
 
       // use extra passthorough to manually destroy stream, preventing 
       // memory leak caused by end option in call to pipe.
@@ -180,12 +183,6 @@ export class AudioStream extends EventEmitter{
         debounceParse: false,
         debounceTimeout: undefined,
       };
-      
-      const cleanup = () => {
-        passToDestination.unpipe();
-        passToDestination.destroy();
-      };
-
 
       function resolveQueue(
         tracker: streamProcessTracker
@@ -338,7 +335,7 @@ export class AudioStream extends EventEmitter{
         encoding: 'utf-8'
       });
       const { segments, targetDuration } = this._parseM3u8(fileStr);
-      if (targetDuration !== HLS_TIME){
+      if (targetDuration && targetDuration !== HLS_TIME){
         console.warn(
           `\nindex.m3u8 target duration expected to be ${HLS_TIME} but is ${targetDuration}\n`
         );
