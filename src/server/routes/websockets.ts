@@ -1,15 +1,15 @@
 import { chat } from "../db/chat";
 import { Server } from "socket.io";
 import { chatMessage } from "../../@types";
-import { broadcast } from "../@types";
 import { serverEmiters, clientEmiters } from "../../socketEvents";
 import jwt from 'jsonwebtoken';
 import { Db } from 'mongodb';
+import { Broadcast } from "../livestream/Broadcast";
 
 
 export function registerWebsocketEvents(
   io: Server,
-  broadcast: broadcast,
+  broadcast: Broadcast,
   db: Db
 ): void{
 
@@ -24,7 +24,6 @@ export function registerWebsocketEvents(
   };
 
   io.on('connection', (socket) => {
-    
     // stream events ~~~~~~~~~~~~~~~~~~~~~~~~~
     socket.on(clientEmiters.FETCH_CURRENTLY_PLAYING, () => {
       socket.emit(
@@ -43,7 +42,6 @@ export function registerWebsocketEvents(
     socket.on(
       clientEmiters.CHAT_MESSAGE, 
       (message: chatMessage, token: string) => {
-
         try {
           if (message.message.length > 800) {
             return emitChatError(

@@ -2,6 +2,7 @@ import express from "express";
 import { auth } from "../controllers/auth";
 import { chat } from "../db/chat";
 import { queryArchive } from "../controllers/queryArchive";
+import { stream } from "../controllers/stream"
 
 export const apiRouter = express.Router()
 
@@ -75,4 +76,17 @@ export const apiRouter = express.Router()
     (_, res) => res.json({
       posts: res.locals.selectedPosts
     })
+  );
+
+export const streamRouter = express.Router()
+
+  .get('/:streamId/index.m3u8',
+    stream.setHLSHeaders,
+    stream.getPlaylist,
   )
+
+  .get('/:streamId/:segment',
+    stream.setHLSHeaders,
+    stream.sendSegements,
+  );
+

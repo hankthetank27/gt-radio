@@ -12,7 +12,8 @@ import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 // @ts-ignore
 import { Parser as m3u8Parser } from 'm3u8-parser';
 
-const TEARDOWN_STREAM = 'teardownStream';
+export const TEARDOWN_STREAM = 'teardownStream';
+const HLS_TIME = 4;
 
 export class AudioStream extends EventEmitter{
   #stream: PassThrough
@@ -28,7 +29,7 @@ export class AudioStream extends EventEmitter{
     streamName: string,
     db: Db,
     io: Server
-  ){
+  ) {
     super();
     // size of mp3 chunk
     this.#stream = this._createStream(400);
@@ -47,41 +48,56 @@ export class AudioStream extends EventEmitter{
   };
       
       
-  startStream(): AudioStream{
-
+  async startStream(): Promise<AudioStream>{
     if (this.#isLive){
       console.error('Streaming in progress, cannot start stream in this state');
       return this;
     };
 
+    await this._clearHlsSegments();
+
     this.#isLive = true;
     this._queueAudio();
 
-    this.#ffmpegCmd = ffmpeg(this.#stream)
+    ffmpeg(this.#stream)
       .inputOptions([
-        '-re'
+        '-re',
       ])
-      .outputOption([
+      .addOptions([
         '-c:a aac',
+        '-b:a 128k',
         '-ar 44100',
+        '-map 0:a',
+        '-f hls',
+        `-hls_time ${HLS_TIME}`,
+        '-hls_list_size 4',
+        '-hls_flags delete_segments',
       ])
-      .on('error', (err) => {
-        this.initiateStreamTeardown();
-        console.error(`Error transcoding stream audio: ${err.message}`);
+      .output(path.join(this.hlsMediaPath, "index.m3u8"))
+      .on('error', async (err, stdout, stderr) => {
+        console.log('Error transcoding stream to HLS: ' + err.message);
+        console.log('ffmpeg output:\n' + stdout);
+        console.log('ffmpeg stderr:\n' + stderr);
+        await this.initiateStreamTeardown();
       })
-      .save(`rtmp://${process.env.DOCKER_HOST || 'localhost'}/live/${this.streamName}.flv`);
+      .on('end', async () => {
+        console.error("Streaming unexpectedly complete...");
+        await this.initiateStreamTeardown();
+      })
+      .run();
 
     return this;
   };
 
 
-  initiateStreamTeardown(): void{
+  async initiateStreamTeardown(): Promise<void>{
     this.#isLive = false;
-    this.emit(TEARDOWN_STREAM);
     this.#stream.destroy();
     if (this.#ffmpegCmd) {
       this.#ffmpegCmd.kill('SIGKILL');
     };
+    await this._clearHlsSegments();
+    this.emit(TEARDOWN_STREAM);
   };
 
 
@@ -101,6 +117,13 @@ export class AudioStream extends EventEmitter{
     return new PassThrough({
       highWaterMark: bufferSize
     });
+  };
+
+
+  private async _clearHlsSegments(): Promise<void> {
+    for (const file of await fs.readdir(this.hlsMediaPath)) {
+      await fs.unlink(path.join(this.hlsMediaPath, file));
+    }
   };
 
 
@@ -134,9 +157,13 @@ export class AudioStream extends EventEmitter{
         return reject('Song contains no audio data');
       }
 
-      this.on(TEARDOWN_STREAM, 
-        () => rejectQueue('Stream teardown initiated')
-      );
+      const rejectCallback = () => rejectQueue('Stream teardown initiated');
+      this.on(TEARDOWN_STREAM, rejectCallback);
+      const cleanup = () => {
+        this.removeListener(TEARDOWN_STREAM, rejectCallback);
+        passToDestination.unpipe();
+        passToDestination.destroy();
+      };
 
       // use extra passthorough to manually destroy stream, preventing 
       // memory leak caused by end option in call to pipe.
@@ -152,15 +179,10 @@ export class AudioStream extends EventEmitter{
         downloaded: 0,
         processed: 0,
         passThroughFlowing: false,
-        passToDestinationDone: false
+        passToDestinationDone: false,
+        debounceParse: false,
+        debounceTimeout: undefined,
       };
-      
-      const cleanup = () => {
-        this.removeAllListeners(TEARDOWN_STREAM);
-        passToDestination.unpipe();
-        passToDestination.destroy();
-      };
-
 
       function resolveQueue(
         tracker: streamProcessTracker
@@ -181,7 +203,7 @@ export class AudioStream extends EventEmitter{
         reject(err);
       };
 
-      console.log(`Download started... ${songInfo.track_title}`);
+      console.log(`Download started... ${songInfo.track_title || "untitled tune..."}`);
 
       const song = await this.s3Client.send(command);
       if (!song.Body) {
@@ -190,6 +212,15 @@ export class AudioStream extends EventEmitter{
       
       passToDestination
         .on('data', async () => {
+          if (!tracker.debounceParse) {
+            tracker.debounceParse = true;
+            this._validateM3u8Segments(this.hlsMediaPath);
+          } else {
+            clearTimeout(tracker.debounceTimeout);
+          }
+          tracker.debounceTimeout = setTimeout(() => {
+            tracker.debounceParse = false;
+          }, 1000);
           if (!tracker.passThroughFlowing){
             tracker.passThroughFlowing = true;
             this._queueDisplaySong(songInfo);
@@ -284,38 +315,44 @@ export class AudioStream extends EventEmitter{
 
   private async _getM3u8Segments(
     mediaPath: string
-  ): Promise<string[] | void>{
+  ): Promise<string[] | undefined>{
     try {
-      const m3u8FilePath = `${mediaPath}/index.m3u8`;
-      const fileStr = await fs.readFile(m3u8FilePath, {
-        encoding: 'utf-8'
-      });
-
-      const { segments, targetDuration } = this._parseM3u8(fileStr);
-
-      if (targetDuration > 3){
-        console.warn(
-          `\nindex.m3u8 target duration exceeded nms config at: ${targetDuration}s\n`
-        )
-
-        if (targetDuration > 20){
-          this.initiateStreamTeardown();
-        }
-      };
-
-      if (!segments){
-        return [];
-      };
-
-      return segments.map(
-        (s: Record<string, number | string>) => s.uri
-      );
+      const validSegments = await this._validateM3u8Segments(mediaPath);
+      return validSegments?.map(s => s.uri);
     } catch (err) {
       console.warn(`Error getting m3u8 segments: ${err}`);
       return; 
     };
   };
 
+
+  private async _validateM3u8Segments(
+    mediaPath: string
+  ): Promise<Record<string, string>[] | undefined> {
+    try {
+      const m3u8FilePath = `${mediaPath}/index.m3u8`;
+      const fileStr = await fs.readFile(m3u8FilePath, {
+        encoding: 'utf-8'
+      });
+      const { segments, targetDuration } = this._parseM3u8(fileStr);
+      if (targetDuration && targetDuration !== HLS_TIME){
+        console.warn(
+          `\nindex.m3u8 target duration expected to be ${HLS_TIME} but is ${targetDuration}\n`
+        );
+        if (targetDuration > 20 || targetDuration <= 1){
+          console.error('index.m3u8 target duration unstable. Tearing down stream...');
+          await this.initiateStreamTeardown();
+          return;
+        }
+      };
+      return segments || [];
+    } catch (err: any) {
+      if (err?.code === 'ENOENT'){
+       return;
+      }
+      console.warn(`Error parsing m3u8 segments: ${err}`);
+    };
+  }
 
   private _parseM3u8(file: string){
     const parser = new m3u8Parser();

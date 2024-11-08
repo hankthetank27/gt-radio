@@ -18,6 +18,8 @@ export interface streamProcessTracker {
   processed: number;
   passThroughFlowing: boolean;
   passToDestinationDone: boolean;
+  debounceParse: boolean;
+  debounceTimeout: NodeJS.Timeout | undefined;
 };
 
 export interface chatMessage{

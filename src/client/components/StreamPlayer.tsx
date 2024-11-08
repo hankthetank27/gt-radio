@@ -5,7 +5,6 @@ import { CurrentSongDisplay } from "./CurrentSongDisplay";
 import { SongDocument } from "../../@types";
 import styles from '@/styles/StreamPlayer.module.css';
 
-
 interface streamPlayerProps{
   src: string
 };
@@ -88,7 +87,6 @@ export function StreamPlayer({
             />
           : <AudioPlayer
               audioElement={audioElement}
-              src={src}
             />
         }
         <div className={styles.volumeControlContainer}>
@@ -172,7 +170,6 @@ function AudioPlayer({
             console.error("audioElement: ", audioElement);
             console.error("audioElement.current: ", audioElement.current);
             console.error("audioReadyState: ", audioReadyState);
-            console.error("hlsAudio: ", hlsAudio);
           };
         }}
       >

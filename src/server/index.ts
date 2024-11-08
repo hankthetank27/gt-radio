@@ -5,26 +5,20 @@ import express, {
 } from 'express';
 import next from 'next';
 import { createServer } from 'http';
+import ffmpegPath  from 'ffmpeg-static';
 import ffmpeg from 'fluent-ffmpeg';
 import dotenv from 'dotenv';
-import NodeMediaServer from 'node-media-server';
 import cookieParser from 'cookie-parser';
 import { Server } from "socket.io";
-import { AudioStream } from "./livestream/AudioStream";
-import { configNms } from "./configNms";
-import { apiRouter } from "./routes/api";
+import { apiRouter, streamRouter } from "./routes/api";
 import { initDB } from "./db/initDB";
 import { registerWebsocketEvents } from "./routes/websockets";
 import rateLimit from 'express-rate-limit';
-import { broadcast } from './@types';
-import { serverEmiters } from '../socketEvents';
 import { chat } from './db/chat';
-
+import { Broadcast } from './livestream/Broadcast';
 
 dotenv.config();
 
-const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
-ffmpeg.setFfmpegPath(ffmpegPath);
 
 const PORT = process.env.PORT || 3000;
 const nextApp = next({ 
@@ -41,6 +35,12 @@ const apiLimiter = rateLimit({
 });
 
 async function main(): Promise<void>{
+  if (!ffmpegPath) {
+    console.error("ffmpeg not installed!");
+    return;
+  }
+
+  ffmpeg.setFfmpegPath(ffmpegPath);
 
   await nextApp.prepare();
 
@@ -52,7 +52,6 @@ async function main(): Promise<void>{
   }));
 
   const server = createServer(app);
-
   const gtArchiveDB = await initDB();
 
   if (gtArchiveDB){
@@ -66,6 +65,7 @@ async function main(): Promise<void>{
   app.locals.gtdb = gtArchiveDB;
 
   app.use('/api', apiLimiter, apiRouter);
+  app.use('/stream', streamRouter);
 
   app.get('*', (req, res) => {
     return handle(req, res)
@@ -98,55 +98,8 @@ async function main(): Promise<void>{
     }
   });
 
-  const broadcast: broadcast = {
-    id: null,
-    main: new AudioStream('main', gtArchiveDB, io)
-  };
-
-  const nms = new NodeMediaServer(configNms(ffmpegPath));
-  
-  // reboot stream on interrupt/ping timeout
-  nms.on('postPlay', (id, streamPath) => {
-    if (streamPath === '/live/main'){
-      broadcast.id = id;
-      console.log(`/live/main stream broadcasting @ id ${id}`);
-    };
-
-    if (streamPath === '/live/main'){
-      setTimeout(() => {
-        io.emit(serverEmiters.STREAM_REBOOT);
-      }, 12000);
-    };
-
-    /*
-     * Display transSessions debug and ffmpeg args
-     *
-      //@ts-ignore
-      nms.nts.transSessions.forEach((s) => {
-        console.log(s);
-      })
-    */
-  });
-
-  nms.on('doneConnect', (id) => {
-    console.log(`Stream @ id ${id} disconnected`);
-
-    if (id === broadcast.id){
-      console.log(`...attempting to reboot stream disconnected @ id ${id}`);
-      io.emit(serverEmiters.STREAM_DISCONNECT);
-
-      broadcast.main
-        .initiateStreamTeardown();
-
-      broadcast.main = new AudioStream('main', gtArchiveDB, io)
-        .startStream();
-    };
-  });
-
-  nms.run();
-
-  broadcast.main
-    .startStream();
+  const broadcast = new Broadcast(gtArchiveDB, io);
+  await broadcast.init();
 
   registerWebsocketEvents(
     io, 

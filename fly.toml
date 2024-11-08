@@ -28,14 +28,6 @@ primary_region = 'ewr'
     handlers = ["tls", "http"]
     port = 443
 
-[[services]]
-  internal_port = 8000
-  protocol = "tcp"
-
-  [[services.ports]]
-    handlers = ["tls", "http"]
-    port = 8000
-
 [[vm]]
   memory = '1gb'
   cpu_kind = 'shared'
