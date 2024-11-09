@@ -71,7 +71,7 @@ export class AudioStream extends EventEmitter{
         '-f hls',
         `-hls_time ${HLS_TIME}`,
         '-hls_list_size 4',
-        '-hls_flags delete_segments',
+        '-hls_flags delete_segments', //+split_by_time',
       ])
       .output(path.join(this.hlsMediaPath, "index.m3u8"))
       .on('error', async (err, stdout, stderr) => {
@@ -91,13 +91,18 @@ export class AudioStream extends EventEmitter{
 
 
   async initiateStreamTeardown(): Promise<void>{
-    this.#isLive = false;
-    this.#stream.destroy();
-    if (this.#ffmpegCmd) {
-      this.#ffmpegCmd.kill('SIGKILL');
-    };
-    await this._clearHlsSegments();
-    this.emit(TEARDOWN_STREAM);
+    try {
+      this.#isLive = false;
+      this.#stream.destroy();
+      if (this.#ffmpegCmd) {
+        this.#ffmpegCmd.kill('SIGKILL');
+      };
+      await this._clearHlsSegments();
+      this.emit(TEARDOWN_STREAM);
+    } catch(e) {
+      console.error(`Error trearingdown stream. Still firing teardown event. ${e}`);
+      this.emit(TEARDOWN_STREAM);
+    }
   };
 
 
@@ -121,8 +126,12 @@ export class AudioStream extends EventEmitter{
 
 
   private async _clearHlsSegments(): Promise<void> {
-    for (const file of await fs.readdir(this.hlsMediaPath)) {
-      await fs.unlink(path.join(this.hlsMediaPath, file));
+    try {
+      for (const file of await fs.readdir(this.hlsMediaPath)) {
+        await fs.unlink(path.join(this.hlsMediaPath, file));
+      }
+    } catch(e) {
+      console.error(`Error deleteing HLS segements. ${e}`);
     }
   };
 
@@ -150,9 +159,7 @@ export class AudioStream extends EventEmitter{
   private _pushSong(
     songInfo: SongDocument
   ): Promise<void>{
-
     return new Promise<void>(async (resolve, reject) => {
-
       if (!songInfo.s3_file_data) {
         return reject('Song contains no audio data');
       }
@@ -268,11 +275,8 @@ export class AudioStream extends EventEmitter{
   ): void{
     const posts = this.db.collection('gt_posts');
     posts.findOneAndUpdate(
-      {
-        _id: new ObjectId(songInfo._id), 
-      },
-      {
-        $set: {
+      { _id: new ObjectId(songInfo._id), },
+      { $set: {
           has_been_played: true,
           date_aired: new Date()
         }

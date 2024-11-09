@@ -134,7 +134,7 @@ export const queryArchive = {
 
       return next();
     } catch (err){
-      return next(`Error querying archive ${err}`);
+      return next(`Error querying archive: ${err}`);
     }
   },
 
