@@ -48,45 +48,50 @@ export class AudioStream extends EventEmitter{
   };
       
       
-  async startStream(): Promise<AudioStream>{
-    if (this.#isLive){
-      console.error('Streaming in progress, cannot start stream in this state');
+  async startStream(): Promise<AudioStream | null>{
+    try {
+      if (this.#isLive){
+        console.error('Streaming in progress, cannot start stream in this state');
+        return this;
+      };
+
+      await this._clearHlsSegments();
+
+      this.#isLive = true;
+      this._queueAudio();
+
+      ffmpeg(this.#stream)
+        .inputOptions([
+          '-re',
+        ])
+        .addOptions([
+          '-c:a aac',
+          '-b:a 128k',
+          '-ar 44100',
+          '-map 0:a',
+          '-f hls',
+          `-hls_time ${HLS_TIME}`,
+          '-hls_list_size 4',
+          '-hls_flags delete_segments', //+split_by_time',
+        ])
+        .output(path.join(this.hlsMediaPath, "index.m3u8"))
+        .on('error', async (err, stdout, stderr) => {
+          console.log('Error transcoding stream to HLS: ' + err.message);
+          console.log('ffmpeg output:\n' + stdout);
+          console.log('ffmpeg stderr:\n' + stderr);
+          await this.initiateStreamTeardown();
+        })
+        .on('end', async () => {
+          console.error("Streaming unexpectedly complete...");
+          await this.initiateStreamTeardown();
+        })
+        .run();
+
       return this;
-    };
-
-    await this._clearHlsSegments();
-
-    this.#isLive = true;
-    this._queueAudio();
-
-    ffmpeg(this.#stream)
-      .inputOptions([
-        '-re',
-      ])
-      .addOptions([
-        '-c:a aac',
-        '-b:a 128k',
-        '-ar 44100',
-        '-map 0:a',
-        '-f hls',
-        `-hls_time ${HLS_TIME}`,
-        '-hls_list_size 4',
-        '-hls_flags delete_segments', //+split_by_time',
-      ])
-      .output(path.join(this.hlsMediaPath, "index.m3u8"))
-      .on('error', async (err, stdout, stderr) => {
-        console.log('Error transcoding stream to HLS: ' + err.message);
-        console.log('ffmpeg output:\n' + stdout);
-        console.log('ffmpeg stderr:\n' + stderr);
-        await this.initiateStreamTeardown();
-      })
-      .on('end', async () => {
-        console.error("Streaming unexpectedly complete...");
-        await this.initiateStreamTeardown();
-      })
-      .run();
-
-    return this;
+    } catch(err) {
+      console.error(`Error starting stream: ${err}`);
+      return this;
+    }
   };
 
 
@@ -164,6 +169,10 @@ export class AudioStream extends EventEmitter{
         return reject('Song contains no audio data');
       }
 
+      // use extra passthorough to manually destroy stream, preventing 
+      // memory leak caused by end option in call to pipe.
+      const passToDestination = this._createStream(songInfo.s3_file_data.length);
+
       const rejectCallback = () => rejectQueue('Stream teardown initiated');
       this.on(TEARDOWN_STREAM, rejectCallback);
       const cleanup = () => {
@@ -171,15 +180,6 @@ export class AudioStream extends EventEmitter{
         passToDestination.unpipe();
         passToDestination.destroy();
       };
-
-      // use extra passthorough to manually destroy stream, preventing 
-      // memory leak caused by end option in call to pipe.
-      const passToDestination = this._createStream(songInfo.s3_file_data.length);
-
-      const command = new GetObjectCommand({
-        Bucket: songInfo.s3_file_data.bucket,
-        Key: songInfo.s3_file_data.key,
-      });
 
       const tracker: streamProcessTracker = {
         startTime: Date.now(),
@@ -195,8 +195,8 @@ export class AudioStream extends EventEmitter{
         tracker: streamProcessTracker
       ): void {
         const completionTime = Math.round(
-            ((Date.now() - tracker.startTime) / 60000) * 10
-          ) / 10;
+          ((Date.now() - tracker.startTime) / 60000) * 10
+        ) / 10;
         console.log(`Completed processing in ${completionTime}m`);
         cleanup();
         resolve();
@@ -212,61 +212,77 @@ export class AudioStream extends EventEmitter{
 
       console.log(`Download started... ${songInfo.track_title || "untitled tune..."}`);
 
-      const song = await this.s3Client.send(command);
-      if (!song.Body) {
-        return rejectQueue("File has no body");
+      try {
+        const command = new GetObjectCommand({
+          Bucket: songInfo.s3_file_data.bucket,
+          Key: songInfo.s3_file_data.key,
+        });
+
+        const song = await this.s3Client.send(command);
+
+        if (!song.Body) {
+          return rejectQueue("File has no body");
+        }
+
+        passToDestination
+          .on('data', async () => {
+            if (!tracker.debounceParse) {
+              tracker.debounceParse = true;
+              this._validateM3u8Segments(this.hlsMediaPath);
+            } else {
+              clearTimeout(tracker.debounceTimeout);
+            }
+            tracker.debounceTimeout = setTimeout(() => {
+              tracker.debounceParse = false;
+            }, 1000);
+            if (!tracker.passThroughFlowing){
+              tracker.passThroughFlowing = true;
+              this._queueDisplaySong(songInfo);
+            };
+          })
+          .on('end', () => {
+            resolveQueue(tracker);
+          })
+          .on('error', (err) => {
+            rejectQueue(`Error in queueSong -> passToDestination: ${err}`);
+          });
+
+        const webStream = song.Body.transformToWebStream();
+        const songStream = Readable.fromWeb(
+          webStream as import("stream/web").ReadableStream<any>
+        );
+
+        songStream
+          .pipe(passToDestination)
+          .pipe(this.#stream, {
+            end: false
+          });
+      } catch(err) {
+        rejectQueue(`Error in queueSong: ${err}`);
       }
-      
-      passToDestination
-        .on('data', async () => {
-          if (!tracker.debounceParse) {
-            tracker.debounceParse = true;
-            this._validateM3u8Segments(this.hlsMediaPath);
-          } else {
-            clearTimeout(tracker.debounceTimeout);
-          }
-          tracker.debounceTimeout = setTimeout(() => {
-            tracker.debounceParse = false;
-          }, 1000);
-          if (!tracker.passThroughFlowing){
-            tracker.passThroughFlowing = true;
-            this._queueDisplaySong(songInfo);
-          };
-        })
-        .on('end', () => {
-          resolveQueue(tracker);
-        })
-        .on('error', (err) => {
-          rejectQueue(`Error in queueSong -> passToDestination: ${err}`);
-        });
-
-      const webStream = song.Body.transformToWebStream();
-      const songStream = Readable.fromWeb(
-        webStream as import("stream/web").ReadableStream<any>
-      );
-
-      songStream
-        .pipe(passToDestination)
-        .pipe(this.#stream, {
-          end: false
-        });
     });
   };
 
 
   private async _selectRandomSong(): Promise<SongDocument | null>{
-    const posts = this.db.collection('gt_posts');
-    const post = await posts.aggregate([
+    try {
+      const posts = this.db.collection('gt_posts');
+      const post = await posts.aggregate([
         { $match: { s3_file_data: { $exists: true } }},
         { $sample: { size: 1 }}
       ])
-      .toArray();
-  
-    if (!post?.[0]){
-      return null;
-    };
+        .toArray();
 
-    return post[0] as SongDocument;
+      if (!post?.[0]){
+        return null;
+      };
+
+      return post[0] as SongDocument;
+
+    } catch(err) {
+      console.error(`Error selecting song: ${err}`);
+      return null;
+    }
   };
 
 
@@ -325,7 +341,6 @@ export class AudioStream extends EventEmitter{
       return validSegments?.map(s => s.uri);
     } catch (err) {
       console.warn(`Error getting m3u8 segments: ${err}`);
-      return; 
     };
   };
 
@@ -351,10 +366,9 @@ export class AudioStream extends EventEmitter{
       };
       return segments || [];
     } catch (err: any) {
-      if (err?.code === 'ENOENT'){
-       return;
+      if (err?.code !== 'ENOENT'){
+        console.warn(`Error parsing m3u8 segments: ${err}`);
       }
-      console.warn(`Error parsing m3u8 segments: ${err}`);
     };
   }
 

@@ -99,7 +99,10 @@ async function main(): Promise<void>{
   });
 
   const broadcast = new Broadcast(gtArchiveDB, io);
-  await broadcast.init();
+  const isStarted = await broadcast.init();
+  if (!isStarted) {
+    throw new Error('Unable to start audio broadcast!');
+  }
 
   registerWebsocketEvents(
     io, 

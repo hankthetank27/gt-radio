@@ -27,8 +27,8 @@ export class Broadcast {
       });
       this.reinitTrys = 0;
       return this;
-    } catch (e) {
-      console.error(`Error inititalizing braodcast: ${e}`);
+    } catch (err){
+      console.error(`Error inititalizing braodcast: ${err}`);
       if (this.reinitTrys >= 3) {
         return;
       } else {

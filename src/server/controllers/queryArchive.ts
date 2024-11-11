@@ -10,7 +10,6 @@ export const queryArchive = {
     next: NextFunction
   ) => {
     try {
-
       const query = req.query as unknown as dbQueryFilters;
       const GtDb: Db = req.app.locals.gtdb;
 
@@ -145,7 +144,6 @@ export const queryArchive = {
     next: NextFunction
   ) => {
     try{
-
       const name = req.query.name;
       const GtDb: Db = req.app.locals.gtdb;
 
@@ -185,7 +183,6 @@ export const queryArchive = {
       res.locals.users = users;
       
       return next(); 
-
     } catch(err) {
       return next(`Error getting user list: ${err}`);
     };
