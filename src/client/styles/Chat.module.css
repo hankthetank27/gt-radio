@@ -78,12 +78,12 @@
   padding-top: 10px;
   padding-bottom: 10px;
   font-size: 14px;
-  font-weight: 100;
+  font-weight: 500;
 }
 
 .sender {
   font-size: 11px;
-  font-style: italic;
+  font-weight: 500;
 }
 
 .messageContents{
