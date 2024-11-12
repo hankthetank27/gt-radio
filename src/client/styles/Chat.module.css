@@ -1,5 +1,5 @@
 .chatContainer {
-  --chat-bg-color: #f5f6f5;
+  --chat-bg-color: var(--secondary-bg-color);
   --chat-width: 400px;
   border: 1px solid rgb(225, 232, 225);
   box-shadow: 0px 0px 17px -4px var(--background-color);
@@ -77,7 +77,8 @@
 .chatItem {
   padding-top: 10px;
   padding-bottom: 10px;
-  font-size: 15px;
+  font-size: 14px;
+  font-weight: 100;
 }
 
 .sender {

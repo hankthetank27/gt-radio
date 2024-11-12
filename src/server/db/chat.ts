@@ -1,16 +1,15 @@
 import { chatMessage } from "../../@types";
 import { Db } from 'mongodb';
 
-interface chat{
+interface Chat{
   messages: chatMessage[];
   populateHistory: (db: Db) => Promise<void>
   addMessage: (m: chatMessage, db: Db) => chatMessage[] | undefined;
 };
 
-export const chat: chat = {
+export const chat: Chat = {
 
   messages: [],
-
 
   populateHistory: async (db: Db) => {
     try{
