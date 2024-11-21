@@ -2,7 +2,7 @@
   display: flex;
   justify-content: left;
   align-items: center;
-  border-bottom: 1px solid #000;
+  border-bottom: 1px solid var(--line-color);
   padding-right: 10px;
   padding-left: 10px;
   width: 500px;
@@ -14,7 +14,7 @@
 }
 
 .streamContainer{
-  margin-left: 10px;
+  margin-left: 40px;
   margin-right: 10px;
   display: flex;
   justify-content: left;
@@ -136,6 +136,11 @@
 }
 
 @media only screen and (max-width: 900px) {
+  .streamContainer {
+    margin-left: 0px;
+    margin-right: 0px;
+  }
+
   .playerContainer{
     width: 350px;
   }

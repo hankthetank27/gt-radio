@@ -15,7 +15,6 @@
 
 @media only screen and (max-width: 900px) {
   .currentlyPlayingContainer{
-    margin-left: 20px;
     max-width: 350px;
   }
 }

@@ -39,7 +39,7 @@
   width: 100vw;
   height: var(--header-hight);
   min-width: 300px;
-  border-bottom: 1px solid #90dc94;
+  border-bottom: 1px solid var(--line-color);
   background: var(--background-color);
   z-index: 100;
 }

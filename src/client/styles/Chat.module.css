@@ -10,7 +10,7 @@
   width: var(--chat-width);
   height: 100%;
   border-radius: 2px;
-  background-color: #eaefea;
+  background-color: #efefef;
   resize: vertical;
   min-height: 450px;
   height: 450px;

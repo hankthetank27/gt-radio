@@ -5,6 +5,7 @@
   --header-font:'Roboto','Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
   --background-color:#f8f8f8;
   --secondary-bg-color:#f5f6f5;
+  --line-color: #a0afa0;
   --hover-color:#464a4c;
   --hover-color-light: #eeefed;
   font-family: var(--main-font);

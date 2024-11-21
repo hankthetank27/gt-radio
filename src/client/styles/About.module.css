@@ -6,7 +6,7 @@
 }
 
 .mainContainer > p {
-  margin-left: 50px;
-  margin-right: 50px;
-  font-weight: 400;
+  margin-left: 40px;
+  margin-right: 40px;
+  font-size: 15px;
 }
