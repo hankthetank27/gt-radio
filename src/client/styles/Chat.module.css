@@ -12,8 +12,8 @@
   border-radius: 2px;
   background-color: #efefef;
   resize: vertical;
-  min-height: 450px;
-  height: 450px;
+  min-height: 485px;
+  height: 485px;
   max-height: fit-content;
   max-width: fit-content;
   overflow: auto;
@@ -173,8 +173,8 @@
     height: 400px;
   }
   .chatContainer {
-    min-height: 350px;
-    max-height: 350px;
+    min-height: 390px;
+    max-height: 390px;
   }
   .msgFormInput{
     min-width: 0px;
