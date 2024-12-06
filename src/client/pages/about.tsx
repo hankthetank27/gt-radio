@@ -11,8 +11,15 @@ export default function About():JSX.Element{
         <p>
            The broadcast livestreams songs at random from the archive. After playing a song which has not previously been aired, the audio link and additional information about the original post will be available to view and listen back to on the archive page, incrementally rolling out each song and post to the public as the radio plays new music.
         </p>
+        <hr/>
         <p className={styles.disclaimer}>
-          <b>GREAT TUNES RADIO IS A BROADCAST ENTITY EXISTING FOR EDUCATIONAL PURPOSES ONLY.</b> It is a continual work in progress, and maintained with love and some free time. New ideas for features, improvements, and bug finds/fixes are welcome, so feel free to open pull request or issue in the project's <a href="https://github.com/hankthetank27/gt-radio"><u>GitHub repository</u></a> if you'd like. If you have any questions, concerns or suggestions please reach out to <a href="mailto:hjackson277@gmail.com"><u>hjackson277@gmail.com</u></a>.
+          <b>GREAT TUNES RADIO IS A BROADCAST ENTITY EXISTING FOR EDUCATIONAL PURPOSES ONLY.</b> 
+        </p>
+        <p className={styles.contact}>
+          For questions, concerns or suggestions please reach out to <a href="mailto:hjackson277@gmail.com"><u>hjackson277@gmail.com</u></a>.
+        </p>
+        <p className={styles.contact}>
+          Contributions to this project are welcome on <a href="https://github.com/hankthetank27/gt-radio"><u>GitHub</u></a>. 
         </p>
       </div>
     </PageWrapper>
