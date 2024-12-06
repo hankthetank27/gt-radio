@@ -1,0 +1,3 @@
+[submodule "scripts/facebook-group-media-scraper"]
+	path = scripts/facebook-group-media-scraper
+	url = git@github.com:hankthetank27/facebook-group-media-scraper.git
