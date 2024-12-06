@@ -44,8 +44,8 @@ export function Chat(): JSX.Element{
       .catch(() => setChatLoading(false))
 
     socket.on(serverEmiters.CHAT_MESSAGE_ERROR, (error: chatError) => {
-      console.log(error)
-      setChatHistory(error.messages)
+      console.error(error);
+      setChatHistory(error.messages);
       setChatError(error.errorMsg);
     });
 

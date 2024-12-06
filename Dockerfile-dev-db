@@ -1,0 +1,4 @@
+FROM mongo:latest
+COPY init-dev-db.js /docker-entrypoint-initdb.d/
+ENV MONGO_INITDB_DATABASE=gt_data
+EXPOSE 27017

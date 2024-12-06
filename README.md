@@ -4,32 +4,41 @@ Great Tunes Radio is an archival project, broadcasting music posted in the semin
 
 ## Requirements
 
-To run locally, you will need Node.js version 16 or higher installed.
-
-A connection to a MongoDB database is also required, and since this project it intended grab information about posts to broadcast from the database, it's recommended that you run [this](https://github.com/hankthetank27/facebook-group-media-scraper) script to populate your database with some dummy data from any Facebook group with some YouTube links.
+To run locally, you will need [Node.js](https://nodejs.org/en/download/package-manager) version 16 or higher, and [Docker](https://www.docker.com/) installed and configured.
 
 ## Usage
 
-To get started, install the dependencies by running
-
-```
+To get started, first install the dependencies
+```console
 npm i
 ```
 
-You will also need to create a `.env` file in the root directory in order to create environment variables for the MongoDB connection string, and a JSON Web Token key (this can be anything).
+Next you will need to set up a mongoDB database. This repo provides a Docker container with some pre-configured dummy data to work with.
+
+Build the container and run in locally at `mongodb://127.0.0.1:27017`
+```console
+docker build -t gt-dev-db -f Dockerfile-dev-db .
+docker run -d -p 27017:27017 --name mongodb gt-dev-db
+```
+
+Now you will also need to create a `.env` file in the root directory in order to create environment variables for the MongoDB connection for development and production versions (here we will use the same local DB for both), a JSON Web Token key (this can be anything), and a password for users to access the 'secret archive' page.
 
 Example:
-
 ```env
-DEV_ARCHIVE_CONNECTION_STRING=mongodb+srv://mymongouri
+GT_ARCHIVE_CONNECTION_STRING="mongodb://127.0.0.1:27017"
+DEV_ARCHIVE_CONNECTION_STRING="mongodb://127.0.0.1:27017"
 JWT_KEY=a8d6d88040eyb9b5aa13a132d930be08766b2e80164b04235cf3d87f13d54b30f1da1908700f8
+ARCHIVE_KEY=somefunnypassword
 ```
 
-To start the server run
-
-```
+To start the server in development mode
+```console
 npm run dev
 ```
 
-It is not recommended that you run it production mode at the time being, as it will try to fetch resources for streaming from the deployed project.
+or for a production build
+```console
+npm run build
+npm start
+```
 
