@@ -21,22 +21,29 @@ docker build -t gt-dev-db -f Dockerfile-dev-db .
 docker run -d -p 27017:27017 --name mongodb gt-dev-db
 ```
 
-Now you will also need to create a `.env` file in the root directory in order to create environment variables for the MongoDB connection for development and production versions (here we will use the same local DB for both), a JSON Web Token key (this can be anything), and a password for users to access the 'secret archive' page.
+Now you will need to create a `.env` file in the root directory with the following variables
 
-Example:
+- `GT_ARCHIVE_CONNECTION_STRING`: MongoDB connection uri for production build.
+- `DEV_ARCHIVE_CONNECTION_STRING`: MongoDB connection uri for development build.
+- `JWT_KEY`: JSON Web Token key (this can be anything specific or secure for local dev).
+- `ARCHIVE_KEY`: a password for users to access the 'secret archive' page.
+
+For example
 ```env
 GT_ARCHIVE_CONNECTION_STRING="mongodb://127.0.0.1:27017"
 DEV_ARCHIVE_CONNECTION_STRING="mongodb://127.0.0.1:27017"
 JWT_KEY=a8d6d88040eyb9b5aa13a132d930be08766b2e80164b04235cf3d87f13d54b30f1da1908700f8
 ARCHIVE_KEY=somefunnypassword
 ```
+And with that, you should be ready to run the thing!
+
 
 To start the server in development mode
 ```console
 npm run dev
 ```
 
-or for a production build
+Or for a production build
 ```console
 npm run build
 npm start
