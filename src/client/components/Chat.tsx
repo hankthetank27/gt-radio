@@ -14,11 +14,11 @@ import { Login, Logout } from "./Login";
 import { v4 as uuid } from "uuid";
 import TextareaAutosize from '@mui/base/TextareaAutosize';
 import { BeatLoader } from "react-spinners";
+import Throttle from "lodash.throttle";
 
+const QUANT_UPDATE = 25;
 
 export function Chat(): JSX.Element{
-
-  const chatContentsEl = useRef<HTMLDivElement>(null);
 
   const { socket, isConnected } = useContext(SocketContext);
   const [ chatLength, setChatLength ] = useState(100);
@@ -29,8 +29,38 @@ export function Chat(): JSX.Element{
   const [ displayLoginWindow, setDisplayLoginWindow ] = useState<boolean>(false);
   const [ chatLoading, setChatLoading ] = useState<boolean>(false);
 
-  //TODO: im pretty sure that these dont need useCallback anymore now that we keep the state in the client
-  const handleUpdateChatHistory = useCallback((newMessage: chatMessage) => {
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const chatOldestMessageRef = useRef(chatHistory[0]);
+  const hasAllMessagesRef = useRef(false);
+
+  function filterMessage(target: chatMessage) {
+    setChatHistory((chatHistory) => {
+      return chatHistory.filter(msg => 
+         msg._id || (msg.userId !== target.userId && msg.timeStamp !== target.timeStamp)
+      )
+    });
+  }
+
+  function mapMessage(target: chatMessage) {
+    setChatHistory((chatHistory) => {
+      return chatHistory.map(msg => 
+         msg._id || (msg.userId !== target.userId && msg.timeStamp !== target.timeStamp)
+          ? msg
+          : target
+      )
+    });
+  }
+  
+  function handleScroll() {
+    if (chatContainerRef.current && !hasAllMessagesRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+      if (Math.abs(scrollTop) + clientHeight >= scrollHeight - 1) {
+        setChatLength((prevLength) => prevLength + QUANT_UPDATE);
+      }
+    }
+  };
+
+  const handleUpdateChatHistory = (newMessage: chatMessage) => {
     setChatHistory((chatHistory) => {
       if (chatHistory.length >= chatLength) {
         const newChat = chatHistory.slice(1);
@@ -40,53 +70,24 @@ export function Chat(): JSX.Element{
         return [...chatHistory, newMessage];
       }
     });
-  }, []);
-
-  // function handleUpdateChatHistory(newMessage: chatMessage) {
-  //   setChatHistory((chatHistory) => {
-  //     if (chatHistory.length >= chatLength) {
-  //       const newChat = chatHistory.slice(1);
-  //       newChat.push(newMessage);
-  //       return newChat;
-  //     } else {
-  //       return [...chatHistory, newMessage];
-  //     }
-  //   });
-  // };
+  }
 
   const handleUpdateChatError = useCallback((err: string | null) => {
     setChatError(err);
   }, []);
 
-  function filterMessage(target: chatMessage) {
-    setChatHistory((chatHistory) => {
-      return chatHistory.filter(msg => {
-        return msg._id 
-          || (msg.userId !== target.userId && msg.timeStamp !== target.timeStamp); 
-      })
-    });
-  }
-
-  useEffect(() => {
-    setChatLoading(true);
-    getChatHistory()
-      .then(verifySession)
-      .then(() => setChatLoading(false))
-      .catch(() => setChatLoading(false))
-
-    socket.on(serverEmiters.CHAT_MESSAGE_ERROR, (error: chatError) => {
-      filterMessage(error.message);
-      setChatError(error.errorMsg);
-    });
-
-    socket.on(serverEmiters.RECEIVE_CHAT_MESSAGE, handleUpdateChatHistory);
-
-    return () => {
-      socket.off(serverEmiters.RECEIVE_CHAT_MESSAGE);
-      socket.off(serverEmiters.CHAT_MESSAGE_ERROR);
-    };
-  }, [ isConnected ]);
-
+  const handleUpdateChat = useCallback(
+    Throttle(async () => {
+      if (!hasAllMessagesRef.current) {
+        const chatContainer = chatContainerRef?.current;
+        if (!chatContainer){
+          return 
+        };
+        await getNextMessages(chatOldestMessageRef.current);
+      }
+    }, 800),
+    []
+  );
 
   async function getChatHistory(): Promise<void>{
     try {
@@ -103,12 +104,31 @@ export function Chat(): JSX.Element{
     };
   };
 
+  async function getNextMessages(lastMessage: chatMessage | undefined): Promise<void> {
+    try {
+      if (!lastMessage?._id) {
+        return;
+      }
+      const res = await fetch(`/api/chatMessageRange?startId=${lastMessage._id}&amount=${QUANT_UPDATE}`);
+      if (!res.ok) {
+        return;
+      };
+      const data = await res.json();
+      if (data.length === 0) {
+        hasAllMessagesRef.current = true;
+      } else {
+        setChatHistory((chatHistory) => [...data, ...chatHistory]);
+      }
+    } catch {
+      return;
+    };
+  }
 
   async function verifySession(): Promise<void>{
-
     const session = window.localStorage.getItem('sessionJwt');
-    if (!session) return;
-
+    if (!session) {
+      return;
+    }
     try {
       const res = await fetch('/api/verifySession/', {
         method: 'GET',
@@ -126,6 +146,44 @@ export function Chat(): JSX.Element{
     };
   };
 
+  useEffect(() => {
+    setChatLoading(true);
+    getChatHistory()
+      .then(verifySession)
+      .then(() => setChatLoading(false))
+      .catch(() => setChatLoading(false))
+    socket.on(serverEmiters.RECEIVE_CHAT_MESSAGE, handleUpdateChatHistory);
+    socket.on(serverEmiters.CHAT_MESSAGE_ERROR, (error: chatError) => {
+      filterMessage(error.message);
+      setChatError(error.errorMsg);
+    });
+    return () => {
+      socket.off(serverEmiters.RECEIVE_CHAT_MESSAGE);
+      socket.off(serverEmiters.CHAT_MESSAGE_ERROR);
+    };
+  }, [ isConnected ]);
+
+  useEffect(() => {
+    if (!hasAllMessagesRef.current) {
+      handleUpdateChat();
+    }
+  }, [ chatLength ]);
+
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.addEventListener('scroll', handleScroll);
+    }
+    return () => {
+      if (chatContainerRef.current) {
+        chatContainerRef.current.removeEventListener('scroll', handleScroll);
+      }
+    };
+  }, [ chatContainerRef ]);
+
+  useEffect(() => {
+    chatOldestMessageRef.current = chatHistory[0];
+    hasAllMessagesRef.current = false;
+  }, [ chatHistory ]);
 
   return(
     <div className={styles.outerChatContainer}>
@@ -139,25 +197,26 @@ export function Chat(): JSX.Element{
           />
           : null
         }
-        <div className={styles.chatContents} ref={chatContentsEl}>
+        <div className={styles.chatContents} ref={chatContainerRef}>
           {chatLoading
             ? <div className={styles.beatLoaderContainer}>
-                <BeatLoader
-                  size={13}
-                  color="#000000"
-                />
-              </div>
+              <BeatLoader
+                size={13}
+                color="#000000"
+              />
+            </div>
             : <div>
-                {chatHistory.map(m => 
-                  <Message
-                    key={uuid()}
+              {chatHistory.map(m => {
+                const key = m._id || m.message + m.timeStamp.toString() + m.userId;
+                 return <Message
+                    key={key}
                     message={m.message}
                     senderId={m.userId}
                     color={m.color}
                     userId={userId}
                   />
-                )}
-              </div>
+              })}
+            </div>
           }
         </div>
         {userId
@@ -166,7 +225,7 @@ export function Chat(): JSX.Element{
               userColor={userColor}
               setChatError={handleUpdateChatError}
               setChatHistory={handleUpdateChatHistory}
-              filterMessage={filterMessage}
+              mapMessage={mapMessage}
             />
           : <div>
               <button
@@ -202,7 +261,7 @@ interface chatFormProps {
   userColor: string;
   setChatError: (err: string | null) => void;
   setChatHistory: (mesage: chatMessage) => void;
-  filterMessage: (message: chatMessage) => void;
+  mapMessage: (message: chatMessage) => void;
 };
 
 const ChatMessageForm = memo(({
@@ -210,7 +269,7 @@ const ChatMessageForm = memo(({
   userColor,
   setChatError,
   setChatHistory,
-  filterMessage,
+  mapMessage,
 }: chatFormProps): JSX.Element => {
 
     const { socket } = useContext(SocketContext);
@@ -220,11 +279,10 @@ const ChatMessageForm = memo(({
 
       if (!handleNewMessageChange) return;
       
-      //TODO: testing for errors..
-      // if (handleNewMessageChange.length > 800){
-      //   setChatError('Message cannot exceed 800 charaters.');
-      //   return;
-      // };
+      if (handleNewMessageChange.length > 800){
+        setChatError('Message cannot exceed 800 charaters.');
+        return;
+      };
 
       const sessionJwt = window.localStorage.getItem('sessionJwt');
 
@@ -247,8 +305,7 @@ const ChatMessageForm = memo(({
         clientEmiters.CHAT_MESSAGE, 
         newMessage, sessionJwt, 
         (updatedMessage: chatMessage) => {
-          filterMessage(newMessage);
-          setChatHistory(updatedMessage);
+          mapMessage(updatedMessage);
         });
 
       setHandleNewMessageChange('');
@@ -327,3 +384,4 @@ function Message({
     </div>
   );
 };
+

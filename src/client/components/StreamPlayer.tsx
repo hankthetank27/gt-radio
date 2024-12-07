@@ -50,7 +50,6 @@ export function StreamPlayer({
 
     if (audioElement.current){
       newHls.attachMedia(audioElement.current);
-      console.log(audioElement.current);
     };
 
     newHls.on(Hls.Events.MEDIA_ATTACHED, () => {

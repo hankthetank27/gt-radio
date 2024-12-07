@@ -1,5 +1,3 @@
-import { ObjectId } from "mongodb";
-
 export interface songInfo{
   post_id: string;
   title: string;
@@ -25,7 +23,7 @@ export interface streamProcessTracker {
 };
 
 export interface chatMessage{
-  _id: ObjectId | null; //null indicates sent and pendingm
+  _id: string | null; //null indicates sent and pending
   userId: string;
   message: string;
   timeStamp: Date;

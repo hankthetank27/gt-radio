@@ -6,17 +6,6 @@ import { stream } from "../controllers/stream"
 
 export const apiRouter = express.Router()
 
-  .get('/chatHistory', 
-    async (req, res, next) => {
-      const hist = await chat.getHistory(req.app.locals.gtdb);
-      if (!hist) {
-        return next();
-      } else {
-        return res.json(hist);
-      }
-    }
-  )
-
   .post('/createUser', 
     auth.createNewUser,
     auth.setJwt, 
@@ -83,6 +72,22 @@ export const apiRouter = express.Router()
     (_, res) => res.json({
       posts: res.locals.selectedPosts
     })
+  )
+
+  .get('/chatHistory', 
+    async (req, res, next) => {
+      const hist = await chat.getHistory(req.app.locals.gtdb);
+      if (!hist) {
+        return next("Error");
+      } else {
+        return res.json(hist);
+      }
+    }
+  )
+
+  .get("/chatMessageRange", 
+    chat.getMessageRange,
+    (_, res) => res.json(res.locals.messages)
   );
 
 export const streamRouter = express.Router()
