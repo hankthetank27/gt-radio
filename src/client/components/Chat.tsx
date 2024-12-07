@@ -14,13 +14,14 @@ import { Login, Logout } from "./Login";
 import { v4 as uuid } from "uuid";
 import TextareaAutosize from '@mui/base/TextareaAutosize';
 import { BeatLoader } from "react-spinners";
+import Throttle from "lodash.throttle";
 
+const QUANT_UPDATE = 25;
 
 export function Chat(): JSX.Element{
 
-  const chatContentsEl = useRef<HTMLDivElement>(null);
-
   const { socket, isConnected } = useContext(SocketContext);
+  const [ chatLength, setChatLength ] = useState(100);
   const [ userId, setUserId ] = useState<string>('');
   const [ userColor, setUserColor ] = useState<string>("#4955af")
   const [ chatHistory, setChatHistory ] = useState<chatMessage[]>([]);
@@ -28,57 +29,106 @@ export function Chat(): JSX.Element{
   const [ displayLoginWindow, setDisplayLoginWindow ] = useState<boolean>(false);
   const [ chatLoading, setChatLoading ] = useState<boolean>(false);
 
-  const handleUpdateChatHistory = useCallback((message: chatMessage) => {
-    setChatHistory(hist => [...hist, message])
-  }, []);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const chatOldestMessageRef = useRef(chatHistory[0]);
+  const hasAllMessagesRef = useRef(false);
+
+  function filterMessage(target: chatMessage) {
+    setChatHistory((chatHistory) => {
+      return chatHistory.filter(msg => 
+         msg._id || (msg.userId !== target.userId && msg.timeStamp !== target.timeStamp)
+      )
+    });
+  }
+
+  function mapMessage(target: chatMessage) {
+    setChatHistory((chatHistory) => {
+      return chatHistory.map(msg => 
+         msg._id || (msg.userId !== target.userId && msg.timeStamp !== target.timeStamp)
+          ? msg
+          : target
+      )
+    });
+  }
+  
+  function handleScroll() {
+    if (chatContainerRef.current && !hasAllMessagesRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+      if (Math.abs(scrollTop) + clientHeight >= scrollHeight - 1) {
+        setChatLength((prevLength) => prevLength + QUANT_UPDATE);
+      }
+    }
+  };
+
+  const handleUpdateChatHistory = (newMessage: chatMessage) => {
+    setChatHistory((chatHistory) => {
+      if (chatHistory.length >= chatLength) {
+        const newChat = chatHistory.slice(1);
+        newChat.push(newMessage);
+        return newChat;
+      } else {
+        return [...chatHistory, newMessage];
+      }
+    });
+  }
 
   const handleUpdateChatError = useCallback((err: string | null) => {
     setChatError(err);
   }, []);
 
-  useEffect(() => {
-    setChatLoading(true);
-    getChatHistory()
-      .then(verifySession)
-      .then(() => setChatLoading(false))
-      .catch(() => setChatLoading(false))
-
-    socket.on(serverEmiters.CHAT_MESSAGE_ERROR, (error: chatError) => {
-      console.error(error);
-      setChatHistory(error.messages);
-      setChatError(error.errorMsg);
-    });
-
-    socket.on(serverEmiters.RECEIVE_CHAT_MESSAGE, (messages: chatMessage[]) => {
-      setChatHistory(messages);
-    });
-
-    return () => {
-      socket.off(serverEmiters.RECEIVE_CHAT_MESSAGE);
-      socket.off(serverEmiters.CHAT_MESSAGE_ERROR);
-    };
-  }, [ isConnected ]);
-
+  const handleUpdateChat = useCallback(
+    Throttle(async () => {
+      if (!hasAllMessagesRef.current) {
+        const chatContainer = chatContainerRef?.current;
+        if (!chatContainer){
+          return 
+        };
+        await getNextMessages(chatOldestMessageRef.current);
+      }
+    }, 800),
+    []
+  );
 
   async function getChatHistory(): Promise<void>{
     try {
       const res = await fetch('/api/chatHistory');
-      if (!res.ok) return;
+      if (!res.ok) {
+        setChatError('Could not get chat history');
+        return;
+      };
       const data = await res.json();
       setChatHistory(data);
-
     } catch (err) {
       setChatError('Could not connect to server :(');
       console.error(`Error fetching chat history: ${err}`)
     };
   };
 
+  async function getNextMessages(lastMessage: chatMessage | undefined): Promise<void> {
+    try {
+      if (!lastMessage?._id) {
+        return;
+      }
+      const res = await fetch(`/api/chatMessageRange?startId=${lastMessage._id}&amount=${QUANT_UPDATE}`);
+      if (!res.ok) {
+        return;
+      };
+      const data = await res.json();
+      if (data.length === 0) {
+        hasAllMessagesRef.current = true;
+      } else {
+        setChatHistory((chatHistory) => [...data, ...chatHistory]);
+      }
+    } catch {
+      return;
+    };
+  }
 
   async function verifySession(): Promise<void>{
-
     const session = window.localStorage.getItem('sessionJwt');
-    if (!session) return;
-
+    if (!session) {
+      return;
+    }
     try {
       const res = await fetch('/api/verifySession/', {
         method: 'GET',
@@ -96,6 +146,44 @@ export function Chat(): JSX.Element{
     };
   };
 
+  useEffect(() => {
+    setChatLoading(true);
+    getChatHistory()
+      .then(verifySession)
+      .then(() => setChatLoading(false))
+      .catch(() => setChatLoading(false))
+    socket.on(serverEmiters.RECEIVE_CHAT_MESSAGE, handleUpdateChatHistory);
+    socket.on(serverEmiters.CHAT_MESSAGE_ERROR, (error: chatError) => {
+      filterMessage(error.message);
+      setChatError(error.errorMsg);
+    });
+    return () => {
+      socket.off(serverEmiters.RECEIVE_CHAT_MESSAGE);
+      socket.off(serverEmiters.CHAT_MESSAGE_ERROR);
+    };
+  }, [ isConnected ]);
+
+  useEffect(() => {
+    if (!hasAllMessagesRef.current) {
+      handleUpdateChat();
+    }
+  }, [ chatLength ]);
+
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.addEventListener('scroll', handleScroll);
+    }
+    return () => {
+      if (chatContainerRef.current) {
+        chatContainerRef.current.removeEventListener('scroll', handleScroll);
+      }
+    };
+  }, [ chatContainerRef ]);
+
+  useEffect(() => {
+    chatOldestMessageRef.current = chatHistory[0];
+    hasAllMessagesRef.current = false;
+  }, [ chatHistory ]);
 
   return(
     <div className={styles.outerChatContainer}>
@@ -109,25 +197,26 @@ export function Chat(): JSX.Element{
           />
           : null
         }
-        <div className={styles.chatContents} ref={chatContentsEl}>
+        <div className={styles.chatContents} ref={chatContainerRef}>
           {chatLoading
             ? <div className={styles.beatLoaderContainer}>
-                <BeatLoader
-                  size={13}
-                  color="#000000"
-                />
-              </div>
+              <BeatLoader
+                size={13}
+                color="#000000"
+              />
+            </div>
             : <div>
-                {chatHistory.map(m => 
-                  <Message
-                    key={uuid()}
+              {chatHistory.map(m => {
+                const key = m._id || m.message + m.timeStamp.toString() + m.userId;
+                 return <Message
+                    key={key}
                     message={m.message}
                     senderId={m.userId}
                     color={m.color}
                     userId={userId}
                   />
-                )}
-              </div>
+              })}
+            </div>
           }
         </div>
         {userId
@@ -136,6 +225,7 @@ export function Chat(): JSX.Element{
               userColor={userColor}
               setChatError={handleUpdateChatError}
               setChatHistory={handleUpdateChatHistory}
+              mapMessage={mapMessage}
             />
           : <div>
               <button
@@ -167,10 +257,11 @@ export function Chat(): JSX.Element{
 
 
 interface chatFormProps {
-  userId: string
-  userColor: string
-  setChatError: (err: string | null) => void
-  setChatHistory: (mesage: chatMessage) => void
+  userId: string;
+  userColor: string;
+  setChatError: (err: string | null) => void;
+  setChatHistory: (mesage: chatMessage) => void;
+  mapMessage: (message: chatMessage) => void;
 };
 
 const ChatMessageForm = memo(({
@@ -178,76 +269,84 @@ const ChatMessageForm = memo(({
   userColor,
   setChatError,
   setChatHistory,
+  mapMessage,
 }: chatFormProps): JSX.Element => {
 
-  const { socket } = useContext(SocketContext);
-  const [ handleNewMessageChange, setHandleNewMessageChange ] = useState<string>('');
+    const { socket } = useContext(SocketContext);
+    const [ handleNewMessageChange, setHandleNewMessageChange ] = useState<string>('');
 
-  function submitMessage(): void{
+    function submitMessage(): void{
 
-    if (!handleNewMessageChange) return;
-    if (handleNewMessageChange.length > 800){
-      setChatError('Message cannot exceed 800 charaters.');
-      return;
+      if (!handleNewMessageChange) return;
+      
+      if (handleNewMessageChange.length > 800){
+        setChatError('Message cannot exceed 800 charaters.');
+        return;
+      };
+
+      const sessionJwt = window.localStorage.getItem('sessionJwt');
+
+      if (!sessionJwt){
+        setChatError('You are not logged in.')
+      };
+
+      setChatError(null);
+
+      const newMessage = {
+        _id: null,
+        userId: userId,
+        message: handleNewMessageChange,
+        timeStamp: new Date(),
+        color: userColor
+      };
+
+      setChatHistory(newMessage);
+      socket.emit(
+        clientEmiters.CHAT_MESSAGE, 
+        newMessage, sessionJwt, 
+        (updatedMessage: chatMessage) => {
+          mapMessage(updatedMessage);
+        });
+
+      setHandleNewMessageChange('');
     };
 
-    const sessionJwt = window.localStorage.getItem('sessionJwt');
-
-    if (!sessionJwt){
-      setChatError('You are not logged in.')
-    };
-
-    setChatError(null);
-
-    const newMessage = {
-      userId: userId,
-      message: handleNewMessageChange,
-      timeStamp: new Date(),
-      color: userColor
-    };
-    
-    setChatHistory(newMessage);
-    socket.emit(clientEmiters.CHAT_MESSAGE, newMessage, sessionJwt);
-
-    setHandleNewMessageChange('');
-  };
-
-  return (
-    <form 
-      className={styles.msgForm} 
-      onSubmit={e => {
-        e.preventDefault();
-        submitMessage();
-      }}
-    >
-      <TextareaAutosize
-        autoFocus
-        className={styles.msgFormInput}
-        value={handleNewMessageChange} 
-        maxRows={4}
-        onKeyDown={e => {
-          if (e.key === "Enter" && e.shiftKey === false){
-            e.preventDefault();
-            submitMessage();
-          };
-        }}
-        onChange={e => {
-          setHandleNewMessageChange(e.target.value)
-        }}
-      />
-      <button 
-        id={styles.sendButton}
-        className="defaultButton"
+    return (
+      <form 
+        className={styles.msgForm} 
         onSubmit={e => {
           e.preventDefault();
           submitMessage();
         }}
       >
-        Send
-      </button>
-    </form>
-  );
-});
+        <TextareaAutosize
+          autoFocus
+          className={styles.msgFormInput}
+          value={handleNewMessageChange} 
+          maxRows={4}
+          onKeyDown={e => {
+            if (e.key === "Enter" && e.shiftKey === false){
+              e.preventDefault();
+              submitMessage();
+            };
+          }}
+          onChange={e => {
+            setHandleNewMessageChange(e.target.value)
+          }}
+        />
+        <button 
+          id={styles.sendButton}
+          className="defaultButton"
+          onSubmit={e => {
+            e.preventDefault();
+            submitMessage();
+          }}
+        >
+          Send
+        </button>
+      </form>
+    );
+  });
 
 
 interface messageProps{
@@ -285,3 +384,4 @@ function Message({
     </div>
   );
 };
+

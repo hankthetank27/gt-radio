@@ -23,6 +23,7 @@ export interface streamProcessTracker {
 };
 
 export interface chatMessage{
+  _id: string | null; //null indicates sent and pending
   userId: string;
   message: string;
   timeStamp: Date;
@@ -31,7 +32,7 @@ export interface chatMessage{
 
 export interface chatError{
   errorMsg: string;
-  messages: chatMessage[];
+  message: chatMessage;
 };
 
 export interface dbQueryFilters {
