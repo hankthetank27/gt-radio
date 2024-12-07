@@ -1,4 +1,4 @@
-import { chat } from "../db/chat";
+import { chat } from "../controllers/chat";
 import { Server } from "socket.io";
 import { chatMessage } from "../../@types";
 import { serverEmiters, clientEmiters } from "../../socketEvents";
@@ -15,11 +15,12 @@ export function registerWebsocketEvents(
 
   function emitChatError(
     recipient: string,
+    message: chatMessage,
     errorMsg: string
   ): void{
     io.to(recipient).emit(serverEmiters.CHAT_MESSAGE_ERROR, {
       errorMsg: errorMsg,
-      messages: chat.messages
+      message: message
     });
   };
 
@@ -41,11 +42,12 @@ export function registerWebsocketEvents(
     
     socket.on(
       clientEmiters.CHAT_MESSAGE, 
-      (message: chatMessage, token: string) => {
+      async (message: chatMessage, token: string, callback: (msg: chatMessage) => void) => {
         try {
           if (message.message.length > 800) {
             return emitChatError(
               socket.id,
+              message,
               'Message cannot exceed 800 charaters'
             );
           };
@@ -53,6 +55,7 @@ export function registerWebsocketEvents(
           if (!process.env.JWT_KEY) {
             return emitChatError(
               socket.id,
+              message,
               'Server error'
             );
           };
@@ -65,17 +68,26 @@ export function registerWebsocketEvents(
           if (username !== message.userId) {
             return emitChatError(
               socket.id, 
+              message,
               'Please login to post a message'
             );
           };
 
-          socket.broadcast.emit(
-            serverEmiters.RECEIVE_CHAT_MESSAGE, chat.addMessage(message, db)
-          );
+          const updatedMessage = await chat.addMessage(message, db);
+          if (!updatedMessage) {
+            return emitChatError(
+              socket.id, 
+              message,
+              'Unable to add message'
+            );
+          }
+          socket.broadcast.emit(serverEmiters.RECEIVE_CHAT_MESSAGE, updatedMessage);
+          callback(updatedMessage);
 
         } catch (err) {
           return emitChatError(
             socket.id, 
+            message,
             'Please login to post a message'
           );
         }

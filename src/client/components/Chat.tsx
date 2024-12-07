@@ -21,6 +21,7 @@ export function Chat(): JSX.Element{
   const chatContentsEl = useRef<HTMLDivElement>(null);
 
   const { socket, isConnected } = useContext(SocketContext);
+  const [ chatLength, setChatLength ] = useState(100);
   const [ userId, setUserId ] = useState<string>('');
   const [ userColor, setUserColor ] = useState<string>("#4955af")
   const [ chatHistory, setChatHistory ] = useState<chatMessage[]>([]);
@@ -28,13 +29,43 @@ export function Chat(): JSX.Element{
   const [ displayLoginWindow, setDisplayLoginWindow ] = useState<boolean>(false);
   const [ chatLoading, setChatLoading ] = useState<boolean>(false);
 
-  const handleUpdateChatHistory = useCallback((message: chatMessage) => {
-    setChatHistory(hist => [...hist, message])
+  //TODO: im pretty sure that these dont need useCallback anymore now that we keep the state in the client
+  const handleUpdateChatHistory = useCallback((newMessage: chatMessage) => {
+    setChatHistory((chatHistory) => {
+      if (chatHistory.length >= chatLength) {
+        const newChat = chatHistory.slice(1);
+        newChat.push(newMessage);
+        return newChat;
+      } else {
+        return [...chatHistory, newMessage];
+      }
+    });
   }, []);
+
+  // function handleUpdateChatHistory(newMessage: chatMessage) {
+  //   setChatHistory((chatHistory) => {
+  //     if (chatHistory.length >= chatLength) {
+  //       const newChat = chatHistory.slice(1);
+  //       newChat.push(newMessage);
+  //       return newChat;
+  //     } else {
+  //       return [...chatHistory, newMessage];
+  //     }
+  //   });
+  // };
 
   const handleUpdateChatError = useCallback((err: string | null) => {
     setChatError(err);
   }, []);
+
+  function filterMessage(target: chatMessage) {
+    setChatHistory((chatHistory) => {
+      return chatHistory.filter(msg => {
+        return msg._id 
+          || (msg.userId !== target.userId && msg.timeStamp !== target.timeStamp); 
+      })
+    });
+  }
 
   useEffect(() => {
     setChatLoading(true);
@@ -44,14 +75,11 @@ export function Chat(): JSX.Element{
       .catch(() => setChatLoading(false))
 
     socket.on(serverEmiters.CHAT_MESSAGE_ERROR, (error: chatError) => {
-      console.error(error);
-      setChatHistory(error.messages);
+      filterMessage(error.message);
       setChatError(error.errorMsg);
     });
 
-    socket.on(serverEmiters.RECEIVE_CHAT_MESSAGE, (messages: chatMessage[]) => {
-      setChatHistory(messages);
-    });
+    socket.on(serverEmiters.RECEIVE_CHAT_MESSAGE, handleUpdateChatHistory);
 
     return () => {
       socket.off(serverEmiters.RECEIVE_CHAT_MESSAGE);
@@ -63,10 +91,12 @@ export function Chat(): JSX.Element{
   async function getChatHistory(): Promise<void>{
     try {
       const res = await fetch('/api/chatHistory');
-      if (!res.ok) return;
+      if (!res.ok) {
+        setChatError('Could not get chat history');
+        return;
+      };
       const data = await res.json();
       setChatHistory(data);
-
     } catch (err) {
       setChatError('Could not connect to server :(');
       console.error(`Error fetching chat history: ${err}`)
@@ -136,6 +166,7 @@ export function Chat(): JSX.Element{
               userColor={userColor}
               setChatError={handleUpdateChatError}
               setChatHistory={handleUpdateChatHistory}
+              filterMessage={filterMessage}
             />
           : <div>
               <button
@@ -167,10 +198,11 @@ export function Chat(): JSX.Element{
 
 
 interface chatFormProps {
-  userId: string
-  userColor: string
-  setChatError: (err: string | null) => void
-  setChatHistory: (mesage: chatMessage) => void
+  userId: string;
+  userColor: string;
+  setChatError: (err: string | null) => void;
+  setChatHistory: (mesage: chatMessage) => void;
+  filterMessage: (message: chatMessage) => void;
 };
 
 const ChatMessageForm = memo(({
@@ -178,76 +210,86 @@ const ChatMessageForm = memo(({
   userColor,
   setChatError,
   setChatHistory,
+  filterMessage,
 }: chatFormProps): JSX.Element => {
 
-  const { socket } = useContext(SocketContext);
-  const [ handleNewMessageChange, setHandleNewMessageChange ] = useState<string>('');
+    const { socket } = useContext(SocketContext);
+    const [ handleNewMessageChange, setHandleNewMessageChange ] = useState<string>('');
 
-  function submitMessage(): void{
+    function submitMessage(): void{
 
-    if (!handleNewMessageChange) return;
-    if (handleNewMessageChange.length > 800){
-      setChatError('Message cannot exceed 800 charaters.');
-      return;
+      if (!handleNewMessageChange) return;
+      
+      //TODO: testing for errors..
+      // if (handleNewMessageChange.length > 800){
+      //   setChatError('Message cannot exceed 800 charaters.');
+      //   return;
+      // };
+
+      const sessionJwt = window.localStorage.getItem('sessionJwt');
+
+      if (!sessionJwt){
+        setChatError('You are not logged in.')
+      };
+
+      setChatError(null);
+
+      const newMessage = {
+        _id: null,
+        userId: userId,
+        message: handleNewMessageChange,
+        timeStamp: new Date(),
+        color: userColor
+      };
+
+      setChatHistory(newMessage);
+      socket.emit(
+        clientEmiters.CHAT_MESSAGE, 
+        newMessage, sessionJwt, 
+        (updatedMessage: chatMessage) => {
+          filterMessage(newMessage);
+          setChatHistory(updatedMessage);
+        });
+
+      setHandleNewMessageChange('');
     };
 
-    const sessionJwt = window.localStorage.getItem('sessionJwt');
-
-    if (!sessionJwt){
-      setChatError('You are not logged in.')
-    };
-
-    setChatError(null);
-
-    const newMessage = {
-      userId: userId,
-      message: handleNewMessageChange,
-      timeStamp: new Date(),
-      color: userColor
-    };
-    
-    setChatHistory(newMessage);
-    socket.emit(clientEmiters.CHAT_MESSAGE, newMessage, sessionJwt);
-
-    setHandleNewMessageChange('');
-  };
-
-  return (
-    <form 
-      className={styles.msgForm} 
-      onSubmit={e => {
-        e.preventDefault();
-        submitMessage();
-      }}
-    >
-      <TextareaAutosize
-        autoFocus
-        className={styles.msgFormInput}
-        value={handleNewMessageChange} 
-        maxRows={4}
-        onKeyDown={e => {
-          if (e.key === "Enter" && e.shiftKey === false){
-            e.preventDefault();
-            submitMessage();
-          };
-        }}
-        onChange={e => {
-          setHandleNewMessageChange(e.target.value)
-        }}
-      />
-      <button 
-        id={styles.sendButton}
-        className="defaultButton"
+    return (
+      <form 
+        className={styles.msgForm} 
         onSubmit={e => {
           e.preventDefault();
           submitMessage();
         }}
       >
-        Send
-      </button>
-    </form>
-  );
-});
+        <TextareaAutosize
+          autoFocus
+          className={styles.msgFormInput}
+          value={handleNewMessageChange} 
+          maxRows={4}
+          onKeyDown={e => {
+            if (e.key === "Enter" && e.shiftKey === false){
+              e.preventDefault();
+              submitMessage();
+            };
+          }}
+          onChange={e => {
+            setHandleNewMessageChange(e.target.value)
+          }}
+        />
+        <button 
+          id={styles.sendButton}
+          className="defaultButton"
+          onSubmit={e => {
+            e.preventDefault();
+            submitMessage();
+          }}
+        >
+          Send
+        </button>
+      </form>
+    );
+  });
 
 
 interface messageProps{
