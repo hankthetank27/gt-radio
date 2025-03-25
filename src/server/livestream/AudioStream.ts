@@ -9,8 +9,10 @@ import { serverEmiters } from '../../socketEvents';
 import { Server } from 'socket.io';
 import { SongDocument } from '../../@types';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { initBskBot, postSongToBsky } from '../bluesky-bot/bskybot';
 // @ts-ignore
 import { Parser as m3u8Parser } from 'm3u8-parser';
+import { AtpAgent } from '@atproto/api';
 
 export const TEARDOWN_STREAM = 'teardownStream';
 const HLS_TIME = 4;
@@ -21,6 +23,7 @@ export class AudioStream extends EventEmitter{
   #currentlyPlaying: SongDocument | null;
   #ffmpegCmd?: ffmpeg.FfmpegCommand;
   s3Client: S3Client;
+  bskyAgent: AtpAgent | undefined;
   readonly db: Db
   readonly streamName: string;
   readonly hlsMediaPath: string;
@@ -38,6 +41,7 @@ export class AudioStream extends EventEmitter{
     this.db = db;
     this.streamName = streamName;
     this.s3Client = new S3Client({ region: "us-east-1", });
+    this.bskyAgent = undefined;
     this.hlsMediaPath = path.resolve(
       __dirname, `../../../media/live/${streamName}/`
     );
@@ -57,6 +61,7 @@ export class AudioStream extends EventEmitter{
 
       await this._clearHlsSegments();
 
+      this.bskyAgent = await initBskBot();
       this.#isLive = true;
       this._queueAudio();
 
@@ -145,13 +150,16 @@ export class AudioStream extends EventEmitter{
     while (this.#isLive){
       try {
         const song = await this._selectRandomSong();
-
-        if (!song) continue;
-
+        if (!song) {
+          continue;
+        }
+        if (this.bskyAgent) {
+          postSongToBsky(this.bskyAgent, song);
+        }
         await this._pushSong(song);
-
-        if (!song.has_been_played) this._flagAsPlayed(song);
-
+        if (!song.has_been_played) {
+          this._flagAsPlayed(song);
+        }
       } catch (err){
         console.error(`Error queuing audio: ${err}`);
       };
